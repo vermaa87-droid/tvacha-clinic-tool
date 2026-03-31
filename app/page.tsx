@@ -10,10 +10,22 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 
-const testimonials = [
-  { name: "Dr. Sharma", location: "Delhi Clinic", text: "This platform has transformed how I manage cases. The AI pre-screening saves me hours daily, and the earning potential is fantastic." },
-  { name: "Dr. Patel", location: "Mumbai Medical Center", text: "The prescription templates alone are worth it. I see twice as many patients now without any drop in care quality." },
-  { name: "Dr. Singh", location: "Bangalore Healthcare", text: "Finally a tool built for Indian dermatologists. The case queue and analytics have completely changed my practice." },
+const highlights = [
+  {
+    stat: "5 Crore+",
+    label: "Training Images",
+    desc: "Deep learning engine trained on over 5 crore dermatological images from global datasets.",
+  },
+  {
+    stat: "5 Lakh+",
+    label: "Indian Skin Images",
+    desc: "Fine-tuned specifically on Indian skin tones (Fitzpatrick IV\u2013VI) for accurate diagnosis across all complexions.",
+  },
+  {
+    stat: "25+",
+    label: "Skin Conditions",
+    desc: "Covers the most common conditions seen in Indian OPDs \u2014 from tinea to psoriasis to acne.",
+  },
 ];
 
 export default function Home() {
@@ -80,39 +92,41 @@ export default function Home() {
       <FeaturesSection />
       <PricingSection />
 
-      {/* Testimonials Section */}
+      {/* AI & Technology Section */}
       <section className="py-20 bg-primary-50">
         <div className="max-w-7xl mx-auto px-8">
           <motion.h2
-            className="text-3xl font-serif font-bold text-text-primary text-center mb-12"
+            className="text-3xl font-serif font-bold text-text-primary text-center mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            Trusted by 800+ Doctors
+            Built for Indian Dermatology
           </motion.h2>
+          <motion.p
+            className="text-text-secondary text-center mb-12 text-lg font-light max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Our AI engine is purpose-built for the skin conditions and skin tones most common in Indian clinics.
+          </motion.p>
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
+            {highlights.map((h, i) => (
               <motion.div
                 key={i}
-                className="bg-surface border border-primary-200 rounded-lg p-6"
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                className="bg-surface border border-primary-200 rounded-lg p-6 text-center"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                transition={{ duration: 0.5, delay: i * 0.12, ease: "easeOut" }}
                 whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(26,22,18,0.08)" }}
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <span key={j} className="text-primary-500">★</span>
-                  ))}
-                </div>
-                <p className="text-text-secondary mb-4">&ldquo;{t.text}&rdquo;</p>
-                <div>
-                  <p className="font-semibold text-text-primary">{t.name}</p>
-                  <p className="text-sm text-text-muted">{t.location}</p>
-                </div>
+                <p className="text-4xl font-bold text-primary-500 mb-1">{h.stat}</p>
+                <p className="font-semibold text-text-primary mb-3">{h.label}</p>
+                <p className="text-text-secondary text-sm leading-relaxed">{h.desc}</p>
               </motion.div>
             ))}
           </div>

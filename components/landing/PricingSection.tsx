@@ -135,21 +135,21 @@ export function PricingSection() {
         >
           <div>
             <p className="text-4xl font-bold text-primary-500">
-              <CountUp target={800} suffix="+" />
+              <CountUp target={25} suffix="+" />
             </p>
-            <p className="text-text-secondary mt-2">Active Doctors</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-primary-500">
-              <CountUp target={50} suffix="k+" />
-            </p>
-            <p className="text-text-secondary mt-2">Cases Reviewed</p>
+            <p className="text-text-secondary mt-2">Skin Conditions Covered</p>
           </div>
           <div>
             <p className="text-4xl font-bold text-primary-500">
               <CountUp target={14} suffix=" days" />
             </p>
             <p className="text-text-secondary mt-2">Free Trial</p>
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-primary-500">
+              <CountUp target={5} suffix=" Cr+" />
+            </p>
+            <p className="text-text-secondary mt-2">AI Training Images</p>
           </div>
         </motion.div>
       </div>
