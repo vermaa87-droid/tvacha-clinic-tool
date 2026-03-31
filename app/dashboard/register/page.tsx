@@ -823,8 +823,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="border-b border-primary-200">
-        <nav className="flex gap-0 -mb-px">
+      <div className="border-b border-primary-200 overflow-x-auto">
+        <nav className="flex gap-0 -mb-px whitespace-nowrap">
           {TABS.map((tab) => (
             <button
               key={tab.key}

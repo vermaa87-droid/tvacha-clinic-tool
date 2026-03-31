@@ -104,7 +104,7 @@ export function Footer() {
         </div>
         <div className="border-t border-primary-200 pt-8 text-center">
           <p className="text-text-secondary text-sm">
-            &copy; 2026 Tvacha Clinic Tool by NIDAAN. All rights reserved.
+            &copy; 2026 Tvacha Clinic Tool. All rights reserved.
           </p>
         </div>
       </div>

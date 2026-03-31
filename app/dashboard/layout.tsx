@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const { user, doctor, loading, initialized } = useAuthStore();
   const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (initialized && !loading && !user) {
@@ -40,11 +41,19 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-primary-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col ml-64">
-        <TopBar doctorName={doctor?.full_name} />
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+      <div className="flex-1 flex flex-col md:ml-64">
+        <TopBar
+          doctorName={doctor?.full_name}
+          onMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
+        />
         <div className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-8 py-8">{children}</div>
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+            {children}
+          </div>
         </div>
       </div>
     </div>

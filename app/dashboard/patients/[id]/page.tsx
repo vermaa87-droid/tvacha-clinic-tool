@@ -535,10 +535,10 @@ export default function PatientDetailPage({
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <main className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] overflow-hidden">
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
-        className="w-72 shrink-0 border-r border-primary-200 overflow-y-auto"
+        className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 overflow-y-auto"
         style={{ backgroundColor: "#f5f2ed" }}
       >
         <div className="p-6 space-y-5">
@@ -726,10 +726,10 @@ export default function PatientDetailPage({
       </aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {/* Tabs */}
-        <div className="border-b border-primary-200 bg-primary-50 sticky top-0 z-10">
-          <div className="flex gap-0 overflow-x-auto px-6">
+        <div className="border-b border-primary-200 bg-primary-50 sticky top-0 z-10 overflow-x-auto">
+          <div className="flex gap-0 overflow-x-auto px-4 md:px-6 whitespace-nowrap">
             {TABS.map((tab) => (
               <button
                 key={tab.key}
