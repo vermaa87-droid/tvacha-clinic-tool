@@ -8,7 +8,10 @@ import { AuthProvider } from "@/components/AuthProvider";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Tvacha Clinic - Intelligent Dermatology Infrastructure",
+  title: {
+    default: "Tvacha Clinic Tool",
+    template: "%s | Tvacha Clinic Tool",
+  },
   description: "AI pre-screening, patient management, and analytics for dermatologists and GP clinics",
 };
 
