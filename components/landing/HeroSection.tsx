@@ -105,14 +105,20 @@ export function HeroSection() {
               </motion.div>
             </motion.div>
 
-            <motion.p
-              className="text-text-muted text-sm mt-6"
+            <motion.div
+              className="flex flex-wrap items-center gap-4 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 1.3 }}
             >
-              2 weeks free trial • No credit card required
-            </motion.p>
+              <p className="text-text-muted text-sm">2 weeks free trial • No credit card required</p>
+              <Link
+                href="/how-it-works"
+                className="text-sm text-primary-500 hover:text-primary-600 font-medium underline underline-offset-4 transition-colors"
+              >
+                How our AI works →
+              </Link>
+            </motion.div>
           </div>
 
           <motion.div

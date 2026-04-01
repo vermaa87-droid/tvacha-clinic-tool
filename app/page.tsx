@@ -58,7 +58,7 @@ export default function Home() {
             <Logo />
           </motion.div>
           <div className="flex items-center gap-6">
-            {["Pricing", "Sign In"].map((label, i) => (
+            {["How Our AI Works", "Pricing", "Sign In"].map((label, i) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: -10 }}
@@ -66,8 +66,8 @@ export default function Home() {
                 transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
               >
                 <Link
-                  href={label === "Pricing" ? "/pricing" : "/login"}
-                  className="text-text-secondary hover:text-text-primary font-medium transition-colors"
+                  href={label === "Pricing" ? "/pricing" : label === "Sign In" ? "/login" : "/how-it-works"}
+                  className="text-text-secondary hover:text-text-primary font-medium transition-colors hidden md:block"
                 >
                   {label}
                 </Link>
