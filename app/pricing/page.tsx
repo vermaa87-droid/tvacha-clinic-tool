@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/layout/Footer";
 import { Logo } from "@/components/layout/Logo";
@@ -5,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 
 export default function PricingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const faqItems = [
     {
       q: "Can I cancel my subscription anytime?",
@@ -30,35 +36,77 @@ export default function PricingPage() {
 
   return (
     <main className="min-h-screen">
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/40 z-50 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              className="fixed top-0 right-0 h-full w-72 bg-primary-50 z-50 flex flex-col shadow-2xl md:hidden"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.25 }}
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b border-primary-200">
+                <span className="font-serif font-semibold text-text-primary">Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-text-primary">
+                  <X size={22} />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-1 px-4 py-6">
+                {[
+                  { label: "Home", href: "/" },
+                  { label: "Sign In", href: "/login" },
+                ].map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-primary-100 rounded-lg font-medium transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <div className="mt-4 px-4">
+                  <Button className="w-full bg-primary-500 hover:bg-primary-600 text-white">
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
+                  </Button>
+                </div>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <nav className="bg-primary-50 border-b border-primary-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-text-secondary hover:text-text-primary font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              href="/login"
-              className="text-text-secondary hover:text-text-primary font-medium"
-            >
-              Sign In
-            </Link>
-            <Button
-              size="sm"
-              className="bg-primary-500 hover:bg-primary-600 text-white"
-            >
+          <div className="flex items-center gap-4 md:gap-6">
+            <Link href="/" className="text-text-secondary hover:text-text-primary font-medium hidden md:block">Home</Link>
+            <Link href="/login" className="text-text-secondary hover:text-text-primary font-medium hidden md:block">Sign In</Link>
+            <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white hidden md:inline-flex">
               <Link href="/signup">Get Started</Link>
             </Button>
+            <button
+              className="md:hidden p-2 text-text-secondary hover:text-text-primary"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
           </div>
         </div>
       </nav>
 
       <section className="py-20 bg-primary-50">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-serif font-bold text-text-primary mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-text-primary mb-4">
             Pricing
           </h1>
           <p className="text-xl text-text-secondary font-light">
@@ -71,12 +119,12 @@ export default function PricingPage() {
 
       {/* Comparison Section */}
       <section className="py-20 bg-primary-50">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-serif font-bold text-text-primary text-center mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Why Choose Tvacha Clinic?
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-primary-200">
                   <th className="text-left py-4 px-4 font-semibold text-text-primary">
@@ -153,8 +201,8 @@ export default function PricingPage() {
 
       {/* What's included */}
       <section className="py-20 bg-primary-100">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <h2 className="text-4xl font-serif font-bold text-text-primary mb-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary mb-4">
             Everything in One Platform
           </h2>
           <p className="text-xl text-text-secondary font-light mb-12">
@@ -177,15 +225,15 @@ export default function PricingPage() {
 
       {/* FAQ Section */}
       <section className="py-20 bg-primary-50">
-        <div className="max-w-4xl mx-auto px-8">
-          <h2 className="text-4xl font-serif font-bold text-text-primary text-center mb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">
             {faqItems.map((item, idx) => (
               <details
                 key={idx}
-                className="border border-primary-200 rounded-lg p-6 cursor-pointer group"
+                className="border border-primary-200 rounded-lg p-4 md:p-6 cursor-pointer group"
               >
                 <summary className="font-semibold text-text-primary text-lg flex justify-between items-center">
                   {item.q}
@@ -202,8 +250,8 @@ export default function PricingPage() {
 
       {/* Final CTA */}
       <section className="py-20 bg-primary-500 text-white">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <h2 className="text-4xl font-serif font-bold mb-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-xl mb-8 opacity-90">

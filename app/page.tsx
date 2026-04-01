@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -32,6 +33,7 @@ const highlights = [
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function Home() {
           boxShadow: scrolled ? "0 1px 20px rgba(26,22,18,0.04)" : "none",
         }}
       >
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -90,13 +92,70 @@ export default function Home() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white">
+              <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white hidden md:inline-flex">
                 <Link href="/signup">{t("nav_getstarted")}</Link>
               </Button>
             </motion.div>
+            <button
+              className="md:hidden p-2 text-text-secondary hover:text-text-primary"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
           </div>
         </div>
       </motion.nav>
+
+      {/* Mobile overlay menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/40 z-50 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              className="fixed top-0 right-0 h-full w-72 bg-primary-50 z-50 flex flex-col shadow-2xl md:hidden"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.25 }}
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b border-primary-200">
+                <span className="font-serif font-semibold text-text-primary">Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-text-primary">
+                  <X size={22} />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-1 px-4 py-6">
+                {[
+                  { label: t("nav_how_ai_works"), href: "/how-it-works" },
+                  { label: t("nav_pricing"), href: "/pricing" },
+                  { label: t("nav_signin"), href: "/login" },
+                ].map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-primary-100 rounded-lg font-medium transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <div className="mt-4 px-4">
+                  <Button className="w-full bg-primary-500 hover:bg-primary-600 text-white">
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>{t("nav_getstarted")}</Link>
+                  </Button>
+                </div>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <HeroSection />
       <FeaturesSection />
@@ -104,7 +163,7 @@ export default function Home() {
 
       {/* AI & Technology Section */}
       <section className="py-20 bg-primary-50">
-        <div className="max-w-7xl mx-auto px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <motion.h2
             className="text-3xl font-serif font-bold text-text-primary text-center mb-4"
             initial={{ opacity: 0, y: 30 }}
@@ -148,7 +207,7 @@ export default function Home() {
         <div className="float-element absolute top-8 right-16 w-32 h-32 rounded-full border border-white opacity-10" style={{ animationDelay: "1s" }} />
         <div className="float-element absolute bottom-8 left-16 w-20 h-20 rounded-full border border-white opacity-10" style={{ animationDelay: "3s" }} />
         <motion.div
-          className="max-w-4xl mx-auto px-8 text-center relative z-10"
+          className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center relative z-10"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
@@ -160,7 +219,7 @@ export default function Home() {
           <p className="text-xl mb-8 opacity-90">
             {t("cta_subtitle")}
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 size="lg"

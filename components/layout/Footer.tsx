@@ -9,8 +9,8 @@ export function Footer() {
 
   return (
     <footer className="bg-primary-50 border-t border-primary-200 mt-20">
-      <div className="max-w-7xl mx-auto px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-center md:text-left">
           <div>
             <h3 className="font-serif font-semibold text-lg text-text-primary mb-4">
               Tvacha Clinic Tool

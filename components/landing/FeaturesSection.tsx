@@ -18,7 +18,7 @@ export function FeaturesSection() {
 
   return (
     <section className="py-24 bg-primary-50">
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 40 }}
@@ -26,7 +26,7 @@ export function FeaturesSection() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <h2 className="text-4xl font-serif font-bold text-text-primary mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary mb-4">
             {t("features_title")}
           </h2>
           <p className="text-xl text-text-secondary font-light">

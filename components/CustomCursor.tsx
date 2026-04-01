@@ -10,6 +10,10 @@ export function CustomCursor() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Disable entirely on touch devices / small screens
+    const isTouch = window.matchMedia("(hover: none)").matches || window.innerWidth < 768;
+    if (isTouch) return;
+
     const onMove = (e: MouseEvent) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;

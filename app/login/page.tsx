@@ -38,17 +38,17 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <nav className="bg-primary-50 border-b border-primary-200">
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <LanguageToggle />
         </div>
       </nav>
 
-      <div className="flex-1 flex items-center justify-center px-8 py-20">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 md:px-8 py-8 md:py-20">
         <div className="w-full max-w-md">
           <Card>
             <CardHeader>
-              <h1 className="text-3xl font-serif font-bold text-text-primary">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary">
                 {t("login_title")}
               </h1>
               <p className="text-text-secondary mt-2">

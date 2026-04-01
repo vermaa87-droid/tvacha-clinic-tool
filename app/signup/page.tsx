@@ -117,7 +117,7 @@ export default function SignupPage() {
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div
-            className="w-full max-w-md rounded-2xl p-8 text-center space-y-5 mx-4"
+            className="w-full max-w-md rounded-2xl p-5 sm:p-8 text-center space-y-5 mx-4"
             style={{
               background: "#f5f2ed",
               border: "1px solid rgba(184,147,106,0.35)",
@@ -154,17 +154,17 @@ export default function SignupPage() {
       )}
 
       <nav className="bg-primary-50 border-b border-primary-200">
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <LanguageToggle />
         </div>
       </nav>
 
-      <div className="flex-1 flex items-center justify-center px-8 py-20">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 md:px-8 py-8 md:py-20">
         <div className="w-full max-w-2xl">
           <Card>
             <CardHeader>
-              <h1 className="text-3xl font-serif font-bold text-text-primary">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary">
                 {t("signup_title")}
               </h1>
               <p className="text-text-secondary mt-2">

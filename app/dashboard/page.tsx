@@ -262,7 +262,7 @@ export default function DashboardHome() {
     <main className="space-y-8">
       {/* Welcome Banner */}
       <div className="rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 p-6">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-text-primary">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-text-primary">
           {getGreeting()}, {displayName}
         </h1>
         <p className="text-text-secondary mt-2">
@@ -278,7 +278,7 @@ export default function DashboardHome() {
               <span className="text-text-secondary text-sm font-medium">{t("dash_total_patients")}</span>
               <Users className="text-primary-500" size={20} />
             </div>
-            <p className="text-3xl font-bold text-primary-500">{totalPatients}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{totalPatients}</p>
             <p className="text-text-muted text-xs">{t("dash_all_time")}</p>
           </CardBody>
         </Card>
@@ -289,7 +289,7 @@ export default function DashboardHome() {
               <span className="text-text-secondary text-sm font-medium">{t("dash_visits_today")}</span>
               <Activity className="text-primary-500" size={20} />
             </div>
-            <p className="text-3xl font-bold text-primary-500">{visitsToday}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{visitsToday}</p>
             <p className="text-text-muted text-xs">{t("dash_today")}</p>
           </CardBody>
         </Card>
@@ -300,7 +300,7 @@ export default function DashboardHome() {
               <span className="text-text-secondary text-sm font-medium">{t("dash_appointments_today")}</span>
               <Calendar className="text-primary-500" size={20} />
             </div>
-            <p className="text-3xl font-bold text-primary-500">{appointmentsToday}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{appointmentsToday}</p>
             <p className="text-text-muted text-xs">{t("dash_appointments_today_sub")}</p>
           </CardBody>
         </Card>
@@ -311,7 +311,7 @@ export default function DashboardHome() {
               <span className="text-text-secondary text-sm font-medium">{t("dash_followups_due")}</span>
               <CalendarPlus className="text-primary-500" size={20} />
             </div>
-            <p className="text-3xl font-bold text-primary-500">{followupsDueThisWeek}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{followupsDueThisWeek}</p>
             <p className="text-text-muted text-xs">{t("dash_followups_due_sub")}</p>
           </CardBody>
         </Card>

@@ -57,7 +57,7 @@ export function HeroSection() {
       <div className="float-element absolute bottom-32 left-24 w-8 h-8 rounded-full bg-primary-500 opacity-5" style={{ animationDelay: "2s" }} />
       <div className="float-element absolute top-1/3 right-8 w-24 h-24 rounded-full border border-primary-500 opacity-5" style={{ animationDelay: "4s" }} />
 
-      <div className="max-w-7xl mx-auto px-8 py-20 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-20 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div>
             <motion.div
@@ -71,7 +71,7 @@ export function HeroSection() {
 
             <TextReveal
               text={t("hero_title")}
-              className="text-5xl md:text-6xl font-serif font-bold text-text-primary mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-text-primary mb-6 leading-tight"
               delay={0.2}
             />
 
@@ -85,7 +85,7 @@ export function HeroSection() {
             </motion.p>
 
             <motion.div
-              className="flex gap-4"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", damping: 20, stiffness: 200, delay: 1.1 }}
@@ -153,7 +153,7 @@ export function HeroSection() {
               </div>
             </div>
 
-            <div className="absolute right-0 bottom-0 w-32 h-48 bg-surface border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-12 translate-y-12">
+            <div className="absolute right-0 bottom-0 w-32 h-48 bg-surface border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-12 translate-y-12 hidden md:block">
               <h4 className="text-xs font-semibold text-text-primary mb-3">My Patients</h4>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-center gap-2">

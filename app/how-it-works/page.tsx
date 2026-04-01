@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
 import { NeuralNetworkBackground } from "@/components/NeuralNetworkBackground";
@@ -18,6 +18,8 @@ import {
   ChevronDown,
   ChevronUp,
   Check,
+  Menu,
+  X,
 } from "lucide-react";
 
 type SectionData = {
@@ -268,7 +270,7 @@ function SectionCard({ section, index }: { section: SectionData; index: number }
       style={{ background: section.bgColor, borderColor: section.borderColor }}
       className="border rounded-xl overflow-hidden"
     >
-      <button className="w-full text-left p-6" onClick={() => setExpanded(!expanded)}>
+      <button className="w-full text-left p-4 md:p-6" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
             <div
@@ -301,7 +303,7 @@ function SectionCard({ section, index }: { section: SectionData; index: number }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25 }}
-          className="px-6 pb-6"
+          className="px-4 md:px-6 pb-4 md:pb-6"
         >
           <div className="space-y-2 pt-4" style={{ borderTop: `1px solid ${section.borderColor}` }}>
             {section.bullets.map((bullet, i) => (
@@ -319,26 +321,93 @@ function SectionCard({ section, index }: { section: SectionData; index: number }
 }
 
 export default function HowItWorksPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <main className="min-h-screen" style={{ background: "#f2efe9" }}>
+      {/* Mobile overlay menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/40 z-50 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              className="fixed top-0 right-0 h-full w-72 z-50 flex flex-col shadow-2xl md:hidden"
+              style={{ background: "#f5f2ed" }}
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.25 }}
+            >
+              <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #e8e0d0" }}>
+                <span className="font-serif font-semibold" style={{ color: "#1a1612" }}>Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-2" style={{ color: "#9a8a76" }}>
+                  <X size={22} />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-1 px-4 py-6">
+                {[
+                  { label: "How Our AI Works", href: "/how-it-works" },
+                  { label: "Pricing", href: "/pricing" },
+                  { label: "Sign In", href: "/login" },
+                ].map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-3 rounded-lg font-medium transition-colors"
+                    style={{ color: "#9a8a76" }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <div className="mt-4 px-4">
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-center text-sm font-semibold px-4 py-3 rounded-lg text-white transition-colors"
+                    style={{ background: "#b8936a" }}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Navbar */}
       <nav className="sticky top-0 z-40" style={{ background: "rgba(250,248,244,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e8e0d0" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <Link href="/pricing" className="font-medium transition-colors text-sm hidden md:block" style={{ color: "#9a8a76" }}>
               Pricing
             </Link>
-            <Link href="/login" className="font-medium transition-colors text-sm" style={{ color: "#9a8a76" }}>
+            <Link href="/login" className="font-medium transition-colors text-sm hidden md:block" style={{ color: "#9a8a76" }}>
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-white"
+              className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-white hidden md:block"
               style={{ background: "#b8936a" }}
             >
               Get Started
             </Link>
+            <button
+              className="md:hidden p-2"
+              style={{ color: "#9a8a76" }}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
           </div>
         </div>
       </nav>
@@ -362,7 +431,7 @@ export default function HowItWorksPage() {
                 >
                   <Brain size={14} /> Clinical-Grade AI
                 </div>
-                <h1 className="text-4xl md:text-5xl font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
                   How Our AI Works
                 </h1>
                 <p className="text-lg font-light leading-relaxed max-w-2xl mx-auto" style={{ color: "#9a8a76" }}>

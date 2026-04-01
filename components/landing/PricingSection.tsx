@@ -52,7 +52,7 @@ export function PricingSection() {
 
   return (
     <section className="py-24 bg-primary-100">
-      <div className="max-w-4xl mx-auto px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, x: -40 }}
@@ -60,7 +60,7 @@ export function PricingSection() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <h2 className="text-4xl font-serif font-bold text-text-primary mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary mb-4">
             {t("pricing_title")}
           </h2>
           <p className="text-xl text-text-secondary font-light">
@@ -86,7 +86,7 @@ export function PricingSection() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-5xl font-bold text-primary-500">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-500">
                     ₹<CountUp target={2000} />
                   </span>
                   <p className="text-text-secondary text-sm">{t("pricing_monthly")}</p>
@@ -100,7 +100,7 @@ export function PricingSection() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {features.map((feature, idx) => (
                   <motion.div
                     key={idx}
@@ -130,7 +130,7 @@ export function PricingSection() {
         </motion.div>
 
         <motion.div
-          className="mt-16 bg-surface border border-primary-200 rounded-lg p-8 grid grid-cols-3 gap-8 text-center"
+          className="mt-16 bg-surface border border-primary-200 rounded-lg p-6 md:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-center"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
