@@ -7,7 +7,9 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language-context";
 import { cn } from "@/lib/utils";
 
 const STATE_MEDICAL_COUNCILS = [
@@ -44,6 +46,7 @@ const STATE_MEDICAL_COUNCILS = [
 ];
 
 export default function SignupPage() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     doctorName: "",
     email: "",
@@ -74,15 +77,15 @@ export default function SignupPage() {
     setError("");
 
     if (!formData.stateMedicalCouncil) {
-      setError("Please select your State Medical Council.");
+      setError(t("signup_error_council"));
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("signup_error_password_match"));
       return;
     }
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("signup_error_password_length"));
       return;
     }
 
@@ -128,33 +131,32 @@ export default function SignupPage() {
               <span className="text-3xl">&#10003;</span>
             </div>
             <h2 className="text-2xl font-serif font-semibold text-text-primary">
-              Account Created!
+              {t("signup_success_title")}
             </h2>
             <p className="text-text-secondary text-sm leading-relaxed">
-              Your account has been created successfully. Please go to the login
-              page and sign in with your email and password.
+              {t("signup_success_msg")}
             </p>
             <p className="text-text-muted text-xs">
-              Your account will be verified within 24–48 hours after you log in.
+              {t("signup_success_verify")}
             </p>
             <Button
               size="lg"
               className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold"
               onClick={() => {
-                // Sign out in background, navigate immediately
                 useAuthStore.getState().signOut();
                 window.location.href = "/login";
               }}
             >
-              Go to Login
+              {t("signup_goto_login")}
             </Button>
           </div>
         </div>
       )}
 
       <nav className="bg-primary-50 border-b border-primary-200">
-        <div className="max-w-7xl mx-auto px-8 py-4">
+        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
           <Logo />
+          <LanguageToggle />
         </div>
       </nav>
 
@@ -163,10 +165,10 @@ export default function SignupPage() {
           <Card>
             <CardHeader>
               <h1 className="text-3xl font-serif font-bold text-text-primary">
-                Create Your Account
+                {t("signup_title")}
               </h1>
               <p className="text-text-secondary mt-2">
-                Join doctors using Tvacha Clinic — exclusively for licensed practitioners
+                {t("signup_subtitle")}
               </p>
             </CardHeader>
             <CardBody>
@@ -178,7 +180,7 @@ export default function SignupPage() {
                 )}
 
                 <Input
-                  label="Full Name (as registered with Medical Council)"
+                  label={t("signup_fullname")}
                   name="doctorName"
                   placeholder="Dr. Priya Sharma"
                   value={formData.doctorName}
@@ -188,7 +190,7 @@ export default function SignupPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input
-                    label="Email"
+                    label={t("signup_email")}
                     name="email"
                     type="email"
                     placeholder="dr.priya@clinic.com"
@@ -197,7 +199,7 @@ export default function SignupPage() {
                     required
                   />
                   <Input
-                    label="Phone Number"
+                    label={t("signup_phone")}
                     name="phone"
                     type="tel"
                     placeholder="+91 XXXXX XXXXX"
@@ -209,7 +211,7 @@ export default function SignupPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input
-                    label="Password"
+                    label={t("signup_password")}
                     name="password"
                     type="password"
                     placeholder="••••••••"
@@ -218,7 +220,7 @@ export default function SignupPage() {
                     required
                   />
                   <Input
-                    label="Confirm Password"
+                    label={t("signup_confirm_password")}
                     name="confirmPassword"
                     type="password"
                     placeholder="••••••••"
@@ -229,7 +231,7 @@ export default function SignupPage() {
                 </div>
 
                 <Input
-                  label="Qualifications"
+                  label={t("signup_qualifications")}
                   name="qualifications"
                   placeholder="MBBS, MD (Dermatology)"
                   value={formData.qualifications}
@@ -237,23 +239,22 @@ export default function SignupPage() {
                   required
                 />
 
-                {/* Registration — prominent section */}
                 <div className="border border-primary-300 rounded-lg p-4 bg-primary-50 space-y-4">
                   <p className="text-sm font-semibold text-text-primary">
-                    Medical Registration Details
+                    {t("signup_reg_details")}
                   </p>
                   <Input
-                    label="Medical Council Registration Number"
+                    label={t("signup_registration")}
                     name="registrationNumber"
                     placeholder="e.g. MCI/2010-0245 or DMC/R/2015/4521"
                     value={formData.registrationNumber}
                     onChange={handleChange}
-                    helpText="Your State Medical Council or NMC registration number. We verify this manually to ensure only licensed practitioners access the platform."
+                    helpText={t("signup_registration_help")}
                     required
                   />
                   <div className="w-full">
                     <label className="block text-sm font-medium text-text-primary mb-2">
-                      State Medical Council <span className="text-red-500">*</span>
+                      {t("signup_council")} <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="stateMedicalCouncil"
@@ -265,7 +266,7 @@ export default function SignupPage() {
                         !formData.stateMedicalCouncil && "text-text-muted"
                       )}
                     >
-                      <option value="" disabled>Select your medical council</option>
+                      <option value="" disabled>{t("signup_council_placeholder")}</option>
                       {STATE_MEDICAL_COUNCILS.map((council) => (
                         <option key={council} value={council}>{council}</option>
                       ))}
@@ -274,7 +275,7 @@ export default function SignupPage() {
                 </div>
 
                 <Input
-                  label="Clinic Name"
+                  label={t("signup_clinic_name")}
                   name="clinicName"
                   placeholder="Derma Care Clinic"
                   value={formData.clinicName}
@@ -284,7 +285,7 @@ export default function SignupPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input
-                    label="Clinic City"
+                    label={t("signup_clinic_city")}
                     name="clinicCity"
                     placeholder="Mumbai"
                     value={formData.clinicCity}
@@ -292,7 +293,7 @@ export default function SignupPage() {
                     required
                   />
                   <Input
-                    label="Clinic State"
+                    label={t("signup_clinic_state")}
                     name="clinicState"
                     placeholder="Maharashtra"
                     value={formData.clinicState}
@@ -304,13 +305,13 @@ export default function SignupPage() {
                 <div className="flex items-start gap-2">
                   <input type="checkbox" id="terms" className="mt-1" required />
                   <label htmlFor="terms" className="text-text-secondary text-sm">
-                    I agree to the{" "}
+                    {t("signup_agree")}{" "}
                     <Link href="/terms" className="text-primary-500 hover:text-primary-600">
-                      Terms of Service
+                      {t("signup_terms")}
                     </Link>{" "}
-                    and{" "}
+                    {t("signup_and")}{" "}
                     <Link href="/privacy" className="text-primary-500 hover:text-primary-600">
-                      Privacy Policy
+                      {t("signup_privacy")}
                     </Link>
                   </label>
                 </div>
@@ -321,22 +322,19 @@ export default function SignupPage() {
                   className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold mt-6"
                   size="lg"
                 >
-                  Create Account
+                  {t("signup_button")}
                 </Button>
 
                 <p className="text-text-muted text-xs text-center leading-relaxed">
-                  Verification typically takes 24–48 hours. We check your registration number against the National Medical Commission registry to protect patient safety.
+                  {t("signup_verification_note")}
                 </p>
               </form>
 
               <div className="mt-6 pt-6 border-t border-primary-200">
                 <p className="text-text-secondary text-center">
-                  Already have an account?{" "}
-                  <Link
-                    href="/login"
-                    className="text-primary-500 font-medium hover:text-primary-600"
-                  >
-                    Sign in
+                  {t("signup_have_account")}{" "}
+                  <Link href="/login" className="text-primary-500 font-medium hover:text-primary-600">
+                    {t("signup_signin")}
                   </Link>
                 </p>
               </div>

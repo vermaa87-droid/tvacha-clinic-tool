@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/language-context";
 
 const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
@@ -29,6 +30,7 @@ function TextReveal({ text, className, delay = 0 }: { text: string; className?: 
 }
 
 export function HeroSection() {
+  const { t } = useLanguage();
   const mockupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,7 +53,6 @@ export function HeroSection() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-primary-50 to-primary-100 flex items-center relative overflow-hidden">
-      {/* Floating decorative elements */}
       <div className="float-element absolute top-24 left-8 w-16 h-16 rounded-full border-2 border-primary-500 opacity-5" style={{ animationDelay: "0s" }} />
       <div className="float-element absolute bottom-32 left-24 w-8 h-8 rounded-full bg-primary-500 opacity-5" style={{ animationDelay: "2s" }} />
       <div className="float-element absolute top-1/3 right-8 w-24 h-24 rounded-full border border-primary-500 opacity-5" style={{ animationDelay: "4s" }} />
@@ -69,7 +70,7 @@ export function HeroSection() {
             </motion.div>
 
             <TextReveal
-              text="The Clinical Intelligence Platform for India's Dermatologists"
+              text={t("hero_title")}
               className="text-5xl md:text-6xl font-serif font-bold text-text-primary mb-6 leading-tight"
               delay={0.2}
             />
@@ -80,8 +81,7 @@ export function HeroSection() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
             >
-              AI pre-screening. Patient management. Prescription templates.
-              Clinic analytics. All for ₹2,000/month.
+              {t("hero_subtitle")}
             </motion.p>
 
             <motion.div
@@ -93,14 +93,14 @@ export function HeroSection() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="relative overflow-hidden rounded-lg">
                 <Button size="lg" className="bg-primary-500 hover:bg-primary-600 relative overflow-hidden group">
                   <Link href="/signup" className="flex items-center gap-2 relative z-10">
-                    Start Free Trial <ArrowRight size={20} />
+                    {t("hero_cta_trial")} <ArrowRight size={20} />
                   </Link>
                   <span className="absolute inset-0 bg-primary-700 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" size="lg" className="border-2 border-primary-500">
-                  See Demo
+                  {t("hero_cta_demo")}
                 </Button>
               </motion.div>
             </motion.div>
@@ -111,12 +111,12 @@ export function HeroSection() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 1.3 }}
             >
-              <p className="text-text-muted text-sm">2 weeks free trial • No credit card required</p>
+              <p className="text-text-muted text-sm">{t("hero_trial_note")}</p>
               <Link
                 href="/how-it-works"
                 className="text-sm text-primary-500 hover:text-primary-600 font-medium underline underline-offset-4 transition-colors"
               >
-                How our AI works →
+                {t("hero_how_ai")}
               </Link>
             </motion.div>
           </div>

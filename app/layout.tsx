@@ -4,6 +4,7 @@ import "./globals.css";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { CustomCursor } from "@/components/CustomCursor";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LanguageProvider } from "@/lib/language-context";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -22,13 +23,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className={outfit.className}>
-        <AuthProvider>
-          <SmoothScroll>
-            <CustomCursor />
-            {children}
-          </SmoothScroll>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <SmoothScroll>
+              <CustomCursor />
+              {children}
+            </SmoothScroll>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

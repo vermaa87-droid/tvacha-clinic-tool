@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Prescription } from "@/lib/types";
+import { useLanguage } from "@/lib/language-context";
 import Link from "next/link";
 import { Pencil, Plus, Phone } from "lucide-react";
 import {
@@ -101,11 +102,11 @@ interface AppointmentRow extends Record<string, unknown> {
 // ─── Tabs ──────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: "patients", label: "Patient Register" },
-  { key: "visits", label: "Visit Log" },
-  { key: "treatments", label: "Treatment Tracker" },
-  { key: "medications", label: "Medication Log" },
-  { key: "appointments", label: "Appointments" },
+  { key: "patients", labelKey: "register_tab_patients" as const },
+  { key: "visits", labelKey: "register_tab_visits" as const },
+  { key: "treatments", labelKey: "register_tab_treatments" as const },
+  { key: "medications", labelKey: "register_tab_medications" as const },
+  { key: "appointments", labelKey: "register_tab_appointments" as const },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -114,6 +115,7 @@ type TabKey = (typeof TABS)[number]["key"];
 
 export default function RegisterPage() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>("patients");
 
   // Loading states
@@ -818,8 +820,8 @@ export default function RegisterPage() {
     <main className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-serif font-bold text-text-primary">Clinic Register</h1>
-        <p className="text-text-muted mt-1">Manage patients, visits, treatments, medications, and appointments</p>
+        <h1 className="text-3xl font-serif font-bold text-text-primary">{t("register_title")}</h1>
+        <p className="text-text-muted mt-1">{t("register_subtitle")}</p>
       </div>
 
       {/* Tab Bar */}
@@ -835,7 +837,7 @@ export default function RegisterPage() {
                   : "text-text-muted hover:text-text-secondary hover:border-b-2 hover:border-primary-200"
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </nav>

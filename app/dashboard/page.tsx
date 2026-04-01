@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { format, formatDistanceToNow, endOfWeek, differenceInDays } from "date-fns";
+import { useLanguage } from "@/lib/language-context";
 
 interface ActivityItem {
   type: "patient" | "prescription" | "visit";
@@ -36,6 +37,7 @@ interface ActivityItem {
 
 export default function DashboardHome() {
   const { user, doctor } = useAuthStore();
+  const { t } = useLanguage();
   const [totalPatients, setTotalPatients] = useState(0);
   const [visitsToday, setVisitsToday] = useState(0);
   const [appointmentsToday, setAppointmentsToday] = useState(0);
@@ -273,44 +275,44 @@ export default function DashboardHome() {
         <Card>
           <CardBody className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">Total Patients</span>
+              <span className="text-text-secondary text-sm font-medium">{t("dash_total_patients")}</span>
               <Users className="text-primary-500" size={20} />
             </div>
             <p className="text-3xl font-bold text-primary-500">{totalPatients}</p>
-            <p className="text-text-muted text-xs">All time</p>
+            <p className="text-text-muted text-xs">{t("dash_all_time")}</p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">Visits Today</span>
+              <span className="text-text-secondary text-sm font-medium">{t("dash_visits_today")}</span>
               <Activity className="text-primary-500" size={20} />
             </div>
             <p className="text-3xl font-bold text-primary-500">{visitsToday}</p>
-            <p className="text-text-muted text-xs">Today</p>
+            <p className="text-text-muted text-xs">{t("dash_today")}</p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">Appointments</span>
+              <span className="text-text-secondary text-sm font-medium">{t("dash_appointments_today")}</span>
               <Calendar className="text-primary-500" size={20} />
             </div>
             <p className="text-3xl font-bold text-primary-500">{appointmentsToday}</p>
-            <p className="text-text-muted text-xs">Scheduled today</p>
+            <p className="text-text-muted text-xs">{t("dash_appointments_today_sub")}</p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">Follow-ups Due</span>
+              <span className="text-text-secondary text-sm font-medium">{t("dash_followups_due")}</span>
               <CalendarPlus className="text-primary-500" size={20} />
             </div>
             <p className="text-3xl font-bold text-primary-500">{followupsDueThisWeek}</p>
-            <p className="text-text-muted text-xs">This week</p>
+            <p className="text-text-muted text-xs">{t("dash_followups_due_sub")}</p>
           </CardBody>
         </Card>
       </div>
@@ -322,19 +324,19 @@ export default function DashboardHome() {
           <CardHeader>
             <div className="flex items-center justify-between w-full">
               <h3 className="text-lg font-serif font-semibold text-text-primary">
-                Today&apos;s Schedule
+                {t("dash_todays_schedule")}
               </h3>
               <Link
                 href="/dashboard/appointments"
                 className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1"
               >
-                View all <ChevronRight size={14} />
+                {t("dash_view_all")} <ChevronRight size={14} />
               </Link>
             </div>
           </CardHeader>
           <CardBody>
             <p className="text-sm font-medium text-text-secondary mb-3">
-              Patients Today: <span className="text-primary-500 font-bold">{appointmentsToday}</span>
+              {t("dash_patients_today")} <span className="text-primary-500 font-bold">{appointmentsToday}</span>
             </p>
             {todaySchedule.length > 0 ? (
               <div className="space-y-3">
@@ -365,14 +367,14 @@ export default function DashboardHome() {
             ) : (
               <div className="text-center py-10">
                 <Calendar className="mx-auto text-primary-200 mb-3" size={32} />
-                <p className="text-text-muted text-sm">No appointments today</p>
+                <p className="text-text-muted text-sm">{t("dash_no_appointments")}</p>
                 <Link href="/dashboard/appointments">
                   <Button
                     variant="outline"
                     size="sm"
                     className="border-primary-500 text-primary-500 mt-3"
                   >
-                    Schedule One
+                    {t("dash_schedule_one")}
                   </Button>
                 </Link>
               </div>
@@ -384,7 +386,7 @@ export default function DashboardHome() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-serif font-semibold text-text-primary">
-              Recent Activity
+              {t("dash_recent_activity")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -408,7 +410,7 @@ export default function DashboardHome() {
             ) : (
               <div className="text-center py-10">
                 <Activity className="mx-auto text-primary-200 mb-3" size={32} />
-                <p className="text-text-muted text-sm">No recent activity yet</p>
+                <p className="text-text-muted text-sm">{t("dash_no_activity")}</p>
               </div>
             )}
           </CardBody>
@@ -418,7 +420,7 @@ export default function DashboardHome() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-serif font-semibold text-text-primary mb-4">
-          Quick Actions
+          {t("dash_quick_actions")}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Link href="/dashboard/patients">
@@ -427,7 +429,7 @@ export default function DashboardHome() {
                 <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
                   <UserPlus className="text-primary-500" size={22} />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Add Patient</span>
+                <span className="text-sm font-medium text-text-primary">{t("dash_add_patient")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -438,7 +440,7 @@ export default function DashboardHome() {
                 <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
                   <ClipboardPlus className="text-primary-500" size={22} />
                 </div>
-                <span className="text-sm font-medium text-text-primary">New Prescription</span>
+                <span className="text-sm font-medium text-text-primary">{t("dash_new_prescription")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -449,7 +451,7 @@ export default function DashboardHome() {
                 <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
                   <CalendarPlus className="text-primary-500" size={22} />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Schedule Appointment</span>
+                <span className="text-sm font-medium text-text-primary">{t("dash_schedule_appointment")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -460,7 +462,7 @@ export default function DashboardHome() {
                 <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
                   <Activity className="text-primary-500" size={22} />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Log Visit</span>
+                <span className="text-sm font-medium text-text-primary">{t("dash_log_visit")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -471,7 +473,7 @@ export default function DashboardHome() {
                 <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
                   <Table2 className="text-primary-500" size={22} />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Clinic Register</span>
+                <span className="text-sm font-medium text-text-primary">{t("dash_clinic_register")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -485,7 +487,7 @@ export default function DashboardHome() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="text-yellow-500" size={20} />
               <h3 className="text-lg font-serif font-semibold text-text-primary">
-                Overdue Follow-ups
+                {t("dash_overdue_followups")}
               </h3>
               {overdueFollowups.length > 0 && (
                 <Badge variant="warning">{overdueFollowups.length}</Badge>
@@ -507,16 +509,16 @@ export default function DashboardHome() {
                     <div>
                       <p className="font-medium text-text-primary text-sm">{patient.name}</p>
                       <p className="text-xs text-text-muted">
-                        Follow-up was {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
+                        {t("dash_followup_was")} {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
                       </p>
                     </div>
-                    <Badge variant="warning">{daysOverdue} day{daysOverdue !== 1 ? "s" : ""} overdue</Badge>
+                    <Badge variant="warning">{daysOverdue} {daysOverdue !== 1 ? t("dash_days_overdue") : t("dash_day_overdue")}</Badge>
                   </Link>
                 );
               })}
             </div>
           ) : (
-            <p className="text-text-muted text-sm text-center py-6">No overdue follow-ups</p>
+            <p className="text-text-muted text-sm text-center py-6">{t("dash_no_overdue")}</p>
           )}
         </CardBody>
       </Card>
@@ -534,43 +536,30 @@ export default function DashboardHome() {
           <h2
             className="text-xl font-serif font-semibold text-primary-500 uppercase tracking-widest"
           >
-            Growing Together
+            {t("growing_title")}
           </h2>
         </div>
 
         <p className="text-text-secondary mb-6 leading-relaxed">
-          You&apos;re one of our <span className="font-semibold text-text-primary">founding doctors</span>.
-          Right now, Tvacha Clinic Tool is in its early phase — we&apos;re building the AI diagnosis
-          pipeline and onboarding our first clinics.
+          {t("growing_founding")} <span className="font-semibold text-text-primary">{t("growing_founding_bold")}</span>.{" "}
+          {t("growing_message")}
         </p>
 
         <p className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4">
-          What&apos;s coming
+          {t("growing_coming")}
         </p>
         <div className="space-y-3 mb-8">
-          {[
-            {
-              title: "AI Case Queue",
-              desc: "Consumer app users will send skin photos for AI pre-screening. You'll review flagged cases and earn per diagnosis.",
-            },
-            {
-              title: "Earn Per Review",
-              desc: "₹200 per AI case you review and approve/correct. The more users we onboard, the more cases flow to you.",
-            },
-            {
-              title: "Patient Referrals",
-              desc: "Your referral code (in Settings) lets patients link directly to your clinic from the Tvacha app.",
-            },
-            {
-              title: "Tele-Consultation",
-              desc: "Video consults with patients at ₹199/₹399/₹599 tiers, with your share per session.",
-            },
-          ].map((item) => (
-            <div key={item.title} className="flex gap-3">
+          {([
+            { titleKey: "growing_case_queue", descKey: "growing_case_queue_desc" },
+            { titleKey: "growing_earn", descKey: "growing_earn_desc" },
+            { titleKey: "growing_referral", descKey: "growing_referral_desc" },
+            { titleKey: "growing_teleconsult", descKey: "growing_teleconsult_desc" },
+          ] as const).map((item) => (
+            <div key={item.titleKey} className="flex gap-3">
               <span className="text-primary-500 font-bold mt-0.5 flex-shrink-0">◆</span>
               <div>
-                <span className="font-semibold text-text-primary">{item.title}</span>
-                <span className="text-text-secondary"> — {item.desc}</span>
+                <span className="font-semibold text-text-primary">{t(item.titleKey)}</span>
+                <span className="text-text-secondary"> — {t(item.descKey)}</span>
               </div>
             </div>
           ))}
@@ -582,18 +571,13 @@ export default function DashboardHome() {
           style={{ background: "rgba(184,147,106,0.07)", border: "1px solid rgba(184,147,106,0.15)" }}
         >
           <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">
-            Your Impact as a Founding Doctor
+            {t("growing_impact_title")}
           </p>
           <div className="space-y-2">
-            {[
-              "Help us test & improve the AI diagnosis system",
-              "Your feedback directly shapes the product roadmap",
-              "Early doctors get priority access to paid features when they launch",
-              "Founding Doctor badge on your profile — permanent recognition",
-            ].map((item) => (
-              <div key={item} className="flex gap-2 text-sm text-text-secondary">
+            {(["growing_impact_1", "growing_impact_2", "growing_impact_3", "growing_impact_4"] as const).map((key) => (
+              <div key={key} className="flex gap-2 text-sm text-text-secondary">
                 <span className="text-primary-500 flex-shrink-0">•</span>
-                <span>{item}</span>
+                <span>{t(key)}</span>
               </div>
             ))}
           </div>
@@ -604,7 +588,7 @@ export default function DashboardHome() {
             className="bg-primary-500 hover:bg-primary-600 text-white"
             onClick={() => setShowFeedbackModal(true)}
           >
-            Share Feedback
+            {t("growing_feedback")}
           </Button>
           <Button
             variant="outline"
@@ -612,7 +596,7 @@ export default function DashboardHome() {
             onClick={handleInvite}
           >
             {inviteCopied ? <Check size={16} /> : <Copy size={16} />}
-            {inviteCopied ? "Link Copied!" : "Invite a Colleague"}
+            {inviteCopied ? t("growing_copied") : t("growing_invite")}
           </Button>
         </div>
       </div>
@@ -621,29 +605,29 @@ export default function DashboardHome() {
       <Modal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
-        title="Share Your Feedback"
+        title={t("growing_feedback_title")}
         size="lg"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowFeedbackModal(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setShowFeedbackModal(false)}>{t("common_cancel")}</Button>
             <Button
               className="bg-primary-500 hover:bg-primary-600 text-white"
               onClick={handleSendFeedback}
               loading={feedbackLoading}
               disabled={!feedbackText.trim()}
             >
-              {feedbackSent ? "Sent! Thank you ✓" : "Send Feedback"}
+              {feedbackSent ? t("growing_feedback_sent") : t("growing_feedback_send")}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <p className="text-text-secondary text-sm">
-            What would you like to see in Tvacha? Bug reports, feature ideas, workflow suggestions — all welcome.
+            {t("growing_feedback_desc")}
           </p>
           <Textarea
-            label="Your message"
-            placeholder="e.g., It would help if I could search patients by phone number..."
+            label={t("growing_feedback_label")}
+            placeholder={t("growing_feedback_placeholder")}
             value={feedbackText}
             onChange={(e) => setFeedbackText(e.target.value)}
             rows={5}

@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/language-context";
 import type { Appointment, Patient } from "@/lib/types";
 import {
   VISIT_TYPE_OPTIONS,
@@ -108,6 +109,7 @@ function formatTime12(time: string): string {
 
 export default function AppointmentsPage() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -362,30 +364,30 @@ export default function AppointmentsPage() {
         {s === "scheduled" && (
           <>
             <Button size="sm" variant="outline" onClick={() => handleCheckIn(apt.id)}>
-              Check In
+              {t("apt_check_in")}
             </Button>
             <Button
               size="sm"
               className="bg-green-600 hover:bg-green-700 text-white"
               onClick={() => setConfirmComplete(apt.id)}
             >
-              Complete
+              {t("apt_complete")}
             </Button>
             <Button size="sm" variant="ghost" className="text-red-500" onClick={() => setConfirmCancel(apt.id)}>
-              Cancel
+              {t("apt_cancel_btn")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => handleRescheduleOpen(apt)}>
-              Reschedule
+              {t("apt_reschedule_btn")}
             </Button>
           </>
         )}
         {s === "checked_in" && (
           <>
             <Button size="sm" variant="primary" onClick={() => handleStart(apt.id)}>
-              Start
+              {t("apt_start")}
             </Button>
             <Button size="sm" variant="ghost" className="text-red-500" onClick={() => setConfirmCancel(apt.id)}>
-              Cancel
+              {t("apt_cancel_btn")}
             </Button>
           </>
         )}
@@ -395,7 +397,7 @@ export default function AppointmentsPage() {
             className="bg-green-600 hover:bg-green-700 text-white"
             onClick={() => setConfirmComplete(apt.id)}
           >
-            Complete
+            {t("apt_complete")}
           </Button>
         )}
       </div>
@@ -429,14 +431,14 @@ export default function AppointmentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-text-primary">Appointments</h1>
-          <p className="text-text-secondary mt-2">Manage your clinic appointments</p>
+          <h1 className="text-4xl font-serif font-bold text-text-primary">{t("apt_title")}</h1>
+          <p className="text-text-secondary mt-2">{t("apt_subtitle")}</p>
         </div>
         <Button
           className="bg-primary-500 hover:bg-primary-600 text-white flex items-center gap-2"
           onClick={() => setShowScheduleModal(true)}
         >
-          <Plus size={20} /> Schedule Appointment
+          <Plus size={20} /> {t("apt_schedule_btn")}
         </Button>
       </div>
 
@@ -448,7 +450,7 @@ export default function AppointmentsPage() {
           className="flex items-center gap-2"
           onClick={() => setViewMode("list")}
         >
-          <List size={16} /> List View
+          <List size={16} /> {t("apt_list_view")}
         </Button>
         <Button
           size="sm"
@@ -456,7 +458,7 @@ export default function AppointmentsPage() {
           className="flex items-center gap-2"
           onClick={() => setViewMode("calendar")}
         >
-          <Calendar size={16} /> Calendar View
+          <Calendar size={16} /> {t("apt_calendar_view")}
         </Button>
       </div>
 
@@ -467,24 +469,24 @@ export default function AppointmentsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              All Appointments ({sortedAppointments.length})
+              {t("apt_title")} ({sortedAppointments.length})
             </h3>
           </CardHeader>
           <CardBody className="overflow-x-auto">
             {sortedAppointments.length === 0 ? (
-              <p className="text-text-muted text-center py-12">No appointments found. Schedule one to get started.</p>
+              <p className="text-text-muted text-center py-12">{t("apt_none_found")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-primary-200 text-left">
-                    <th className="py-3 px-3 font-medium text-text-secondary">Date</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Time</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Patient Name</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Type</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Duration</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Reason / Notes</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Status</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">Actions</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_date")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_time")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_patient")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_type")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_duration")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_notes")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_status")}</th>
+                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -620,7 +622,7 @@ export default function AppointmentsPage() {
               </CardHeader>
               <CardBody className="space-y-3">
                 {selectedDayAppointments.length === 0 ? (
-                  <p className="text-text-muted text-center py-8">No appointments on this date.</p>
+                  <p className="text-text-muted text-center py-8">{t("apt_none_day")}</p>
                 ) : (
                   selectedDayAppointments.map((apt) => {
                     const statusColor = APPOINTMENT_STATUS_COLORS[apt.status] || "";
@@ -664,7 +666,7 @@ export default function AppointmentsPage() {
           setShowScheduleModal(false);
           setForm({ ...emptyForm });
         }}
-        title="Schedule Appointment"
+        title={t("apt_modal_schedule")}
         size="lg"
         footer={
           <>
@@ -675,7 +677,7 @@ export default function AppointmentsPage() {
                 setForm({ ...emptyForm });
               }}
             >
-              Cancel
+              {t("common_cancel")}
             </Button>
             <Button
               className="bg-primary-500 hover:bg-primary-600 text-white"
@@ -683,7 +685,7 @@ export default function AppointmentsPage() {
               loading={actionLoading}
               disabled={!form.patient_id || !form.date || !form.time}
             >
-              Schedule
+              {t("apt_schedule_btn")}
             </Button>
           </>
         }
@@ -691,13 +693,13 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {/* Patient */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Patient *</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_patient_label")}</label>
             <select
               className={selectClasses}
               value={form.patient_id}
               onChange={(e) => setForm((p) => ({ ...p, patient_id: e.target.value }))}
             >
-              <option value="">Select patient...</option>
+              <option value="">{t("apt_select_patient")}</option>
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -708,7 +710,7 @@ export default function AppointmentsPage() {
 
           {/* Date */}
           <Input
-            label="Date *"
+            label={t("apt_date_label")}
             type="date"
             min={todayStr}
             value={form.date}
@@ -717,13 +719,13 @@ export default function AppointmentsPage() {
 
           {/* Time */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Time *</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_time_label")}</label>
             <select
               className={selectClasses}
               value={form.time}
               onChange={(e) => setForm((p) => ({ ...p, time: e.target.value }))}
             >
-              <option value="">Select time...</option>
+              <option value="">{t("apt_select_time")}</option>
               {TIME_SLOTS.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
@@ -734,7 +736,7 @@ export default function AppointmentsPage() {
 
           {/* Duration */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Duration</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_duration_label")}</label>
             <select
               className={selectClasses}
               value={form.duration_minutes}
@@ -750,7 +752,7 @@ export default function AppointmentsPage() {
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Type</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_type_label")}</label>
             <select
               className={selectClasses}
               value={form.type}
@@ -766,8 +768,8 @@ export default function AppointmentsPage() {
 
           {/* Reason / Notes */}
           <Textarea
-            label="Reason / Notes"
-            placeholder="Reason for visit or additional notes"
+            label={t("apt_notes_label")}
+            placeholder={t("apt_notes_placeholder")}
             value={form.notes}
             rows={3}
             onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
@@ -775,7 +777,7 @@ export default function AppointmentsPage() {
 
           {/* Visit Fee */}
           <Input
-            label="Visit Fee"
+            label={t("apt_fee_label")}
             type="number"
             placeholder="₹"
             value={form.visit_fee}
@@ -794,7 +796,7 @@ export default function AppointmentsPage() {
           setRescheduleApt(null);
           setRescheduleForm({ ...emptyForm });
         }}
-        title="Reschedule Appointment"
+        title={t("apt_reschedule_title")}
         size="lg"
         footer={
           <>
@@ -806,7 +808,7 @@ export default function AppointmentsPage() {
                 setRescheduleForm({ ...emptyForm });
               }}
             >
-              Cancel
+              {t("common_cancel")}
             </Button>
             <Button
               className="bg-primary-500 hover:bg-primary-600 text-white"
@@ -814,7 +816,7 @@ export default function AppointmentsPage() {
               loading={actionLoading}
               disabled={!rescheduleForm.date || !rescheduleForm.time}
             >
-              Reschedule
+              {t("apt_reschedule_btn")}
             </Button>
           </>
         }
@@ -822,7 +824,7 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {/* Patient (read-only) */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">Patient</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_patient_read")}</label>
             <input
               className={`${selectClasses} bg-primary-100 cursor-not-allowed`}
               value={rescheduleApt?.patients?.name || "Unknown"}
@@ -832,7 +834,7 @@ export default function AppointmentsPage() {
 
           {/* Date */}
           <Input
-            label="New Date *"
+            label={t("apt_new_date")}
             type="date"
             min={todayStr}
             value={rescheduleForm.date}
@@ -841,13 +843,13 @@ export default function AppointmentsPage() {
 
           {/* Time */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">New Time *</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_new_time")}</label>
             <select
               className={selectClasses}
               value={rescheduleForm.time}
               onChange={(e) => setRescheduleForm((p) => ({ ...p, time: e.target.value }))}
             >
-              <option value="">Select time...</option>
+              <option value="">{t("apt_select_time")}</option>
               {TIME_SLOTS.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
@@ -900,25 +902,25 @@ export default function AppointmentsPage() {
       <Modal
         isOpen={!!confirmCancel}
         onClose={() => setConfirmCancel(null)}
-        title="Cancel Appointment"
+        title={t("apt_cancel_title")}
         size="sm"
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmCancel(null)}>
-              No, Keep It
+              {t("apt_no_keep")}
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleCancelConfirm}
               loading={actionLoading}
             >
-              Yes, Cancel
+              {t("apt_yes_cancel")}
             </Button>
           </>
         }
       >
         <p className="text-text-secondary">
-          Are you sure you want to cancel this appointment? This action cannot be undone.
+          {t("apt_cancel_confirm")}
         </p>
       </Modal>
 
@@ -928,28 +930,28 @@ export default function AppointmentsPage() {
       <Modal
         isOpen={!!confirmComplete}
         onClose={() => setConfirmComplete(null)}
-        title="Complete Appointment"
+        title={t("apt_complete_title")}
         size="sm"
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmComplete(null)}>
-              Cancel
+              {t("common_cancel")}
             </Button>
             <Button variant="outline" onClick={() => handleCompleteConfirm(false)}>
-              Complete Only
+              {t("apt_complete_only")}
             </Button>
             <Button
               className="bg-primary-500 hover:bg-primary-600 text-white"
               onClick={() => handleCompleteConfirm(true)}
               loading={actionLoading}
             >
-              Complete &amp; Log Visit
+              {t("apt_complete_visit")}
             </Button>
           </>
         }
       >
         <p className="text-text-secondary">
-          Log this as a visit? You will be redirected to the clinic register to record visit details.
+          {t("apt_complete_confirm")}
         </p>
       </Modal>
     </main>

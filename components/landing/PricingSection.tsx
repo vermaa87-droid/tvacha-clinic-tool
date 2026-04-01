@@ -6,17 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Check } from "lucide-react";
 import Link from "next/link";
-
-const features = [
-  "Unlimited patients",
-  "AI pre-screening",
-  "Prescription templates",
-  "Analytics dashboard",
-  "AI case queue (coming soon)",
-  "Appointment management",
-  "Patient messaging",
-  "24/7 support",
-];
+import { useLanguage } from "@/lib/language-context";
 
 function CountUp({ target, duration = 2, prefix = "", suffix = "" }: { target: number; duration?: number; prefix?: string; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -46,7 +36,20 @@ function CountUp({ target, duration = 2, prefix = "", suffix = "" }: { target: n
   );
 }
 
+const features = [
+  "Unlimited patients",
+  "AI pre-screening",
+  "Prescription templates",
+  "Analytics dashboard",
+  "AI case queue (coming soon)",
+  "Appointment management",
+  "Patient messaging",
+  "24/7 support",
+];
+
 export function PricingSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-24 bg-primary-100">
       <div className="max-w-4xl mx-auto px-8">
@@ -58,10 +61,10 @@ export function PricingSection() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <h2 className="text-4xl font-serif font-bold text-text-primary mb-4">
-            Simple, Transparent Pricing
+            {t("pricing_title")}
           </h2>
           <p className="text-xl text-text-secondary font-light">
-            One plan that grows with your practice
+            {t("pricing_subtitle")}
           </p>
         </motion.div>
 
@@ -76,24 +79,24 @@ export function PricingSection() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-3xl font-serif font-bold text-text-primary">
-                    Professional Plan
+                    {t("pricing_plan_name")}
                   </h3>
                   <p className="text-text-secondary mt-2">
-                    Perfect for clinics and GP practices
+                    {t("pricing_plan_desc")}
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-5xl font-bold text-primary-500">
                     ₹<CountUp target={2000} />
                   </span>
-                  <p className="text-text-secondary text-sm">/month</p>
+                  <p className="text-text-secondary text-sm">{t("pricing_monthly")}</p>
                 </div>
               </div>
             </CardHeader>
             <CardBody className="space-y-6">
               <div className="bg-success-bg border border-success-text border-opacity-30 rounded-lg p-4 text-center">
                 <p className="font-semibold text-success-text">
-                  2 weeks free trial • No credit card required
+                  {t("pricing_trial_badge")}
                 </p>
               </div>
 
@@ -118,7 +121,7 @@ export function PricingSection() {
                   size="lg"
                   className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold relative overflow-hidden group"
                 >
-                  <Link href="/signup" className="relative z-10">Start Your Free Trial</Link>
+                  <Link href="/signup" className="relative z-10">{t("pricing_cta")}</Link>
                   <span className="absolute inset-0 bg-primary-700 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                 </Button>
               </motion.div>
@@ -137,19 +140,19 @@ export function PricingSection() {
             <p className="text-4xl font-bold text-primary-500">
               <CountUp target={25} suffix="+" />
             </p>
-            <p className="text-text-secondary mt-2">Skin Conditions Covered</p>
+            <p className="text-text-secondary mt-2">{t("pricing_stat_conditions")}</p>
           </div>
           <div>
             <p className="text-4xl font-bold text-primary-500">
               <CountUp target={14} suffix=" days" />
             </p>
-            <p className="text-text-secondary mt-2">Free Trial</p>
+            <p className="text-text-secondary mt-2">{t("pricing_stat_trial")}</p>
           </div>
           <div>
             <p className="text-4xl font-bold text-primary-500">
               <CountUp target={5} suffix=" Cr+" />
             </p>
-            <p className="text-text-secondary mt-2">AI Training Images</p>
+            <p className="text-text-secondary mt-2">{t("pricing_stat_images")}</p>
           </div>
         </motion.div>
       </div>

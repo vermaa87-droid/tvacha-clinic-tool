@@ -3,41 +3,19 @@
 import { motion } from "framer-motion";
 import { Zap, FileText, Users, TrendingUp, BarChart3 } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
-
-const features = [
-  {
-    icon: Zap,
-    title: "AI-Assisted Case Sorting",
-    description:
-      "Patients automatically grouped by condition type: fungal, bacterial, viral, complex. Each with name, date, severity, history.",
-  },
-  {
-    icon: FileText,
-    title: "Ready Prescription Templates",
-    description:
-      "Pre-built templates for common conditions. One tap to generate. Doctors can add custom templates. Auto-fills clinic details.",
-  },
-  {
-    icon: Users,
-    title: "My Patients Dashboard",
-    description:
-      "Remote monitoring tab. See daily photos submitted by patients. Message patients. Track progress with before/after timeline.",
-  },
-  {
-    icon: TrendingUp,
-    title: "AI Case Queue (Coming Soon)",
-    description:
-      "Receive AI-screened cases from the Tvacha consumer app. Approve or correct the AI diagnosis, assign a prescription, and earn per case reviewed.",
-  },
-  {
-    icon: BarChart3,
-    title: "Clinic Analytics",
-    description:
-      "Patients cured, patients seen, average disease, consult time tracking, seasonal trends, monthly performance reports.",
-  },
-];
+import { useLanguage } from "@/lib/language-context";
 
 export function FeaturesSection() {
+  const { t } = useLanguage();
+
+  const features = [
+    { icon: Zap, title: t("feature_1_title"), description: t("feature_1_desc") },
+    { icon: FileText, title: t("feature_2_title"), description: t("feature_2_desc") },
+    { icon: Users, title: t("feature_3_title"), description: t("feature_3_desc") },
+    { icon: TrendingUp, title: t("feature_4_title"), description: t("feature_4_desc") },
+    { icon: BarChart3, title: t("feature_5_title"), description: t("feature_5_desc") },
+  ];
+
   return (
     <section className="py-24 bg-primary-50">
       <div className="max-w-7xl mx-auto px-8">
@@ -49,10 +27,10 @@ export function FeaturesSection() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <h2 className="text-4xl font-serif font-bold text-text-primary mb-4">
-            Powerful Features for Modern Clinics
+            {t("features_title")}
           </h2>
           <p className="text-xl text-text-secondary font-light">
-            Everything you need to streamline patient care and grow your practice
+            {t("features_subtitle")}
           </p>
         </motion.div>
 

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
+import { useLanguage } from "@/lib/language-context";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -59,6 +60,7 @@ const INITIAL_FORM = {
 
 export default function PatientsPage() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const [patients, setPatients] = useState<PatientWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -244,21 +246,21 @@ export default function PatientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-4xl font-serif font-bold text-text-primary">
-            My Patients
+            {t("patients_title")}
           </h1>
           <p className="text-text-secondary mt-2">
-            Manage your linked patients and track their progress
+            {t("patients_subtitle")}
           </p>
         </div>
         <Button variant="primary" onClick={() => setShowModal(true)}>
-          Add Patient
+          {t("patients_add")}
         </Button>
       </div>
 
       {/* Search + Filter Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Input
-          placeholder="Search name, phone, ID..."
+          placeholder={t("patients_search")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -268,7 +270,7 @@ export default function PatientsPage() {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
+          <option value="">{t("patients_all_statuses")}</option>
           {TREATMENT_STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
@@ -281,7 +283,7 @@ export default function PatientsPage() {
           value={filterSeverity}
           onChange={(e) => setFilterSeverity(e.target.value)}
         >
-          <option value="">All Severities</option>
+          <option value="">{t("patients_all_severities")}</option>
           {SEVERITY_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
@@ -294,24 +296,24 @@ export default function PatientsPage() {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as SortKey)}
         >
-          <option value="created_at">Sort by: Date Added</option>
-          <option value="name">Sort by: Name</option>
-          <option value="last_visit_date">Sort by: Last Visit</option>
-          <option value="severity">Sort by: Severity</option>
+          <option value="created_at">{t("patients_sort_date")}</option>
+          <option value="name">{t("patients_sort_name")}</option>
+          <option value="last_visit_date">{t("patients_sort_visit")}</option>
+          <option value="severity">{t("patients_sort_severity")}</option>
         </select>
       </div>
 
       {/* Patient Cards Grid or Empty State */}
       {filteredPatients.length === 0 ? (
         <div className="text-center py-16 text-text-muted">
-          <p className="text-lg">No patients yet</p>
-          <p className="text-sm mt-2">Add your first patient to get started</p>
+          <p className="text-lg">{t("patients_empty")}</p>
+          <p className="text-sm mt-2">{t("patients_empty_sub")}</p>
           <Button
             variant="primary"
             className="mt-6"
             onClick={() => setShowModal(true)}
           >
-            Add Patient
+            {t("patients_add")}
           </Button>
         </div>
       ) : (
@@ -351,7 +353,7 @@ export default function PatientsPage() {
                     {patient.chief_complaint && (
                       <p className="text-sm text-text-secondary">
                         <span className="font-medium text-text-primary">
-                          Chief Complaint:
+                          {t("patients_chief_complaint")}
                         </span>{" "}
                         {patient.chief_complaint}
                       </p>
@@ -388,7 +390,7 @@ export default function PatientsPage() {
                     {/* Last Visit + Total Visits */}
                     <div className="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-primary-100">
                       <span>
-                        Last Visit:{" "}
+                        {t("patients_last_visit")}{" "}
                         {patient.last_visit_date
                           ? new Date(
                               patient.last_visit_date
@@ -400,7 +402,7 @@ export default function PatientsPage() {
                           : "N/A"}
                       </span>
                       <span>
-                        Visits: {patient.total_visits ?? 0}
+                        {t("patients_visits")} {patient.total_visits ?? 0}
                       </span>
                     </div>
                   </div>
@@ -415,7 +417,7 @@ export default function PatientsPage() {
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title="Add New Patient"
+        title={t("patients_modal_title")}
         size="xl"
         footer={
           <>
@@ -424,14 +426,14 @@ export default function PatientsPage() {
               onClick={() => setShowModal(false)}
               disabled={submitting}
             >
-              Cancel
+              {t("common_cancel")}
             </Button>
             <Button
               variant="primary"
               onClick={handleSubmit}
               loading={submitting}
             >
-              Save Patient
+              {t("patients_save")}
             </Button>
           </>
         }
@@ -439,7 +441,7 @@ export default function PatientsPage() {
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="Full Name *"
+              label={t("patients_form_name")}
               name="name"
               placeholder="Patient full name"
               value={form.name}
@@ -447,7 +449,7 @@ export default function PatientsPage() {
               required
             />
             <Input
-              label="Age *"
+              label={t("patients_form_age")}
               name="age"
               type="number"
               placeholder="Age"
@@ -460,7 +462,7 @@ export default function PatientsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="w-full">
               <label className="block text-sm font-medium text-text-primary mb-2">
-                Gender *
+                {t("patients_form_gender")}
               </label>
               <select
                 name="gender"
@@ -469,7 +471,7 @@ export default function PatientsPage() {
                 onChange={handleFormChange}
                 required
               >
-                <option value="">Select Gender</option>
+                <option value="">{t("patients_form_gender_placeholder")}</option>
                 {GENDER_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -478,7 +480,7 @@ export default function PatientsPage() {
               </select>
             </div>
             <Input
-              label="Phone"
+              label={t("patients_form_phone")}
               name="phone"
               placeholder="Phone number"
               value={form.phone}
@@ -488,7 +490,7 @@ export default function PatientsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="Email"
+              label={t("patients_form_email")}
               name="email"
               type="email"
               placeholder="Email address"
@@ -497,7 +499,7 @@ export default function PatientsPage() {
             />
             <div className="w-full">
               <label className="block text-sm font-medium text-text-primary mb-2">
-                Blood Group
+                {t("patients_form_blood_group")}
               </label>
               <select
                 name="blood_group"
@@ -505,7 +507,7 @@ export default function PatientsPage() {
                 value={form.blood_group}
                 onChange={handleFormChange}
               >
-                <option value="">Select Blood Group</option>
+                <option value="">{t("patients_form_blood_group_placeholder")}</option>
                 {BLOOD_GROUP_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -518,7 +520,7 @@ export default function PatientsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="w-full">
               <label className="block text-sm font-medium text-text-primary mb-2">
-                Fitzpatrick Skin Type
+                {t("patients_form_fitzpatrick")}
               </label>
               <select
                 name="fitzpatrick_type"
@@ -526,7 +528,7 @@ export default function PatientsPage() {
                 value={form.fitzpatrick_type}
                 onChange={handleFormChange}
               >
-                <option value="">Select Skin Type</option>
+                <option value="">{t("patients_form_fitzpatrick_placeholder")}</option>
                 {FITZPATRICK_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -535,9 +537,9 @@ export default function PatientsPage() {
               </select>
             </div>
             <Input
-              label="Chief Complaint *"
+              label={t("patients_form_chief_complaint")}
               name="chief_complaint"
-              placeholder="Primary complaint"
+              placeholder={t("patients_form_chief_complaint_placeholder")}
               value={form.chief_complaint}
               onChange={handleFormChange}
               required
@@ -546,14 +548,14 @@ export default function PatientsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="City"
+              label={t("patients_form_city")}
               name="city"
               placeholder="City"
               value={form.city}
               onChange={handleFormChange}
             />
             <Input
-              label="State"
+              label={t("patients_form_state")}
               name="state"
               placeholder="State"
               value={form.state}
@@ -562,27 +564,27 @@ export default function PatientsPage() {
           </div>
 
           <Input
-            label="Known Allergies"
+            label={t("patients_form_allergies")}
             name="allergies"
-            placeholder="e.g. Penicillin, Sulfa drugs"
+            placeholder={t("patients_form_allergies_placeholder")}
             value={form.allergies}
             onChange={handleFormChange}
-            helpText="Comma-separated list"
+            helpText={t("patients_form_allergies_help")}
           />
 
           <Input
-            label="Chronic Conditions"
+            label={t("patients_form_chronic")}
             name="chronic_conditions"
-            placeholder="e.g. Diabetes, Hypertension"
+            placeholder={t("patients_form_chronic_placeholder")}
             value={form.chronic_conditions}
             onChange={handleFormChange}
-            helpText="Comma-separated list"
+            helpText={t("patients_form_allergies_help")}
           />
 
           <Textarea
-            label="Family History"
+            label={t("patients_form_family")}
             name="family_history"
-            placeholder="Relevant family medical history..."
+            placeholder={t("patients_form_family_placeholder")}
             value={form.family_history}
             onChange={handleFormChange}
             rows={3}

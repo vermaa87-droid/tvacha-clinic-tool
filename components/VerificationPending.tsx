@@ -4,12 +4,15 @@ import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/Button";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language-context";
 import type { Doctor } from "@/lib/types";
 import { format } from "date-fns";
 
 export function VerificationPending({ doctor }: { doctor: Doctor }) {
   const { signOut } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleLogOut = async () => {
@@ -26,8 +29,9 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
       className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
       style={{ background: "#faf8f4" }}
     >
-      <div className="mb-8">
+      <div className="mb-4 flex items-center justify-between w-full max-w-[500px]">
         <Logo />
+        <LanguageToggle />
       </div>
 
       <div
@@ -38,7 +42,6 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
           boxShadow: "0 4px 32px rgba(26,22,18,0.06)",
         }}
       >
-        {/* Icon + Heading */}
         <div className="text-center space-y-3">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center mx-auto"
@@ -46,24 +49,19 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
           >
             <Clock size={28} style={{ color: "#b8936a" }} />
           </div>
-          <h1
-            className="text-2xl font-serif font-semibold"
-            style={{ color: "#2a2218" }}
-          >
-            Verification In Progress
+          <h1 className="text-2xl font-serif font-semibold" style={{ color: "#2a2218" }}>
+            {t("verify_title")}
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: "#6b5e4e" }}>
-            Thank you for signing up,{" "}
+            {t("verify_message_prefix")}{" "}
             <span className="font-semibold" style={{ color: "#2a2218" }}>
               {doctor.full_name}
             </span>
             .<br />
-            We&apos;re verifying your medical registration to ensure Tvacha Clinic Tool
-            is used exclusively by licensed practitioners.
+            {t("verify_message_suffix")}
           </p>
         </div>
 
-        {/* Details card */}
         <div
           className="rounded-xl p-5 space-y-3"
           style={{
@@ -71,9 +69,9 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
             border: "1px solid rgba(184,147,106,0.2)",
           }}
         >
-          <DetailRow label="Registration No." value={doctor.registration_number || "—"} />
-          <DetailRow label="Council" value={doctor.state_medical_council || "—"} />
-          <DetailRow label="Submitted" value={signupDate} />
+          <DetailRow label={t("verify_reg_no")} value={doctor.registration_number || "—"} />
+          <DetailRow label={t("verify_council")} value={doctor.state_medical_council || "—"} />
+          <DetailRow label={t("verify_submitted")} value={signupDate} />
           <div className="flex items-center justify-between pt-1 border-t border-primary-200">
             <span className="text-xs font-medium" style={{ color: "#9a8a76" }}>
               Status
@@ -87,19 +85,17 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
                   display: "inline-block",
                 }}
               />
-              Under Review
+              {t("verify_status")}
             </span>
           </div>
         </div>
 
-        {/* Message */}
         <p className="text-sm text-center leading-relaxed" style={{ color: "#6b5e4e" }}>
-          This usually takes 24–48 hours. We&apos;ll notify you via email once your account is verified.
+          {t("verify_time")}
         </p>
 
-        {/* Contact */}
         <p className="text-sm text-center" style={{ color: "#9a8a76" }}>
-          Think there&apos;s an issue? Contact us at{" "}
+          {t("verify_issue")}{" "}
           <a
             href="mailto:support@tvacha-clinic.com"
             target="_blank"
@@ -111,7 +107,6 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
           </a>
         </p>
 
-        {/* Log Out */}
         <div className="flex justify-center pt-2">
           <Button
             variant="outline"
@@ -119,7 +114,7 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
             className="border-primary-300 text-text-secondary hover:border-primary-400"
             onClick={handleLogOut}
           >
-            Log Out
+            {t("verify_logout")}
           </Button>
         </div>
       </div>

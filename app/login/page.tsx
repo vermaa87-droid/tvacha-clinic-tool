@@ -8,7 +8,9 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language-context";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const signIn = useAuthStore((s) => s.signIn);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +38,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <nav className="bg-primary-50 border-b border-primary-200">
-        <div className="max-w-7xl mx-auto px-8 py-4">
+        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
           <Logo />
+          <LanguageToggle />
         </div>
       </nav>
 
@@ -45,10 +49,10 @@ export default function LoginPage() {
           <Card>
             <CardHeader>
               <h1 className="text-3xl font-serif font-bold text-text-primary">
-                Welcome Back
+                {t("login_title")}
               </h1>
               <p className="text-text-secondary mt-2">
-                Sign in to your Tvacha Clinic account
+                {t("login_subtitle")}
               </p>
             </CardHeader>
             <CardBody>
@@ -59,7 +63,7 @@ export default function LoginPage() {
                   </div>
                 )}
                 <Input
-                  label="Email"
+                  label={t("login_email")}
                   type="email"
                   placeholder="Dr. email@clinic.com"
                   value={email}
@@ -67,7 +71,7 @@ export default function LoginPage() {
                   required
                 />
                 <Input
-                  label="Password"
+                  label={t("login_password")}
                   type="password"
                   placeholder="••••••••"
                   value={password}
@@ -80,18 +84,15 @@ export default function LoginPage() {
                   className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold mt-6"
                   size="lg"
                 >
-                  Sign In
+                  {t("login_button")}
                 </Button>
               </form>
 
               <div className="mt-6 pt-6 border-t border-primary-200">
                 <p className="text-text-secondary text-center">
-                  Don&apos;t have an account?{" "}
-                  <Link
-                    href="/signup"
-                    className="text-primary-500 font-medium hover:text-primary-600"
-                  >
-                    Create one
+                  {t("login_no_account")}{" "}
+                  <Link href="/signup" className="text-primary-500 font-medium hover:text-primary-600">
+                    {t("login_create")}
                   </Link>
                 </p>
               </div>

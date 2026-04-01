@@ -8,6 +8,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { PrescriptionTemplate, Prescription, Medicine, Patient } from "@/lib/types";
+import { useLanguage } from "@/lib/language-context";
 import { Badge } from "@/components/ui/Badge";
 import { format } from "date-fns";
 import { Pencil, PenLine, X } from "lucide-react";
@@ -192,6 +193,7 @@ const selectClasses =
 
 export default function PrescriptionsPage() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
 
   // Data
   const [templates, setTemplates] = useState<PrescriptionTemplate[]>([]);
@@ -487,10 +489,10 @@ export default function PrescriptionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-serif font-bold text-text-primary">
-            Prescriptions
+            {t("rx_title")}
           </h1>
           <p className="text-text-secondary mt-2">
-            Manage your prescription templates and history
+            {t("rx_subtitle")}
           </p>
         </div>
         <Button

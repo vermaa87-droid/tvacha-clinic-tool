@@ -7,11 +7,13 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/language-context";
 import { Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 
 export default function SettingsPage() {
   const { doctor, refreshDoctor } = useAuthStore();
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -77,51 +79,51 @@ export default function SettingsPage() {
   return (
     <main className="space-y-8">
       <div>
-        <h1 className="text-4xl font-serif font-bold text-text-primary">Settings</h1>
-        <p className="text-text-secondary mt-2">Manage your account and clinic information</p>
+        <h1 className="text-4xl font-serif font-bold text-text-primary">{t("settings_title")}</h1>
+        <p className="text-text-secondary mt-2">{t("settings_subtitle")}</p>
       </div>
 
       {/* Doctor Profile */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">Doctor Profile</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_profile")}</h3>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <Input
-                label="Doctor Name"
+                label={t("settings_doctor_name")}
                 value={editing ? editData.full_name : doctor.full_name}
                 disabled={!editing}
                 onChange={(e) => setEditData((p) => ({ ...p, full_name: e.target.value }))}
               />
-              <Input label="Email" type="email" value={doctor.email} disabled />
+              <Input label={t("settings_email")} type="email" value={doctor.email} disabled />
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <Input
-                label="Phone"
+                label={t("settings_phone")}
                 value={editing ? editData.phone : doctor.phone || ""}
                 disabled={!editing}
                 onChange={(e) => setEditData((p) => ({ ...p, phone: e.target.value }))}
               />
               <Input
-                label="Qualifications"
+                label={t("settings_qualifications")}
                 value={editing ? editData.qualifications : doctor.qualifications}
                 disabled={!editing}
                 onChange={(e) => setEditData((p) => ({ ...p, qualifications: e.target.value }))}
               />
             </div>
-            <Input label="Medical Registration Number" value={doctor.registration_number} disabled />
+            <Input label={t("settings_reg_number")} value={doctor.registration_number} disabled />
             {editing ? (
               <div className="flex gap-2">
                 <Button className="bg-primary-500 hover:bg-primary-600 text-white" onClick={handleSave} loading={saving}>
-                  Save Changes
+                  {t("settings_save_changes")}
                 </Button>
-                <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button variant="ghost" onClick={() => setEditing(false)}>{t("common_cancel")}</Button>
               </div>
             ) : (
               <Button variant="outline" className="border-primary-500 text-primary-500" onClick={handleStartEdit}>
-                Edit Profile
+                {t("settings_edit_profile")}
               </Button>
             )}
           </div>
@@ -131,18 +133,18 @@ export default function SettingsPage() {
       {/* Clinic Information */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">Clinic Information</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_clinic_info")}</h3>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
             <Input
-              label="Clinic Name"
+              label={t("settings_clinic_name")}
               value={editing ? editData.clinic_name : doctor.clinic_name}
               disabled={!editing}
               onChange={(e) => setEditData((p) => ({ ...p, clinic_name: e.target.value }))}
             />
             <Textarea
-              label="Clinic Address"
+              label={t("settings_clinic_address")}
               value={editing ? editData.clinic_address : doctor.clinic_address || ""}
               disabled={!editing}
               onChange={(e) => setEditData((p) => ({ ...p, clinic_address: e.target.value }))}
@@ -150,9 +152,9 @@ export default function SettingsPage() {
             />
             {editing && (
               <div className="grid md:grid-cols-3 gap-4">
-                <Input label="City" value={editData.clinic_city} onChange={(e) => setEditData((p) => ({ ...p, clinic_city: e.target.value }))} />
-                <Input label="State" value={editData.clinic_state} onChange={(e) => setEditData((p) => ({ ...p, clinic_state: e.target.value }))} />
-                <Input label="Pincode" value={editData.clinic_pincode} onChange={(e) => setEditData((p) => ({ ...p, clinic_pincode: e.target.value }))} />
+                <Input label={t("settings_city")} value={editData.clinic_city} onChange={(e) => setEditData((p) => ({ ...p, clinic_city: e.target.value }))} />
+                <Input label={t("settings_state")} value={editData.clinic_state} onChange={(e) => setEditData((p) => ({ ...p, clinic_state: e.target.value }))} />
+                <Input label={t("settings_pincode")} value={editData.clinic_pincode} onChange={(e) => setEditData((p) => ({ ...p, clinic_pincode: e.target.value }))} />
               </div>
             )}
           </div>
@@ -162,11 +164,11 @@ export default function SettingsPage() {
       {/* Referral Code */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">Referral Code</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_referral_title")}</h3>
         </CardHeader>
         <CardBody>
           <p className="text-text-secondary mb-4">
-            Share this code with patients to link them to your clinic
+            {t("settings_referral_desc")}
           </p>
           <div className="flex items-center gap-3">
             <div className="flex-1 bg-primary-100 border border-primary-200 rounded-lg px-4 py-3">
@@ -185,7 +187,7 @@ export default function SettingsPage() {
       {/* Subscription */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">Subscription</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_subscription")}</h3>
         </CardHeader>
         <CardBody className="space-y-4">
           <div className="flex justify-between items-center">
@@ -199,7 +201,7 @@ export default function SettingsPage() {
           </div>
           <div className="border-t border-primary-200 pt-4">
             <p className="text-text-secondary text-sm mb-2">
-              {doctor.subscription_status === "trial" ? "Trial ends:" : "Next renewal date:"}
+              {doctor.subscription_status === "trial" ? t("settings_trial_ends") : t("settings_next_renewal")}
             </p>
             <p className="font-semibold text-text-primary">
               {doctor.subscription_end_date
@@ -213,13 +215,13 @@ export default function SettingsPage() {
       {/* Support */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">Support</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_support")}</h3>
         </CardHeader>
         <CardBody className="space-y-3">
-          <Button variant="ghost" className="w-full justify-start">Knowledge Base</Button>
-          <Button variant="ghost" className="w-full justify-start">Contact Support</Button>
-          <Button variant="ghost" className="w-full justify-start">Video Training</Button>
-          <Button variant="ghost" className="w-full justify-start">FAQ</Button>
+          <Button variant="ghost" className="w-full justify-start">{t("settings_knowledge_base")}</Button>
+          <Button variant="ghost" className="w-full justify-start">{t("settings_contact_support")}</Button>
+          <Button variant="ghost" className="w-full justify-start">{t("settings_video_training")}</Button>
+          <Button variant="ghost" className="w-full justify-start">{t("settings_faq")}</Button>
         </CardBody>
       </Card>
     </main>

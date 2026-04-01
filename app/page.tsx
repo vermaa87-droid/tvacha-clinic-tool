@@ -8,28 +8,31 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Button } from "@/components/ui/Button";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLanguage } from "@/lib/language-context";
 import Link from "next/link";
 
 const highlights = [
   {
     stat: "5 Crore+",
-    label: "Training Images",
+    labelKey: "Training Images" as const,
     desc: "Deep learning engine trained on over 5 crore dermatological images from global datasets.",
   },
   {
     stat: "5 Lakh+",
-    label: "Indian Skin Images",
+    labelKey: "Indian Skin Images" as const,
     desc: "Fine-tuned specifically on Indian skin tones (Fitzpatrick IV\u2013VI) for accurate diagnosis across all complexions.",
   },
   {
     stat: "25+",
-    label: "Skin Conditions",
+    labelKey: "Skin Conditions" as const,
     desc: "Covers the most common conditions seen in Indian OPDs \u2014 from tinea to psoriasis to acne.",
   },
 ];
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 100);
@@ -57,7 +60,7 @@ export default function Home() {
           >
             <Logo />
           </motion.div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {["How Our AI Works", "Pricing", "Sign In"].map((label, i) => (
               <motion.div
                 key={label}
@@ -67,21 +70,28 @@ export default function Home() {
               >
                 <Link
                   href={label === "Pricing" ? "/pricing" : label === "Sign In" ? "/login" : "/how-it-works"}
-                  className="text-text-secondary hover:text-text-primary font-medium transition-colors hidden md:block"
+                  className="text-text-secondary hover:text-text-primary font-medium transition-colors hidden md:block text-sm"
                 >
-                  {label}
+                  {label === "How Our AI Works" ? t("nav_how_ai_works") : label === "Pricing" ? t("nav_pricing") : t("nav_signin")}
                 </Link>
               </motion.div>
             ))}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.36 }}
+              transition={{ duration: 0.4, delay: 0.44 }}
+            >
+              <LanguageToggle />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.52 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white">
-                <Link href="/signup">Get Started</Link>
+                <Link href="/signup">{t("nav_getstarted")}</Link>
               </Button>
             </motion.div>
           </div>
@@ -102,7 +112,7 @@ export default function Home() {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            Built for Indian Dermatology
+            {t("ai_section_title")}
           </motion.h2>
           <motion.p
             className="text-text-secondary text-center mb-12 text-lg font-light max-w-2xl mx-auto"
@@ -111,7 +121,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Our AI engine is purpose-built for the skin conditions and skin tones most common in Indian clinics.
+            {t("ai_section_subtitle")}
           </motion.p>
           <div className="grid md:grid-cols-3 gap-8">
             {highlights.map((h, i) => (
@@ -125,7 +135,7 @@ export default function Home() {
                 whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(26,22,18,0.08)" }}
               >
                 <p className="text-4xl font-bold text-primary-500 mb-1">{h.stat}</p>
-                <p className="font-semibold text-text-primary mb-3">{h.label}</p>
+                <p className="font-semibold text-text-primary mb-3">{h.labelKey}</p>
                 <p className="text-text-secondary text-sm leading-relaxed">{h.desc}</p>
               </motion.div>
             ))}
@@ -145,10 +155,10 @@ export default function Home() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <h2 className="text-4xl font-serif font-bold mb-6">
-            Ready to Transform Your Practice?
+            {t("cta_title")}
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Start your 2-week free trial today. No credit card required.
+            {t("cta_subtitle")}
           </p>
           <div className="flex gap-4 justify-center">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -157,7 +167,7 @@ export default function Home() {
                 variant="secondary"
                 className="bg-surface text-primary-500 hover:bg-primary-50"
               >
-                <Link href="/signup">Start Free Trial</Link>
+                <Link href="/signup">{t("cta_trial")}</Link>
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -166,13 +176,13 @@ export default function Home() {
                 size="lg"
                 className="border-2 border-white text-white hover:bg-surface hover:bg-opacity-10"
               >
-                See Demo
+                {t("cta_demo")}
               </Button>
             </motion.div>
           </div>
           <p className="mt-6 text-sm opacity-75 flex items-center justify-center gap-2">
             <span style={{ color: "#d4b896" }}>&#10003;</span>
-            Every doctor verified against the National Medical Commission registry
+            {t("cta_verified")}
           </p>
         </motion.div>
       </section>

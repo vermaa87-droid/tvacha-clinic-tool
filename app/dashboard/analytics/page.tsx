@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/language-context";
 import { format, startOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import {
   ResponsiveContainer,
@@ -38,8 +39,9 @@ const TOOLTIP_STYLE = {
 };
 
 function NoData() {
+  const { t } = useLanguage();
   return (
-    <p className="text-text-muted text-center py-12 text-sm">No data yet</p>
+    <p className="text-text-muted text-center py-12 text-sm">{t("analytics_no_data")}</p>
   );
 }
 
@@ -73,6 +75,7 @@ function ageBucket(age: number): string {
 
 export default function AnalyticsPage() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
 
   // Overview stats
@@ -386,37 +389,36 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-serif font-bold text-text-primary">
-          Clinic Analytics
+          {t("analytics_title")}
         </h1>
         <p className="text-text-secondary mt-2">
-          Comprehensive insights into your clinic&apos;s performance and patient
-          data
+          {t("analytics_subtitle")}
         </p>
       </div>
 
       {/* Overview Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard label="Total Patients" value={totalPatients} sub="All time" />
+        <StatCard label={t("analytics_total_patients")} value={totalPatients} sub={t("dash_all_time")} />
         <StatCard
-          label="New Patients"
+          label={t("analytics_new_patients")}
           value={newPatientsMonth}
-          sub="This month"
+          sub={t("analytics_this_month")}
         />
-        <StatCard label="Total Visits" value={visitsMonth} sub="This month" />
+        <StatCard label={t("analytics_total_visits")} value={visitsMonth} sub={t("analytics_this_month")} />
         <StatCard
-          label="Prescriptions"
+          label={t("analytics_prescriptions")}
           value={prescriptionsMonth}
-          sub="This month"
+          sub={t("analytics_this_month")}
         />
         <StatCard
-          label="Appointments"
+          label={t("analytics_appointments")}
           value={appointmentsToday}
-          sub="Today"
+          sub={t("dash_today")}
         />
         <StatCard
-          label="Appointments"
+          label={t("analytics_appointments")}
           value={appointmentsWeek}
-          sub="This week"
+          sub={t("analytics_this_week")}
         />
       </div>
 
@@ -426,7 +428,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Patient Growth
+              {t("analytics_patient_growth")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -450,8 +452,8 @@ export default function AnalyticsPage() {
             ) : (
               <p className="text-text-muted text-center py-12 text-sm">
                 {patientGrowth.length < 2
-                  ? "Need at least 2 months of data to show growth trend"
-                  : "No data yet"}
+                  ? t("analytics_growth_empty")
+                  : t("analytics_no_data")}
               </p>
             )}
           </CardBody>
@@ -461,7 +463,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Disease Distribution
+              {t("analytics_disease_dist")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -499,7 +501,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Treatment Status Breakdown
+              {t("analytics_treatment_status")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -537,7 +539,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Severity Distribution
+              {t("analytics_severity_dist")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -568,7 +570,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Top Diagnosed Conditions
+              {t("analytics_top_conditions")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -605,7 +607,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Appointment Completion Rate
+              {t("analytics_apt_completion")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -643,7 +645,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Age Distribution
+              {t("analytics_age_dist")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -674,7 +676,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-text-primary">
-              Gender Distribution
+              {t("analytics_gender_dist")}
             </h3>
           </CardHeader>
           <CardBody>
@@ -713,13 +715,13 @@ export default function AnalyticsPage() {
       <Card>
         <CardHeader>
           <h3 className="text-lg font-semibold text-text-primary">
-            Quick Insights
+            {t("analytics_quick_insights")}
           </h3>
         </CardHeader>
         <CardBody className="space-y-4">
           <div className="flex justify-between">
             <span className="text-text-secondary">
-              Most common diagnosis this month
+              {t("analytics_top_diagnosis")}
             </span>
             <span className="font-semibold text-primary-500">
               {topDiagnosisMonth || "\u2014"}
@@ -727,14 +729,14 @@ export default function AnalyticsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-text-secondary">
-              Average visits per patient
+              {t("analytics_avg_visits")}
             </span>
             <span className="font-semibold text-primary-500">
               {avgVisits || "\u2014"}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-text-secondary">Patient recovery rate</span>
+            <span className="text-text-secondary">{t("analytics_recovery_rate")}</span>
             <span className="font-semibold text-primary-500">
               {recoveryRate ? `${recoveryRate}%` : "\u2014"}
             </span>
@@ -753,11 +755,10 @@ export default function AnalyticsPage() {
             }}
           >
             <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-2">
-              Earnings Analytics — Coming Soon
+              {t("analytics_earnings_title")}
             </p>
             <p className="text-text-muted text-sm">
-              Revenue charts and earning breakdowns will appear here once the AI
-              Case Queue launches and cases start flowing in.
+              {t("analytics_earnings_desc")}
             </p>
           </div>
         </CardBody>
