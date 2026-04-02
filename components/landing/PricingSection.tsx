@@ -52,7 +52,7 @@ export function PricingSection() {
   const { t } = useLanguage();
 
   return (
-    <section className="py-24 bg-primary-100">
+    <section className="py-24" style={{ background: "rgba(245,240,232,0.82)" }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         <motion.div
           className="text-center mb-16"

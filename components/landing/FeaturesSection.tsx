@@ -17,7 +17,7 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section className="py-24 bg-primary-50">
+    <section className="py-24" style={{ background: "rgba(250,248,244,0.82)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <motion.div
           className="text-center mb-16"

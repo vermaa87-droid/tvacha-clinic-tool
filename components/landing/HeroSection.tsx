@@ -52,7 +52,7 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-primary-50 to-primary-100 flex items-center relative overflow-hidden">
+    <section className="min-h-screen flex items-center relative overflow-hidden" style={{ background: "linear-gradient(to bottom, rgba(250,248,244,0.85), rgba(245,240,232,0.80))" }}>
       <div className="float-element absolute top-24 left-8 w-16 h-16 rounded-full border-2 border-primary-500 opacity-5" style={{ animationDelay: "0s" }} />
       <div className="float-element absolute bottom-32 left-24 w-8 h-8 rounded-full bg-primary-500 opacity-5" style={{ animationDelay: "2s" }} />
       <div className="float-element absolute top-1/3 right-8 w-24 h-24 rounded-full border border-primary-500 opacity-5" style={{ animationDelay: "4s" }} />

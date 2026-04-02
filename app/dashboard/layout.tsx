@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { useAuthStore } from "@/lib/store";
 import { VerificationPending } from "@/components/VerificationPending";
+import { RefreshProvider } from "@/lib/RefreshContext";
 
 export default function DashboardLayout({
   children,
@@ -52,7 +53,9 @@ export default function DashboardLayout({
         />
         <div className="flex-1 overflow-auto">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
-            {children}
+            <RefreshProvider>
+              {children}
+            </RefreshProvider>
           </div>
         </div>
       </div>

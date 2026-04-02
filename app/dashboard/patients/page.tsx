@@ -11,7 +11,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -62,6 +62,7 @@ const INITIAL_FORM = {
 export default function PatientsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
   const [patients, setPatients] = useState<PatientWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -97,10 +98,8 @@ export default function PatientsPage() {
   }, [user]);
 
   useEffect(() => {
-    fetchPatients();
-  }, [fetchPatients]);
-
-  useRefetchOnFocus(useCallback(() => { fetchPatients(true); }, [fetchPatients]));
+    fetchPatients(refreshTick > 0);
+  }, [fetchPatients, refreshTick]);
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for patients table)
   useEffect(() => {

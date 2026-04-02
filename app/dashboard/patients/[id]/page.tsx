@@ -42,7 +42,7 @@ import {
   Copy,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 
 // ─── Common diagnoses for autocomplete ──────────────────────────────────────
 
@@ -171,6 +171,7 @@ export default function PatientDetailPage({
   params: { id: string };
 }) {
   const { user } = useAuthStore();
+  const refreshTick = useRefreshTick();
 
   // Patient data
   const [patient, setPatient] = useState<PatientWithDetails | null>(null);
@@ -280,10 +281,9 @@ export default function PatientDetailPage({
 
   useEffect(() => {
     if (!user) return;
-    fetchAllData();
-  }, [user, fetchAllData]);
+    fetchAllData(refreshTick > 0);
+  }, [user, fetchAllData, refreshTick]);
 
-  useRefetchOnFocus(useCallback(() => { fetchAllData(true); }, [fetchAllData]));
 
   // Realtime: sync visits across devices (requires Supabase Realtime enabled for visits table)
   useEffect(() => {

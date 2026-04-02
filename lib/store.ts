@@ -72,8 +72,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           return;
         }
 
-        // Skip INITIAL_SESSION since we already handled it above with getSession
+        // Skip events that don't need action
         if (event === "INITIAL_SESSION") return;
+        if (event === "TOKEN_REFRESHED") return;
 
         if (session?.user) {
           set({
@@ -81,14 +82,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             loading: false,
             initialized: true,
           });
-          const { data: doctor, error: doctorError } = await supabase
+          // Fetch doctor in background — don't await to avoid blocking
+          supabase
             .from("doctors")
             .select("*")
             .eq("id", session.user.id)
-            .maybeSingle();
-          if (doctorError) console.error("[store] onAuthStateChange doctors fetch error:", doctorError);
-          if (doctor) set({ doctor });
-        } else {
+            .maybeSingle()
+            .then(({ data: doctor, error: doctorError }) => {
+              if (doctorError) console.error("[store] onAuthStateChange doctors fetch error:", doctorError);
+              if (doctor) set({ doctor });
+            });
+        } else if (event === "SIGNED_OUT") {
+          // Only clear user on explicit sign-out, not on transient events
           set({ user: null, doctor: null, loading: false, initialized: true });
         }
       });
@@ -100,11 +105,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           try {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-              set({
-                user: { id: session.user.id, email: session.user.email! },
-                loading: false,
-                initialized: true,
-              });
+              // Only set user if it actually changed — avoids new object references
+              // that trigger useCallback/useEffect cascades in dashboard pages.
+              const currentUser = get().user;
+              if (!currentUser || currentUser.id !== session.user.id) {
+                set({
+                  user: { id: session.user.id, email: session.user.email! },
+                  loading: false,
+                  initialized: true,
+                });
+              }
               const { data: doctor } = await supabase
                 .from("doctors")
                 .select("*")

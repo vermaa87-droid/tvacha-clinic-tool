@@ -28,7 +28,7 @@ import {
 import Link from "next/link";
 import { format, formatDistanceToNow, endOfWeek, differenceInDays } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 
 interface ActivityItem {
   type: "patient" | "prescription" | "visit";
@@ -39,6 +39,7 @@ interface ActivityItem {
 export default function DashboardHome() {
   const { user, doctor } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
   const [totalPatients, setTotalPatients] = useState(0);
   const [visitsToday, setVisitsToday] = useState(0);
   const [appointmentsToday, setAppointmentsToday] = useState(0);
@@ -187,10 +188,8 @@ export default function DashboardHome() {
   }, [user]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useRefetchOnFocus(useCallback(() => { fetchData(true); }, [fetchData]));
+    fetchData(refreshTick > 0);
+  }, [fetchData, refreshTick]);
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for these tables)
   useEffect(() => {

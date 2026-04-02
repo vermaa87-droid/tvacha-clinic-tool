@@ -11,21 +11,40 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     // Only enable Lenis on public/marketing pages, not dashboard
     if (pathname.startsWith("/dashboard")) return;
 
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
+    let lenis: Lenis | null = null;
+    let animFrame: number;
 
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
+    const createLenis = () => {
+      if (lenis) {
+        cancelAnimationFrame(animFrame);
+        lenis.destroy();
+      }
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+      function raf(time: number) {
+        lenis!.raf(time);
+        animFrame = requestAnimationFrame(raf);
+      }
+      animFrame = requestAnimationFrame(raf);
+    };
+
+    createLenis();
+
+    // Recreate Lenis when tab regains focus — prevents broken scroll state
+    // after browser throttles RAF to near-zero in backgrounded tabs.
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        createLenis();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      cancelAnimationFrame(animFrame);
+      if (lenis) lenis.destroy();
     };
   }, [pathname]);
 

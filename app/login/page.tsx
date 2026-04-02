@@ -76,7 +76,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <nav className="bg-primary-50 border-b border-primary-200">
+      <nav className="border-b border-primary-200" style={{ background: "rgba(250,248,244,0.90)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <LanguageToggle />

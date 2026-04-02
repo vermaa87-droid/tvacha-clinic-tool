@@ -10,7 +10,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 import type { Appointment, Patient } from "@/lib/types";
 import {
   VISIT_TYPE_OPTIONS,
@@ -111,6 +111,7 @@ function formatTime12(time: string): string {
 export default function AppointmentsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -169,10 +170,8 @@ export default function AppointmentsPage() {
   }, [user]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useRefetchOnFocus(useCallback(() => { fetchData(true); }, [fetchData]));
+    fetchData(refreshTick > 0);
+  }, [fetchData, refreshTick]);
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for appointments table)
   useEffect(() => {

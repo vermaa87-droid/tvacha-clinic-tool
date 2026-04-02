@@ -162,7 +162,7 @@ export default function Home() {
       <PricingSection />
 
       {/* AI & Technology Section */}
-      <section className="py-20 bg-primary-50">
+      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <motion.h2
             className="text-3xl font-serif font-bold text-text-primary text-center mb-4"

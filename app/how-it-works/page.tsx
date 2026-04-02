@@ -9,12 +9,8 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import {
-  Brain,
-  Camera,
   Layers,
   RotateCcw,
-  ShieldAlert,
-  ClipboardList,
   Zap,
   BarChart3,
   ChevronDown,

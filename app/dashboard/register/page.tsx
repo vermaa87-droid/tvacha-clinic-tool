@@ -10,7 +10,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Prescription } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 import Link from "next/link";
 import { Pencil, Plus, Phone } from "lucide-react";
 import {
@@ -117,6 +117,7 @@ type TabKey = (typeof TABS)[number]["key"];
 export default function RegisterPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
   const [activeTab, setActiveTab] = useState<TabKey>("patients");
 
   // Loading states
@@ -297,10 +298,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!user) return;
-    refetchAll();
-  }, [user, refetchAll]);
+    refetchAll(refreshTick > 0);
+  }, [user, refetchAll, refreshTick]);
 
-  useRefetchOnFocus(useCallback(() => { refetchAll(true); }, [refetchAll]));
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for these tables)
   useEffect(() => {

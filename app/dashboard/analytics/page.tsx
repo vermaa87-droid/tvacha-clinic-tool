@@ -5,7 +5,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 import { format, startOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import {
   ResponsiveContainer,
@@ -77,6 +77,7 @@ function ageBucket(age: number): string {
 export default function AnalyticsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
   const [loading, setLoading] = useState(true);
 
   // Overview stats
@@ -362,10 +363,9 @@ export default function AnalyticsPage() {
   }, [user]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchAll(refreshTick > 0);
+  }, [fetchAll, refreshTick]);
 
-  useRefetchOnFocus(useCallback(() => { fetchAll(true); }, [fetchAll]));
 
   if (loading) {
     return (

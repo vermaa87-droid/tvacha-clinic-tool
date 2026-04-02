@@ -9,7 +9,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { PrescriptionTemplate, Prescription, Medicine, Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
-import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
+import { useRefreshTick } from "@/lib/RefreshContext";
 import { Badge } from "@/components/ui/Badge";
 import { format } from "date-fns";
 import { Pencil, PenLine, X } from "lucide-react";
@@ -195,6 +195,7 @@ const selectClasses =
 export default function PrescriptionsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
+  const refreshTick = useRefreshTick();
 
   // Data
   const [templates, setTemplates] = useState<PrescriptionTemplate[]>([]);
@@ -268,10 +269,9 @@ export default function PrescriptionsPage() {
   }, [user, fetchPrescriptions]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchAll(refreshTick > 0);
+  }, [fetchAll, refreshTick]);
 
-  useRefetchOnFocus(useCallback(() => { fetchAll(true); }, [fetchAll]));
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for prescriptions table)
   useEffect(() => {

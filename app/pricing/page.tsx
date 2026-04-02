@@ -84,7 +84,7 @@ export default function PricingPage() {
         )}
       </AnimatePresence>
 
-      <nav className="bg-primary-50 border-b border-primary-200 sticky top-0 z-40">
+      <nav className="border-b border-primary-200 sticky top-0 z-40" style={{ background: "rgba(250,248,244,0.92)", backdropFilter: "blur(12px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-4 md:gap-6">
@@ -104,7 +104,7 @@ export default function PricingPage() {
         </div>
       </nav>
 
-      <section className="py-20 bg-primary-50">
+      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
         <div className="text-center mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-text-primary mb-4">
             Pricing
@@ -118,7 +118,7 @@ export default function PricingPage() {
       <PricingSection />
 
       {/* Comparison Section */}
-      <section className="py-20 bg-primary-50">
+      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Why Choose Tvacha Clinic?
@@ -200,7 +200,7 @@ export default function PricingPage() {
       </section>
 
       {/* What's included */}
-      <section className="py-20 bg-primary-100">
+      <section className="py-20" style={{ background: "rgba(245,240,232,0.82)" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary mb-4">
             Everything in One Platform
@@ -224,7 +224,7 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-primary-50">
+      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Frequently Asked Questions

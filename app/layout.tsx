@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { CustomCursor } from "@/components/CustomCursor";
+import { FloralVineBackground } from "@/components/FloralVineBackground";
 import { AuthProvider } from "@/components/AuthProvider";
 import { LanguageProvider } from "@/lib/language-context";
 
@@ -33,8 +34,11 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <SmoothScroll>
+              <FloralVineBackground />
               <CustomCursor />
-              {children}
+              <div style={{ position: "relative", zIndex: 1 }}>
+                {children}
+              </div>
             </SmoothScroll>
           </AuthProvider>
         </LanguageProvider>
