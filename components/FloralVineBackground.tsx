@@ -7,15 +7,15 @@ import { usePathname } from "next/navigation";
 /*  COLORS                                                                */
 /* ═══════════════════════════════════════════════════════════════════════ */
 const C = {
-  vine:        "rgba(184,147,106,0.77)",
-  vineStroke:  "rgba(160,130,85,0.85)",
-  branch:      "rgba(184,147,106,0.60)",
-  leafFill:    "rgba(184,147,106,0.43)",
-  leafStroke:  "rgba(160,130,85,0.68)",
-  leafVein:    "rgba(212,184,150,0.51)",
-  flowerFill:  "rgba(212,168,87,0.51)",
-  flowerStroke:"rgba(184,147,106,0.68)",
-  flowerCenter:"rgba(160,130,85,0.85)",
+  vine:        "rgba(200,162,80,0.82)",
+  vineStroke:  "rgba(180,140,55,0.88)",
+  branch:      "rgba(200,162,80,0.65)",
+  leafFill:    "rgba(195,158,75,0.45)",
+  leafStroke:  "rgba(170,132,50,0.70)",
+  leafVein:    "rgba(225,195,120,0.55)",
+  flowerFill:  "rgba(220,175,70,0.55)",
+  flowerStroke:"rgba(190,148,60,0.70)",
+  flowerCenter:"rgba(165,125,40,0.88)",
 };
 
 /* ═══════════════════════════════════════════════════════════════════════ */
@@ -28,6 +28,7 @@ interface Seg {
   thickness: number;
   isBranch: boolean;
   depth: number;
+  spawnDist: number; // main-stem dist at which this seg's branch was spawned
 }
 
 interface Leaf {
@@ -46,11 +47,12 @@ interface Orb {
 }
 
 interface VineData {
-  segments: Seg[];
+  segments: Seg[];      // main stem only (depth=0)
+  branchSegs: Seg[];    // branches (depth≥1)
   leaves: Leaf[];
   flowers: Flower[];
   orbs: Orb[];
-  totalDist: number;
+  totalDist: number;    // main stem distance only — used for growth pacing
   swayPhase: number;
   swayAmp: number;
   swaySpeed: number;
@@ -94,15 +96,17 @@ function genBranch(
   thickness: number, dist: number,
   out: { segments: Seg[]; leaves: Leaf[]; flowers: Flower[]; orbs: Orb[] },
   depth: number,
-  side: "left" | "right"
+  side: "left" | "right",
+  straight: boolean
 ) {
   let x = startX, y = startY, angle = startAngle;
   let d = dist;
   let leafSide: 1 | -1 = 1;
 
-  // Tighter angle clamp: ±50° from straight up ensures ≥77% vertical progress per seg
-  const angleMin = -Math.PI * 0.78;
-  const angleMax = -Math.PI * 0.22;
+  // On main page: ±15° from vertical. Elsewhere: ±50°
+  const spread = straight ? 0.083 : 0.28;
+  const angleMin = -Math.PI * (0.5 + spread);
+  const angleMax = -Math.PI * (0.5 - spread);
 
   for (let i = 0; i < segs; i++) {
     // Lean inward very slightly toward center
@@ -116,7 +120,7 @@ function genBranch(
     const cp1: Pt = { x: x + Math.cos(angle) * sLen * 0.33 + rand(-18, 18), y: y + Math.sin(angle) * sLen * 0.33 + rand(-12, 12) };
     const cp2: Pt = { x: x + Math.cos(angle) * sLen * 0.66 + rand(-18, 18), y: y + Math.sin(angle) * sLen * 0.66 + rand(-12, 12) };
 
-    const seg: Seg = { p0: {x, y}, cp1, cp2, p1: {x: nx, y: ny}, thickness, isBranch: depth > 0, depth };
+    const seg: Seg = { p0: {x, y}, cp1, cp2, p1: {x: nx, y: ny}, thickness, isBranch: depth > 0, depth, spawnDist: dist };
     out.segments.push(seg);
     const sl = segLen(seg);
     d += sl;
@@ -166,12 +170,12 @@ function genBranch(
       const awayDir = side === "left" ? -1 : 1;
       const bAngle = angle + awayDir * rand(0.5, 1.1);
       const branchSegs = Math.floor(rand(3, 6));
-      genBranch(nx, ny, bAngle, branchSegs, thickness * 0.60, d, out, depth + 1, side);
+      genBranch(nx, ny, bAngle, branchSegs, thickness * 0.60, d, out, depth + 1, side, straight);
     }
 
     x = nx; y = ny;
-    // Taper thickness faster for more visible contrast top-to-bottom
-    thickness = Math.max(1.2, thickness - 0.14);
+    // Gentle taper: 8.5px → ~3px over 60 segments
+    thickness = Math.max(2.2, thickness - 0.07);
   }
 }
 
@@ -180,24 +184,33 @@ function generateVine(
   side: "left" | "right",
   isMobile: boolean,
   docH: number,
-  heightFrac: number
+  heightFrac: number,
+  straight: boolean
 ): VineData {
   const out = { segments: [] as Seg[], leaves: [] as Leaf[], flowers: [] as Flower[], orbs: [] as Orb[] };
   const inwardBias = side === "left" ? 0.05 : -0.05;
   const baseAngle = -Math.PI / 2 + inwardBias;
   const targetH = docH * heightFrac;
-  // With ≥77% vertical efficiency per seg and avg seg 70px, use docH/50 to ensure we reach top
   const segs = Math.max(isMobile ? 10 : 15, Math.ceil(targetH / 50));
-  // Thicker main vines: 7-9px at base
-  const thickness = isMobile ? 6 : 8.5;
+  const thickness = isMobile ? 4 : 6.5;
 
-  genBranch(startX, startY, baseAngle, segs, thickness, 0, out, 0, side);
+  genBranch(startX, startY, baseAngle, segs, thickness, 0, out, 0, side, straight);
 
+  // Split into main stem (depth=0) and branches (depth≥1)
+  const mainSegs = out.segments.filter(s => s.depth === 0);
+  const branchSegs = out.segments.filter(s => s.depth > 0);
+
+  // totalDist counts only main stem so growth pacing matches visual stem position
   let totalDist = 0;
-  for (const s of out.segments) totalDist += segLen(s);
+  for (const s of mainSegs) totalDist += segLen(s);
 
   return {
-    ...out, totalDist,
+    segments: mainSegs,
+    branchSegs,
+    leaves: out.leaves,
+    flowers: out.flowers,
+    orbs: out.orbs,
+    totalDist,
     swayPhase: rand(0, Math.PI * 2),
     swayAmp: rand(3, 6),
     swaySpeed: rand(0.0006, 0.001),
@@ -277,9 +290,9 @@ function drawFlower(ctx: CanvasRenderingContext2D, x: number, y: number, size: n
 
 function drawOrb(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, brightness: number) {
   const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-  grad.addColorStop(0, `rgba(212,168,87,${0.85 * brightness})`);
-  grad.addColorStop(0.5, `rgba(184,147,106,${0.34 * brightness})`);
-  grad.addColorStop(1, "rgba(184,147,106,0)");
+  grad.addColorStop(0, `rgba(225,185,70,${0.88 * brightness})`);
+  grad.addColorStop(0.5, `rgba(200,162,80,${0.35 * brightness})`);
+  grad.addColorStop(1, "rgba(200,162,80,0)");
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.fillStyle = grad;
@@ -299,27 +312,28 @@ export function FloralVineBackground() {
   const sizeRef = useRef({ w: 0, h: 0 });
   const reducedRef = useRef(false);
   const mobileRef = useRef(false);
+  const lastWidthRef = useRef(0);
 
   /* ── build 6 vines in distinct zones ── */
-  const build = useCallback((w: number, h: number) => {
+  const build = useCallback((w: number, h: number, straight: boolean) => {
     const mobile = w < 768;
     mobileRef.current = mobile;
     const vines: VineData[] = [];
 
     if (mobile) {
       // 2 vines on mobile
-      vines.push(generateVine(rand(w * 0.01, w * 0.05), h + 20, "left",  true,  h, 1.0));
-      vines.push(generateVine(rand(w * 0.95, w * 0.99), h + 20, "right", true,  h, 1.0));
+      vines.push(generateVine(rand(w * 0.01, w * 0.05), h + 20, "left",  true,  h, 1.0,  straight));
+      vines.push(generateVine(rand(w * 0.95, w * 0.99), h + 20, "right", true,  h, 1.0,  straight));
     } else {
       // LEFT — 3 vines in distinct x lanes, decreasing height toward center
-      vines.push(generateVine(rand(w * 0.01, w * 0.03), h + 20, "left",  false, h, 1.0));  // outermost, tallest
-      vines.push(generateVine(rand(w * 0.06, w * 0.09), h + 20, "left",  false, h, 0.75)); // middle
-      vines.push(generateVine(rand(w * 0.13, w * 0.18), h + 20, "left",  false, h, 0.50)); // innermost, shorter
+      vines.push(generateVine(rand(w * 0.01, w * 0.03), h + 20, "left",  false, h, 1.0,  straight));
+      vines.push(generateVine(rand(w * 0.06, w * 0.09), h + 20, "left",  false, h, 0.75, straight));
+      vines.push(generateVine(rand(w * 0.13, w * 0.18), h + 20, "left",  false, h, 0.50, straight));
 
       // RIGHT — mirror zones
-      vines.push(generateVine(rand(w * 0.97, w * 0.99), h + 20, "right", false, h, 1.0));  // outermost, tallest
-      vines.push(generateVine(rand(w * 0.91, w * 0.94), h + 20, "right", false, h, 0.75)); // middle
-      vines.push(generateVine(rand(w * 0.82, w * 0.87), h + 20, "right", false, h, 0.50)); // innermost, shorter
+      vines.push(generateVine(rand(w * 0.97, w * 0.99), h + 20, "right", false, h, 1.0,  straight));
+      vines.push(generateVine(rand(w * 0.91, w * 0.94), h + 20, "right", false, h, 0.75, straight));
+      vines.push(generateVine(rand(w * 0.82, w * 0.87), h + 20, "right", false, h, 0.50, straight));
     }
 
     vinesRef.current = vines;
@@ -348,61 +362,92 @@ export function FloralVineBackground() {
       const drawnDist = vine.totalDist * growT;
       const sway = reduced ? 0 : Math.sin(now * vine.swaySpeed + vine.swayPhase) * vine.swayAmp;
 
-      /* ── draw segments (3-layer: shadow + main + highlight) ── */
-      let accDist = 0;
-      for (const seg of vine.segments) {
-        const sl = segLen(seg);
-        if (accDist > drawnDist) break;
-        const frac = Math.min(1, (drawnDist - accDist) / sl);
-        accDist += sl;
-
-        // Build path points
-        const pts: { x: number; y: number }[] = [];
+      /* ── helper: sample bezier segment into pts array ── */
+      const sampleSeg = (seg: Seg, frac: number, pts: { x: number; y: number }[]) => {
         const steps = Math.max(8, Math.ceil(frac * 20));
-        for (let i = 0; i <= steps; i++) {
-          const t = i / steps;
-          if (t > frac + 0.001) break;
-          const pt = bPt(seg.p0, seg.cp1, seg.cp2, seg.p1, Math.min(t, frac));
+        const start = pts.length === 0 ? 0 : 1; // skip first point if continuing path
+        for (let i = start; i <= steps; i++) {
+          const t = Math.min(i / steps, frac);
+          const pt = bPt(seg.p0, seg.cp1, seg.cp2, seg.p1, t);
           const swF = 1 - pt.y / (h + 20);
           pts.push({ x: pt.x + sway * swF, y: pt.y - scrollY });
+          if (t >= frac) break;
         }
-        if (pts.length < 2) continue;
+      };
 
+      /* ── helper: stroke a pts array with 3-layer style ── */
+      const strokePath = (pts: { x: number; y: number }[], baseWidth: number, isBranch: boolean) => {
+        if (pts.length < 2) return;
         const applyPath = () => {
           ctx.beginPath();
           ctx.moveTo(pts[0].x, pts[0].y);
           for (let j = 1; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
         };
-
-        const tw = seg.thickness;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-
-        // Shadow / volume layer
         applyPath();
-        ctx.lineWidth = tw + 3.5;
-        ctx.strokeStyle = seg.depth === 0
-          ? "rgba(140,110,70,0.22)"
-          : "rgba(130,100,60,0.14)";
+        ctx.lineWidth = baseWidth + 2.5;
+        ctx.strokeStyle = isBranch ? "rgba(140,105,30,0.14)" : "rgba(140,105,30,0.25)";
         ctx.stroke();
-
-        // Main vine layer
         applyPath();
-        ctx.lineWidth = tw;
-        ctx.strokeStyle = seg.isBranch ? C.branch : C.vine;
+        ctx.lineWidth = baseWidth;
+        ctx.strokeStyle = isBranch ? C.branch : C.vine;
         ctx.stroke();
-
-        // Highlight / light edge
         applyPath();
-        ctx.lineWidth = tw * 0.28;
-        ctx.strokeStyle = "rgba(220,190,155,0.22)";
+        ctx.lineWidth = baseWidth * 0.32;
+        ctx.strokeStyle = "rgba(225,195,160,0.28)";
         ctx.stroke();
+      };
+
+      /* ── draw main stem as one continuous path ── */
+      {
+        const pts: { x: number; y: number }[] = [];
+        let accDist = 0;
+        let baseWidth = vine.segments[0]?.thickness ?? 6;
+        for (const seg of vine.segments) {
+          const sl = segLen(seg);
+          if (accDist > drawnDist) break;
+          const frac = Math.min(1, (drawnDist - accDist) / sl);
+          accDist += sl;
+          sampleSeg(seg, frac, pts);
+          if (frac < 1) break;
+        }
+        strokePath(pts, baseWidth, false);
+      }
+
+      /* ── draw each branch as its own continuous path ── */
+      {
+        // Group branch segs by spawnDist (each branch shares the same spawnDist)
+        const branches = new Map<number, Seg[]>();
+        for (const seg of vine.branchSegs) {
+          if (drawnDist < seg.spawnDist) continue;
+          const key = seg.spawnDist;
+          if (!branches.has(key)) branches.set(key, []);
+          branches.get(key)!.push(seg);
+        }
+        for (const [spawnDist, segs] of branches) {
+          const branchProgress = Math.min(1, (drawnDist - spawnDist) / (vine.totalDist * 0.18 + 1));
+          const pts: { x: number; y: number }[] = [];
+          let bAccDist = 0;
+          const bTotal = segs.reduce((sum, s) => sum + segLen(s), 0);
+          const bDrawn = bTotal * branchProgress;
+          for (const seg of segs) {
+            const sl = segLen(seg);
+            if (bAccDist > bDrawn) break;
+            const frac = Math.min(1, (bDrawn - bAccDist) / sl);
+            bAccDist += sl;
+            sampleSeg(seg, frac, pts);
+            if (frac < 1) break;
+          }
+          strokePath(pts, segs[0].thickness, true);
+        }
       }
 
       /* ── draw leaves ── */
       for (const leaf of vine.leaves) {
+        if (growT < 1 && drawnDist < leaf.distAlongVine) continue;
         const scale = growT < 1
-          ? Math.max(0, Math.min(1, (drawnDist - leaf.distAlongVine) / 60))
+          ? Math.min(1, (drawnDist - leaf.distAlongVine) / 20)
           : 1;
         if (scale < 0.02) continue;
 
@@ -427,8 +472,9 @@ export function FloralVineBackground() {
 
       /* ── draw flowers ── */
       for (const fl of vine.flowers) {
+        if (growT < 1 && drawnDist < fl.distAlongVine) continue;
         const scale = growT < 1
-          ? Math.max(0, Math.min(1, (drawnDist - fl.distAlongVine) / 80))
+          ? Math.min(1, (drawnDist - fl.distAlongVine) / 25)
           : 1 + (reduced ? 0 : Math.sin(now * 0.0012 + fl.phase) * 0.05);
         if (scale < 0.02) continue;
 
@@ -452,8 +498,9 @@ export function FloralVineBackground() {
 
       /* ── draw orbs ── */
       for (const orb of vine.orbs) {
+        if (growT < 1 && drawnDist < orb.distAlongVine) continue;
         let opacity = growT < 1
-          ? Math.max(0, Math.min(1, (drawnDist - orb.distAlongVine) / 80))
+          ? Math.min(1, (drawnDist - orb.distAlongVine) / 20)
           : 1;
         if (opacity < 0.02) continue;
 
@@ -489,22 +536,26 @@ export function FloralVineBackground() {
 
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const setup = () => {
+    const setup = (rebuildVines: boolean) => {
       const w = window.innerWidth;
-      const vh = window.innerHeight;
+      // Use clientHeight to ignore mobile URL bar height changes
+      const vh = document.documentElement.clientHeight || window.innerHeight;
       const h = Math.max(document.documentElement.scrollHeight, vh);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = w * dpr;
       canvas.height = vh * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${vh}px`;
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       sizeRef.current = { w, h };
-      build(w, h);
+      if (rebuildVines) {
+        lastWidthRef.current = w;
+        build(w, h, pathname === "/");
+      }
     };
 
-    setup();
+    setup(true);
 
     if (!window.matchMedia("(hover: none)").matches) {
       const onMove = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
@@ -515,7 +566,15 @@ export function FloralVineBackground() {
     rafRef.current = requestAnimationFrame(render);
 
     let timer: ReturnType<typeof setTimeout>;
-    const onResize = () => { clearTimeout(timer); timer = setTimeout(setup, 200); };
+    const onResize = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const newWidth = window.innerWidth;
+        // Only rebuild vines if width changed significantly (mobile URL bar only changes height)
+        const widthChanged = Math.abs(newWidth - lastWidthRef.current) > 50;
+        setup(widthChanged);
+      }, 500);
+    };
     window.addEventListener("resize", onResize);
 
     return () => {
