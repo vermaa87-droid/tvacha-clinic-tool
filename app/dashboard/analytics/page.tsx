@@ -448,7 +448,7 @@ export default function AnalyticsPage() {
                     stroke={CHART_COLORS[0]}
                     strokeWidth={2}
                     dot={{ fill: CHART_COLORS[0] }}
-                    name="Patients"
+                    name={t("analytics_total_patients")}
                   />
                 </LineChart>
               </ResponsiveContainer>

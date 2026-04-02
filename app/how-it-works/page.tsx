@@ -6,6 +6,8 @@ import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
 import { NeuralNetworkBackground } from "@/components/NeuralNetworkBackground";
 import Link from "next/link";
+import { useLanguage } from "@/lib/language-context";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import {
   Brain,
   Camera,
@@ -16,312 +18,330 @@ import {
   Zap,
   BarChart3,
   ChevronDown,
-  ChevronUp,
-  Check,
   Menu,
   X,
 } from "lucide-react";
 
-type SectionData = {
-  icon: React.ElementType;
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Expandable wrapper – smooth height animation                            */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Expandable({
+  expanded,
+  children,
+  onCollapse,
+}: {
+  expanded: boolean;
+  children: React.ReactNode;
+  onCollapse: () => void;
+}) {
+  return (
+    <AnimatePresence initial={false}>
+      {expanded && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="overflow-hidden"
+        >
+          <div className="pt-6" style={{ borderTop: "1px solid #e8e0d0" }}>
+            {children}
+            <button
+              onClick={onCollapse}
+              className="mt-5 text-xs font-medium hover:underline"
+              style={{ color: "#9a8a76" }}
+            >
+              Show less &uarr;
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Pattern A – "Hero Feature" card (full-width, big heading, mini visual)  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function HeroCard({
+  title,
+  subtitle,
+  paragraphs,
+  Visual,
+  borderAccent,
+  delay,
+}: {
   title: string;
-  badge: string;
-  summary: string;
-  bullets: string[];
-  accentColor: string;   // hex for inline styles
-  bgColor: string;       // hex
-  borderColor: string;   // hex
-  Visual: () => React.ReactElement;
-};
-
-const sections: SectionData[] = [
-  {
-    icon: Brain,
-    title: "Advanced Deep Learning Model",
-    badge: "Architecture",
-    summary: "50M parameter ConvNeXt trained on hundreds of thousands of skin images",
-    accentColor: "#b8936a",
-    bgColor: "#fdf8f3",
-    borderColor: "#e8d5bc",
-    bullets: [
-      "50M parameter ConvNeXt architecture — one of the most advanced image classification networks available",
-      "Transfer learning from ImageNet-22k for robust feature recognition out of the box",
-      "Mixed precision training with gradient accumulation for optimal model convergence",
-    ],
-    Visual: () => (
-      <div className="grid grid-cols-3 gap-3 mt-4">
-        {["ImageNet-22k\nPre-training", "Skin Dataset\nFine-tuning", "Clinical\nValidation"].map((label, i) => (
-          <div key={i} style={{ background: "#fff", borderColor: "#e8d5bc" }} className="border rounded-lg p-3 text-center">
-            <div style={{ background: "#fdf0e0", color: "#b8936a" }} className="w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center font-bold text-sm">{i + 1}</div>
-            <p className="text-xs font-medium whitespace-pre-line leading-relaxed" style={{ color: "#9a8a76" }}>{label}</p>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: Camera,
-    title: "Smart Image Processing",
-    badge: "Pre-processing",
-    summary: "Auto skin detection, quality checks, and clinical-grade normalization",
-    accentColor: "#4a90c4",
-    bgColor: "#f3f8fd",
-    borderColor: "#bcd5ea",
-    bullets: [
-      "Auto Skin Detection — finds and isolates the skin region using multiple color spaces, works on all skin tones (Fitzpatrick I–VI)",
-      "Quality Check — automatically detects blurry, too dark, or overexposed photos and asks for a retake",
-      "Clinical-Grade Normalization — bridges the gap between phone photos and clinical images using adaptive contrast enhancement",
-      "Background Removal — crops out irrelevant background so the AI focuses only on your skin",
-    ],
-    Visual: () => (
-      <div className="mt-4 flex gap-2 flex-wrap">
-        {[
-          { label: "Fitzpatrick I", hex: "#f5d5b8" },
-          { label: "Fitzpatrick II", hex: "#e8b99a" },
-          { label: "Fitzpatrick III", hex: "#c68642" },
-          { label: "Fitzpatrick IV", hex: "#a0522d" },
-          { label: "Fitzpatrick V", hex: "#6b3a2a" },
-          { label: "Fitzpatrick VI", hex: "#3b1f15" },
-        ].map(({ label, hex }) => (
-          <div key={label} style={{ background: "#fff", borderColor: "#bcd5ea" }} className="flex items-center gap-1.5 border rounded-full px-3 py-1">
-            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: hex }} />
-            <span className="text-xs" style={{ color: "#9a8a76" }}>{label}</span>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: Layers,
-    title: "17 Data Augmentation Strategies",
-    badge: "Training Robustness",
-    summary: "Trained on real-world phone photo conditions for reliable results",
-    accentColor: "#7c5cbf",
-    bgColor: "#f8f5fd",
-    borderColor: "#d4c4ef",
-    bullets: [
-      "Real-world phone photo conditions: compression artifacts, low resolution, partial occlusion, varying lighting and angles",
-      "Advanced blending techniques (MixUp & CutMix) create smoother, more generalizable decision boundaries",
-    ],
-    Visual: () => (
-      <div className="mt-4 grid grid-cols-2 gap-2" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-        {["Rotation", "Zoom", "Brightness", "Contrast", "Blur", "Crop", "MixUp", "CutMix"].map((aug) => (
-          <div key={aug} style={{ background: "#fff", borderColor: "#d4c4ef", color: "#9a8a76" }} className="border rounded-lg p-2 text-center text-xs font-medium">
-            {aug}
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: RotateCcw,
-    title: "7-Pass Analysis Per Photo",
-    badge: "Precision",
-    summary: "Every photo analyzed 7 times with different orientations and adjustments",
-    accentColor: "#4a9a6a",
-    bgColor: "#f3fdf7",
-    borderColor: "#b4dfc7",
-    bullets: [
-      "Every photo is analyzed 7 times with different orientations, zoom levels, and lighting adjustments",
-      "Results are combined at the mathematical level for higher precision than a single pass",
-      "Multi-Photo Mode — upload 3 photos from different angles for even greater accuracy",
-    ],
-    Visual: () => (
-      <div className="mt-4 flex items-center gap-2 flex-wrap">
-        {Array.from({ length: 7 }, (_, i) => (
-          <div key={i} className="flex flex-col items-center gap-1">
-            <div style={{ background: "#e0f5eb", borderColor: "#b4dfc7", color: "#4a9a6a" }} className="w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-sm">
-              {i + 1}
-            </div>
-            <span className="text-xs" style={{ color: "#9a8a76" }}>Pass</span>
-          </div>
-        ))}
-        <span className="ml-1 text-sm font-semibold" style={{ color: "#4a9a6a" }}>→ Combined result</span>
-      </div>
-    ),
-  },
-  {
-    icon: ShieldAlert,
-    title: "Cancer Safety System",
-    badge: "Safety Critical",
-    summary: "2.5× cancer weighting with triple-layer detection — designed to never miss cancer",
-    accentColor: "#c44a4a",
-    bgColor: "#fdf3f3",
-    borderColor: "#eab4b4",
-    bullets: [
-      "Cancer classes are weighted 2.5× during training — the AI is trained to never miss cancer",
-      "Triple-layer cancer detection: individual class check, grouped probability check, and uncertainty flagging",
-      "If combined cancer probability exceeds 15%, you're alerted even if the top result is benign",
-      "Low-confidence results return \"Uncertain — See a Doctor\" rather than a wrong answer",
-    ],
-    Visual: () => (
-      <div className="mt-4 space-y-2">
-        {[
-          { label: "Layer 1: Individual class check", pct: 85 },
-          { label: "Layer 2: Grouped probability check", pct: 92 },
-          { label: "Layer 3: Uncertainty flagging", pct: 100 },
-        ].map(({ label, pct }) => (
-          <div key={label}>
-            <div className="flex justify-between text-xs mb-1" style={{ color: "#9a8a76" }}>
-              <span>{label}</span>
-              <span className="font-semibold" style={{ color: "#c44a4a" }}>{pct}% coverage</span>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ background: "#f5d5d5" }}>
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "#c44a4a" }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: ClipboardList,
-    title: "Clinical Questionnaire",
-    badge: "Optional",
-    summary: "5 quick questions that adjust AI predictions using Bayesian statistics",
-    accentColor: "#3a9a8a",
-    bgColor: "#f3fdfb",
-    borderColor: "#b4dfd8",
-    bullets: [
-      "5 quick questions: skin type, age, body location, duration, and symptoms",
-      "Adjusts AI predictions using Bayesian statistics based on real clinical data",
-      "Example: a changing or growing lesion on sun-exposed skin in a fair-skinned adult increases melanoma weighting",
-    ],
-    Visual: () => (
-      <div className="mt-4 flex gap-3 flex-wrap">
-        {["Skin Type", "Age", "Body Location", "Duration", "Symptoms"].map((q, i) => (
-          <div key={i} style={{ background: "#fff", borderColor: "#b4dfd8" }} className="flex items-center gap-2 border rounded-lg px-3 py-2">
-            <span style={{ background: "#d5f0ec", color: "#3a9a8a" }} className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0">{i + 1}</span>
-            <span className="text-sm font-medium" style={{ color: "#1a1612" }}>{q}</span>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: Zap,
-    title: "Smart Training Pipeline",
-    badge: "Training",
-    summary: "Focal Loss, balanced sampling, EMA, and early stopping for a robust model",
-    accentColor: "#c47a3a",
-    bgColor: "#fdf8f0",
-    borderColor: "#e8ceaa",
-    bullets: [
-      "Focal Loss focuses the AI on the hardest-to-distinguish conditions",
-      "Balanced class sampling ensures rare conditions are learned equally well",
-      "Exponential Moving Average smooths model weights for better generalization",
-      "Early stopping prevents overfitting — the AI knows when to stop learning",
-    ],
-    Visual: () => (
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        {[
-          { name: "Focal Loss", desc: "Focuses on hard cases" },
-          { name: "Balanced Sampling", desc: "Rare conditions covered" },
-          { name: "EMA Weights", desc: "Smooth generalization" },
-          { name: "Early Stopping", desc: "Prevents overfitting" },
-        ].map(({ name, desc }) => (
-          <div key={name} style={{ background: "#fff", borderColor: "#e8ceaa" }} className="border rounded-lg p-3">
-            <p className="text-sm font-semibold" style={{ color: "#1a1612" }}>{name}</p>
-            <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{desc}</p>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    icon: BarChart3,
-    title: "Evaluation & Transparency",
-    badge: "Accountability",
-    summary: "Per-condition precision, recall, and F1 scores — no black box",
-    accentColor: "#5a6abf",
-    bgColor: "#f5f5fd",
-    borderColor: "#c4c8ef",
-    bullets: [
-      "Evaluated using balanced accuracy across all 13 conditions",
-      "Per-condition precision, recall, and F1 scores tracked independently",
-      "Dedicated cancer detection rate monitoring",
-      "Confidence scores shown for every prediction — no black box",
-    ],
-    Visual: () => (
-      <div className="mt-4">
-        <div className="flex gap-3 flex-wrap">
-          {["Precision", "Recall", "F1 Score", "Confidence"].map((metric) => (
-            <div key={metric} style={{ background: "#e8eaf5", color: "#5a6abf", borderColor: "#c4c8ef" }} className="border px-3 py-1.5 rounded-full text-sm font-semibold">
-              {metric}
-            </div>
-          ))}
-        </div>
-        <p className="text-xs mt-3" style={{ color: "#9a8a76" }}>Every prediction includes a confidence score so doctors always know how certain the AI is.</p>
-      </div>
-    ),
-  },
-];
-
-function SectionCard({ section, index }: { section: SectionData; index: number }) {
+  subtitle: string;
+  paragraphs: string[];
+  Visual: React.ReactNode;
+  borderAccent?: string;
+  delay?: number;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const Icon = section.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.6, delay: delay || 0, ease: "easeOut" }}
+      className="rounded-xl overflow-hidden transition-shadow duration-300"
+      style={{
+        background: expanded ? "#fff" : "rgba(255,255,255,0.85)",
+        border: "1px solid #e8e0d0",
+        borderLeft: borderAccent ? `4px solid ${borderAccent}` : "1px solid #e8e0d0",
+        boxShadow: expanded ? "0 8px 32px rgba(0,0,0,0.06)" : "0 2px 8px rgba(0,0,0,0.03)",
+      }}
+    >
+      <button className="w-full text-left p-6 md:p-8" onClick={() => setExpanded(!expanded)}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="text-2xl md:text-3xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+              {title}
+            </h3>
+            <p className="text-sm italic leading-relaxed" style={{ color: "#9a8a76" }}>
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block flex-shrink-0">{Visual}</div>
+            <ChevronDown
+              size={20}
+              className="flex-shrink-0 transition-transform duration-300"
+              style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
+            />
+          </div>
+        </div>
+      </button>
+
+      <div className="px-6 md:px-8 pb-6 md:pb-8">
+        <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
+          <div className="space-y-4 max-w-2xl">
+            {paragraphs.map((p, i) => (
+              <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+            ))}
+          </div>
+          <div className="md:hidden mt-4">{Visual}</div>
+        </Expandable>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Pattern B – Side-by-side compact cards                                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function CompactCard({
+  Icon,
+  title,
+  subtitle,
+  paragraphs,
+  delay,
+}: {
+  Icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  paragraphs: string[];
+  delay?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, delay: index * 0.06, ease: "easeOut" }}
-      style={{ background: section.bgColor, borderColor: section.borderColor }}
-      className="border rounded-xl overflow-hidden"
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: delay || 0, ease: "easeOut" }}
+      className="rounded-xl overflow-hidden transition-shadow duration-300"
+      style={{
+        background: expanded ? "#fff" : "rgba(255,255,255,0.7)",
+        border: "1px solid #e8e0d0",
+        boxShadow: expanded ? "0 8px 24px rgba(0,0,0,0.06)" : "0 1px 4px rgba(0,0,0,0.02)",
+      }}
     >
-      <button className="w-full text-left p-4 md:p-6" onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "#fff", border: `1.5px solid ${section.borderColor}` }}
-            >
-              <Icon size={22} style={{ color: section.accentColor }} />
+      <button className="w-full text-left p-5 md:p-6" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <Icon size={18} style={{ color: "#b8936a" }} className="flex-shrink-0" />
+              <h3 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>{title}</h3>
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h3 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>{section.title}</h3>
-                <span
-                  className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: `${section.accentColor}20`, color: section.accentColor }}
-                >
-                  {section.badge}
-                </span>
-              </div>
-              <p className="text-sm" style={{ color: "#9a8a76" }}>{section.summary}</p>
-            </div>
+            <p className="text-sm" style={{ color: "#9a8a76" }}>{subtitle}</p>
           </div>
-          <div className="flex-shrink-0 mt-1" style={{ color: "#9a8a76" }}>
-            {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
+          <ChevronDown
+            size={18}
+            className="flex-shrink-0 mt-1 transition-transform duration-300"
+            style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
+          />
         </div>
       </button>
 
-      {expanded && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.25 }}
-          className="px-4 md:px-6 pb-4 md:pb-6"
-        >
-          <div className="space-y-2 pt-4" style={{ borderTop: `1px solid ${section.borderColor}` }}>
-            {section.bullets.map((bullet, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <Check size={16} className="flex-shrink-0 mt-0.5" style={{ color: section.accentColor }} />
-                <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{bullet}</p>
-              </div>
+      <div className="px-5 md:px-6 pb-5 md:pb-6">
+        <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
+          <div className="space-y-3">
+            {paragraphs.map((p, i) => (
+              <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
             ))}
           </div>
-          <section.Visual />
-        </motion.div>
-      )}
+        </Expandable>
+      </div>
     </motion.div>
   );
 }
 
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Pattern C – Timeline / numbered step                                    */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function TimelineCard({
+  num,
+  title,
+  subtitle,
+  paragraphs,
+  isLast,
+  tinted,
+  borderAccent,
+  Visual,
+  delay,
+}: {
+  num: string;
+  title: string;
+  subtitle: string;
+  paragraphs: string[];
+  isLast?: boolean;
+  tinted?: boolean;
+  borderAccent?: string;
+  Visual?: React.ReactNode;
+  delay?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: delay || 0, ease: "easeOut" }}
+      className="flex gap-5 md:gap-8"
+    >
+      {/* Number + line */}
+      <div className="flex flex-col items-center flex-shrink-0">
+        <span className="text-4xl md:text-5xl font-serif font-bold select-none" style={{ color: "#e0d5c4" }}>
+          {num}
+        </span>
+        {!isLast && <div className="flex-1 w-px mt-2" style={{ background: "#e0d5c4" }} />}
+      </div>
+
+      {/* Content */}
+      <div
+        className="flex-1 rounded-xl overflow-hidden mb-6 transition-shadow duration-300"
+        style={{
+          background: tinted ? "#fef5f5" : expanded ? "#fff" : "rgba(255,255,255,0.7)",
+          border: "1px solid #e8e0d0",
+          borderLeft: borderAccent ? `4px solid ${borderAccent}` : "1px solid #e8e0d0",
+          boxShadow: expanded ? "0 8px 24px rgba(0,0,0,0.06)" : "0 1px 4px rgba(0,0,0,0.02)",
+        }}
+      >
+        <button className="w-full text-left p-5 md:p-6" onClick={() => setExpanded(!expanded)}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-serif font-bold mb-1" style={{ color: "#1a1612" }}>{title}</h3>
+              <p className="text-sm italic" style={{ color: "#9a8a76" }}>{subtitle}</p>
+            </div>
+            <ChevronDown
+              size={18}
+              className="flex-shrink-0 mt-1 transition-transform duration-300"
+              style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
+            />
+          </div>
+        </button>
+
+        <div className="px-5 md:px-6 pb-5 md:pb-6">
+          <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
+            <div className="space-y-3">
+              {paragraphs.map((p, i) => (
+                <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+              ))}
+            </div>
+            {Visual && <div className="mt-4">{Visual}</div>}
+          </Expandable>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Section group heading                                                    */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function GroupHeading({ label, desc }: { label: string; desc: string }) {
+  return (
+    <motion.div
+      className="mb-8 mt-16 first:mt-0"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-2" style={{ color: "#b8936a" }}>
+        {label}
+      </p>
+      <p className="text-sm max-w-xl" style={{ color: "#9a8a76" }}>{desc}</p>
+    </motion.div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Mini visuals (styled-div illustrations for Hero cards)                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function NeuralNetVisual() {
+  return (
+    <div className="flex items-center gap-1.5">
+      {["Input", "Hidden", "Output"].map((label, i) => (
+        <div key={label} className="flex items-center gap-1.5">
+          <div
+            className="px-2.5 py-1.5 rounded text-xs font-semibold"
+            style={{ background: "#fdf0e0", color: "#b8936a", border: "1px solid #e8d5bc" }}
+          >
+            {label}
+          </div>
+          {i < 2 && (
+            <svg width="20" height="12" viewBox="0 0 20 12">
+              <line x1="0" y1="3" x2="14" y2="3" stroke="#e8d5bc" strokeWidth="1.5" />
+              <line x1="0" y1="9" x2="14" y2="9" stroke="#e8d5bc" strokeWidth="1.5" />
+              <line x1="0" y1="6" x2="18" y2="6" stroke="#b8936a" strokeWidth="1.5" />
+            </svg>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ShieldVisual() {
+  return (
+    <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
+        <path d="M24 4 L42 12 L42 24 C42 36 24 44 24 44 C24 44 6 36 6 24 L6 12 Z" fill="#fef5f5" stroke="#e8a0a0" strokeWidth="2" />
+        <text x="24" y="28" textAnchor="middle" fontSize="11" fontWeight="700" fill="#c44a4a">×2.5</text>
+      </svg>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Page                                                                     */
+/* ────────────────────────────────────────────────────────────────────────── */
+
 export default function HowItWorksPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <main className="min-h-screen" style={{ background: "#f2efe9" }}>
@@ -352,28 +372,17 @@ export default function HowItWorksPage() {
               </div>
               <nav className="flex flex-col gap-1 px-4 py-6">
                 {[
-                  { label: "How Our AI Works", href: "/how-it-works" },
-                  { label: "Pricing", href: "/pricing" },
-                  { label: "Sign In", href: "/login" },
+                  { label: t("nav_how_ai_works"), href: "/how-it-works" },
+                  { label: t("nav_pricing"), href: "/pricing" },
+                  { label: t("nav_signin"), href: "/login" },
                 ].map(({ label, href }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-3 rounded-lg font-medium transition-colors"
-                    style={{ color: "#9a8a76" }}
-                  >
+                  <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg font-medium" style={{ color: "#9a8a76" }}>
                     {label}
                   </Link>
                 ))}
                 <div className="mt-4 px-4">
-                  <Link
-                    href="/signup"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full text-center text-sm font-semibold px-4 py-3 rounded-lg text-white transition-colors"
-                    style={{ background: "#b8936a" }}
-                  >
-                    Get Started
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center text-sm font-semibold px-4 py-3 rounded-lg text-white" style={{ background: "#b8936a" }}>
+                    {t("nav_getstarted")}
                   </Link>
                 </div>
               </nav>
@@ -387,76 +396,40 @@ export default function HowItWorksPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4 md:gap-6">
-            <Link href="/pricing" className="font-medium transition-colors text-sm hidden md:block" style={{ color: "#9a8a76" }}>
-              Pricing
-            </Link>
-            <Link href="/login" className="font-medium transition-colors text-sm hidden md:block" style={{ color: "#9a8a76" }}>
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-white hidden md:block"
-              style={{ background: "#b8936a" }}
-            >
-              Get Started
-            </Link>
-            <button
-              className="md:hidden p-2"
-              style={{ color: "#9a8a76" }}
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
+            <Link href="/pricing" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>{t("nav_pricing")}</Link>
+            <Link href="/login" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>{t("nav_signin")}</Link>
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-lg text-white hidden md:block" style={{ background: "#b8936a" }}>{t("nav_getstarted")}</Link>
+            <LanguageToggle />
+            <button className="md:hidden p-2" style={{ color: "#9a8a76" }} onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
               <Menu size={24} />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Full-page Neural Network Background wrapper */}
+      {/* Hero with neural net background (hero-only, not full page) */}
       <div style={{ position: "relative", overflow: "hidden" }}>
         <NeuralNetworkBackground />
         <div style={{ position: "relative", zIndex: 1 }}>
-
-          {/* Hero */}
-          <section className="py-20" style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.7), rgba(242,239,233,0.3))" }}>
+          <section className="py-20 md:py-28" style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.65), rgba(242,239,233,0.25))" }}>
             <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              >
-                <div
-                  className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-1.5 rounded-full mb-6"
-                  style={{ background: "#e8d5bc", color: "#b8936a" }}
-                >
-                  <Brain size={14} /> Clinical-Grade AI
-                </div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
-                  How Our AI Works
+              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
+                  {t("hiw_title")}
                 </h1>
                 <p className="text-lg font-light leading-relaxed max-w-2xl mx-auto" style={{ color: "#9a8a76" }}>
-                  A transparent look at the deep learning architecture, safety systems, and clinical reasoning behind Tvacha&apos;s skin AI — built specifically for Indian dermatology.
+                  {t("hiw_subtitle")}
                 </p>
               </motion.div>
 
-              {/* Stat pills */}
-              <motion.div
-                className="flex flex-wrap justify-center gap-3 mt-10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
+              <motion.div className="flex flex-wrap justify-center gap-3 mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
                 {[
-                  { value: "50M", label: "Parameters" },
-                  { value: "5 Cr+", label: "Training Images" },
-                  { value: "7×", label: "Per-Photo Passes" },
-                  { value: "2.5×", label: "Cancer Safety Weight" },
+                  { value: "50M", label: t("hiw_stat_params") },
+                  { value: "5 Cr+", label: t("hiw_stat_images") },
+                  { value: "7×", label: t("hiw_stat_passes") },
+                  { value: "2.5×", label: t("hiw_stat_cancer") },
                 ].map(({ value, label }) => (
-                  <div
-                    key={label}
-                    className="rounded-lg px-5 py-3 text-center"
-                    style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", backdropFilter: "blur(4px)" }}
-                  >
+                  <div key={label} className="rounded-lg px-5 py-3 text-center" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                     <p className="text-2xl font-bold" style={{ color: "#b8936a" }}>{value}</p>
                     <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{label}</p>
                   </div>
@@ -464,78 +437,129 @@ export default function HowItWorksPage() {
               </motion.div>
             </div>
           </section>
-
-          {/* Pipeline flow */}
-          <section className="py-10">
-            <div className="max-w-4xl mx-auto px-6 md:px-8">
-              <motion.div
-                className="flex flex-wrap items-center justify-center gap-2"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                {["Photo Upload", "Quality Check", "Skin Detection", "7-Pass Analysis", "Questionnaire", "Prediction + Confidence"].map((step, i, arr) => (
-                  <div key={step} className="flex items-center gap-2">
-                    <div
-                      className="rounded-lg px-4 py-2 text-sm font-medium text-center whitespace-nowrap"
-                      style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", color: "#1a1612", boxShadow: "0 2px 6px rgba(0,0,0,0.04)", backdropFilter: "blur(4px)" }}
-                    >
-                      {step}
-                    </div>
-                    {i < arr.length - 1 && (
-                      <span className="font-bold text-lg hidden md:block" style={{ color: "#b8936a" }}>→</span>
-                    )}
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-          </section>
-
-          {/* Sections */}
-          <section className="py-16">
-            <div className="max-w-3xl mx-auto px-6 md:px-8">
-              <motion.p
-                className="text-center text-sm mb-8"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                style={{ color: "#9a8a76" }}
-              >
-                Click any section to expand the details.
-              </motion.p>
-              <div className="space-y-4">
-                {sections.map((section, i) => (
-                  <SectionCard key={section.title} section={section} index={i} />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* CTA */}
-          <section className="py-20 text-white text-center" style={{ background: "rgba(184,147,106,0.95)" }}>
-            <motion.div
-              className="max-w-2xl mx-auto px-6"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-serif font-bold mb-4">Ready to try it yourself?</h2>
-              <p className="text-lg mb-8" style={{ opacity: 0.9 }}>Start a 2-week free trial — no credit card required.</p>
-              <Link
-                href="/signup"
-                className="inline-block font-semibold px-8 py-3 rounded-lg transition-colors"
-                style={{ background: "#fff", color: "#b8936a" }}
-              >
-                Start Free Trial
-              </Link>
-            </motion.div>
-          </section>
-
-          <Footer />
         </div>
       </div>
+
+      {/* Content sections – no background animation below hero */}
+      <div className="max-w-4xl mx-auto px-6 md:px-8 pb-20">
+
+        {/* ── Group 1: The AI Engine ── */}
+        <GroupHeading
+          label={t("hiw_s1_badge")}
+          desc={t("hiw_s1_summary")}
+        />
+
+        <div className="space-y-5">
+          <HeroCard
+            title={t("hiw_s1_title")}
+            subtitle={t("hiw_s1_b1")}
+            paragraphs={[t("hiw_s1_b2"), t("hiw_s1_b3")]}
+            Visual={<NeuralNetVisual />}
+            borderAccent="#b8936a"
+            delay={0.1}
+          />
+          <HeroCard
+            title={t("hiw_s2_title")}
+            subtitle={t("hiw_s2_summary")}
+            paragraphs={[t("hiw_s2_b1"), t("hiw_s2_b2"), t("hiw_s2_b3"), t("hiw_s2_b4")]}
+            Visual={
+              <div className="flex gap-1">
+                {["#f5d5b8", "#c68642", "#a0522d", "#6b3a2a", "#3b1f15"].map((hex) => (
+                  <div key={hex} className="w-4 h-4 rounded-full" style={{ background: hex }} />
+                ))}
+              </div>
+            }
+            borderAccent="#b8936a"
+            delay={0.15}
+          />
+        </div>
+
+        {/* ── Group 2: How We Train It ── */}
+        <GroupHeading
+          label={t("hiw_s7_badge")}
+          desc={t("hiw_s3_summary")}
+        />
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <CompactCard
+            Icon={Layers}
+            title={t("hiw_s3_title")}
+            subtitle={t("hiw_s3_summary")}
+            paragraphs={[t("hiw_s3_b1"), t("hiw_s3_b2")]}
+            delay={0.1}
+          />
+          <CompactCard
+            Icon={RotateCcw}
+            title={t("hiw_s4_title")}
+            subtitle={t("hiw_s4_summary")}
+            paragraphs={[t("hiw_s4_b1"), t("hiw_s4_b2"), t("hiw_s4_b3")]}
+            delay={0.15}
+          />
+          <CompactCard
+            Icon={Zap}
+            title={t("hiw_s7_title")}
+            subtitle={t("hiw_s7_summary")}
+            paragraphs={[t("hiw_s7_b1"), t("hiw_s7_b2"), t("hiw_s7_b3"), t("hiw_s7_b4")]}
+            delay={0.2}
+          />
+          <CompactCard
+            Icon={BarChart3}
+            title={t("hiw_s8_title")}
+            subtitle={t("hiw_s8_summary")}
+            paragraphs={[t("hiw_s8_b1"), t("hiw_s8_b2"), t("hiw_s8_b3"), t("hiw_s8_b4"), t("hiw_s8_footer")]}
+            delay={0.25}
+          />
+        </div>
+
+        {/* ── Group 3: Safety & Accuracy ── */}
+        <GroupHeading
+          label={t("hiw_s5_badge")}
+          desc={t("hiw_s5_summary")}
+        />
+
+        <div>
+          <TimelineCard
+            num="01"
+            title={t("hiw_s5_title")}
+            subtitle={t("hiw_s5_summary")}
+            paragraphs={[t("hiw_s5_b1"), t("hiw_s5_b2"), t("hiw_s5_b3"), t("hiw_s5_b4")]}
+            tinted
+            borderAccent="#c44a4a"
+            Visual={<ShieldVisual />}
+            delay={0.1}
+          />
+          <TimelineCard
+            num="02"
+            title={t("hiw_s6_title")}
+            subtitle={t("hiw_s6_summary")}
+            paragraphs={[t("hiw_s6_b1"), t("hiw_s6_b2"), t("hiw_s6_b3")]}
+            Visual={
+              <div className="flex gap-2 flex-wrap">
+                {[t("hiw_s6_q1"), t("hiw_s6_q2"), t("hiw_s6_q3"), t("hiw_s6_q4"), t("hiw_s6_q5")].map((q, i) => (
+                  <span key={i} className="text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: "#f0ebe3", color: "#9a8a76" }}>
+                    {q}
+                  </span>
+                ))}
+              </div>
+            }
+            isLast
+            delay={0.15}
+          />
+        </div>
+      </div>
+
+      {/* CTA */}
+      <section className="py-20 text-white text-center" style={{ background: "rgba(184,147,106,0.95)" }}>
+        <motion.div className="max-w-2xl mx-auto px-6" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <h2 className="text-3xl font-serif font-bold mb-4">{t("hiw_bottom_title")}</h2>
+          <p className="text-lg mb-8" style={{ opacity: 0.9 }}>{t("hiw_bottom_subtitle")}</p>
+          <Link href="/signup" className="inline-block font-semibold px-8 py-3 rounded-lg transition-colors" style={{ background: "#fff", color: "#b8936a" }}>
+            {t("hiw_cta_trial")}
+          </Link>
+        </motion.div>
+      </section>
+
+      <Footer />
     </main>
   );
 }

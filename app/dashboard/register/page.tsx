@@ -404,10 +404,10 @@ export default function RegisterPage() {
         header: "S.No",
         cell: ({ row }) => row.index + 1,
       },
-      { accessorKey: "patient_display_id", header: "Patient ID" },
+      { accessorKey: "patient_display_id", header: t("reg_col_patient_id") },
       {
         accessorKey: "name",
-        header: "Name",
+        header: t("reg_col_name"),
         cell: ({ row }) => (
           <Link
             href={`/dashboard/patients/${row.original.id}`}
@@ -419,7 +419,7 @@ export default function RegisterPage() {
       },
       {
         id: "age_gender",
-        header: "Age/Gender",
+        header: t("reg_col_age_gender"),
         cell: ({ row }) => {
           const age = row.original.age ?? "";
           const g = row.original.gender;
@@ -427,12 +427,12 @@ export default function RegisterPage() {
           return age || gShort ? `${age}/${gShort}` : "";
         },
       },
-      { accessorKey: "phone", header: "Phone" },
-      { accessorKey: "chief_complaint", header: "Chief Complaint" },
-      { accessorKey: "current_diagnosis", header: "Diagnosis" },
+      { accessorKey: "phone", header: t("reg_col_phone") },
+      { accessorKey: "chief_complaint", header: t("reg_col_chief_complaint") },
+      { accessorKey: "current_diagnosis", header: t("reg_col_diagnosis") },
       {
         accessorKey: "severity",
-        header: "Severity",
+        header: t("reg_col_severity"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.severity}
@@ -445,7 +445,7 @@ export default function RegisterPage() {
       },
       {
         accessorKey: "treatment_status",
-        header: "Status",
+        header: t("reg_col_status"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.treatment_status}
@@ -456,10 +456,10 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "last_visit_date", header: "Last Visit" },
+      { accessorKey: "last_visit_date", header: t("reg_col_last_visit") },
       {
         accessorKey: "next_followup_date",
-        header: "Next Follow-up",
+        header: t("reg_col_next_followup"),
         cell: ({ row }) => {
           const date = row.original.next_followup_date;
           if (!date) return "";
@@ -471,15 +471,15 @@ export default function RegisterPage() {
           );
         },
       },
-      { accessorKey: "total_visits", header: "Total Visits" },
-      { accessorKey: "city", header: "City" },
+      { accessorKey: "total_visits", header: t("reg_col_total_visits") },
+      { accessorKey: "city", header: t("reg_col_city") },
       {
         id: "quick_actions",
-        header: "Quick Actions",
+        header: t("reg_col_quick_actions"),
         cell: ({ row }) => (
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
             <button
-              title="Edit patient"
+              title={t("reg_edit_patient")}
               className="p-1 rounded hover:bg-primary-100 text-text-muted hover:text-primary-500"
               onClick={() => {
                 const p = row.original;
@@ -504,7 +504,7 @@ export default function RegisterPage() {
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <Link
-              title="New visit"
+              title={t("reg_new_visit")}
               href={`/dashboard/patients/${row.original.id}`}
               className="p-1 rounded hover:bg-primary-100 text-text-muted hover:text-primary-500"
             >
@@ -512,7 +512,7 @@ export default function RegisterPage() {
             </Link>
             {row.original.phone && (
               <a
-                title="Call patient"
+                title={t("reg_call_patient")}
                 href={`tel:${row.original.phone}`}
                 className="p-1 rounded hover:bg-primary-100 text-text-muted hover:text-primary-500"
               >
@@ -523,18 +523,18 @@ export default function RegisterPage() {
         ),
       },
     ],
-    []
+    [t]
   );
 
   const visitColumns = useMemo<ColumnDef<VisitRow, unknown>[]>(
     () => [
-      { accessorKey: "visit_date", header: "Date" },
-      { accessorKey: "patient_name", header: "Patient" },
-      { accessorKey: "chief_complaint", header: "Chief Complaint" },
-      { accessorKey: "diagnosis", header: "Diagnosis" },
+      { accessorKey: "visit_date", header: t("reg_col_date") },
+      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      { accessorKey: "chief_complaint", header: t("reg_col_chief_complaint") },
+      { accessorKey: "diagnosis", header: t("reg_col_diagnosis") },
       {
         accessorKey: "severity",
-        header: "Severity",
+        header: t("reg_col_severity"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.severity}
@@ -545,24 +545,24 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "body_location", header: "Body Location" },
-      { accessorKey: "treatment_given", header: "Treatment Given" },
-      { accessorKey: "visit_fee", header: "Fee" },
-      { accessorKey: "duration_minutes", header: "Duration (min)" },
-      { accessorKey: "doctor_notes", header: "Notes" },
+      { accessorKey: "body_location", header: t("reg_col_body_location") },
+      { accessorKey: "treatment_given", header: t("reg_col_treatment_given") },
+      { accessorKey: "visit_fee", header: t("reg_col_fee") },
+      { accessorKey: "duration_minutes", header: t("reg_col_duration_min") },
+      { accessorKey: "doctor_notes", header: t("reg_col_notes") },
     ],
-    []
+    [t]
   );
 
   const treatmentColumns = useMemo<ColumnDef<TreatmentPlanRow, unknown>[]>(
     () => [
-      { accessorKey: "patient_name", header: "Patient" },
-      { accessorKey: "condition", header: "Condition" },
-      { accessorKey: "treatment_started", header: "Started" },
-      { accessorKey: "treatment_plan", header: "Plan" },
+      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      { accessorKey: "condition", header: t("reg_col_condition") },
+      { accessorKey: "treatment_started", header: t("reg_col_started") },
+      { accessorKey: "treatment_plan", header: t("reg_col_plan") },
       {
         accessorKey: "response",
-        header: "Response",
+        header: t("reg_col_response"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.response}
@@ -572,10 +572,10 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "side_effects", header: "Side Effects" },
+      { accessorKey: "side_effects", header: t("reg_col_side_effects") },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t("reg_col_status"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.status}
@@ -587,7 +587,7 @@ export default function RegisterPage() {
       },
       {
         accessorKey: "compliance",
-        header: "Compliance",
+        header: t("reg_col_compliance"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.compliance}
@@ -597,33 +597,33 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "next_assessment", header: "Next Assessment" },
+      { accessorKey: "next_assessment", header: t("reg_col_next_assessment") },
     ],
-    []
+    [t]
   );
 
   const medicationColumns = useMemo<ColumnDef<MedicationRow, unknown>[]>(
     () => [
-      { accessorKey: "created_at", header: "Date" },
-      { accessorKey: "patient_name", header: "Patient" },
-      { accessorKey: "medicine_name", header: "Medicine" },
-      { accessorKey: "dosage", header: "Dosage" },
-      { accessorKey: "frequency", header: "Frequency" },
-      { accessorKey: "duration", header: "Duration" },
-      { accessorKey: "diagnosis", header: "Diagnosis" },
-      { accessorKey: "status", header: "Status" },
+      { accessorKey: "created_at", header: t("reg_col_date") },
+      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      { accessorKey: "medicine_name", header: t("reg_col_medicine") },
+      { accessorKey: "dosage", header: t("reg_col_dosage") },
+      { accessorKey: "frequency", header: t("reg_col_frequency") },
+      { accessorKey: "duration", header: t("reg_col_duration") },
+      { accessorKey: "diagnosis", header: t("reg_col_diagnosis") },
+      { accessorKey: "status", header: t("reg_col_status") },
     ],
-    []
+    [t]
   );
 
   const appointmentColumns = useMemo<ColumnDef<AppointmentRow, unknown>[]>(
     () => [
-      { accessorKey: "appointment_date", header: "Date" },
-      { accessorKey: "appointment_time", header: "Time" },
-      { accessorKey: "patient_name", header: "Patient" },
+      { accessorKey: "appointment_date", header: t("reg_col_date") },
+      { accessorKey: "appointment_time", header: t("reg_col_time") },
+      { accessorKey: "patient_name", header: t("reg_col_patient") },
       {
         accessorKey: "type",
-        header: "Type",
+        header: t("reg_col_type"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.type}
@@ -633,11 +633,11 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "duration_minutes", header: "Duration (min)" },
-      { accessorKey: "reason", header: "Reason" },
+      { accessorKey: "duration_minutes", header: t("reg_col_duration_min") },
+      { accessorKey: "reason", header: t("reg_col_reason") },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t("reg_col_status"),
         cell: ({ row, table }) => (
           <EditableCell
             value={row.original.status}
@@ -648,9 +648,9 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "visit_fee", header: "Fee" },
+      { accessorKey: "visit_fee", header: t("reg_col_fee") },
     ],
-    []
+    [t]
   );
 
   // ─── Add Patient Form ─────────────────────────────────────────────────────
@@ -889,12 +889,12 @@ export default function RegisterPage() {
             columns={patientColumns}
             onCellEdit={handlePatientCellEdit}
             onAddRow={() => setShowAddPatient(true)}
-            addRowLabel="Add Patient"
-            searchPlaceholder="Search patients..."
+            addRowLabel={t("reg_add_patient")}
+            searchPlaceholder={t("reg_search_patients")}
             exportFilename="patient-register"
             loading={loadingPatients}
-            emptyMessage="No patients registered yet"
-            emptyAction="Add your first patient"
+            emptyMessage={t("reg_empty_patients")}
+            emptyAction={t("reg_empty_patients_action")}
             pageSize={patientPageSize}
           />
           <div className="flex items-center gap-2 mt-2 text-sm text-text-muted">
@@ -918,12 +918,12 @@ export default function RegisterPage() {
           columns={visitColumns}
           onCellEdit={handleVisitCellEdit}
           onAddRow={() => setShowAddVisit(true)}
-          addRowLabel="Log Visit"
-          searchPlaceholder="Search visits..."
+          addRowLabel={t("reg_add_visit")}
+          searchPlaceholder={t("reg_search_visits")}
           exportFilename="visit-log"
           loading={loadingVisits}
-          emptyMessage="No visits logged yet"
-          emptyAction="Log your first visit"
+          emptyMessage={t("reg_empty_visits")}
+          emptyAction={t("reg_empty_visits_action")}
         />
       )}
 
@@ -933,12 +933,12 @@ export default function RegisterPage() {
           columns={treatmentColumns}
           onCellEdit={handleTreatmentCellEdit}
           onAddRow={() => setShowAddTreatment(true)}
-          addRowLabel="Add Treatment Plan"
-          searchPlaceholder="Search treatment plans..."
+          addRowLabel={t("reg_add_treatment")}
+          searchPlaceholder={t("reg_search_treatments")}
           exportFilename="treatment-tracker"
           loading={loadingTreatments}
-          emptyMessage="No treatment plans yet"
-          emptyAction="Add your first treatment plan"
+          emptyMessage={t("reg_empty_treatments")}
+          emptyAction={t("reg_empty_treatments_action")}
         />
       )}
 
@@ -946,10 +946,10 @@ export default function RegisterPage() {
         <DataTable<MedicationRow>
           data={medications}
           columns={medicationColumns}
-          searchPlaceholder="Search medications..."
+          searchPlaceholder={t("reg_search_medications")}
           exportFilename="medication-log"
           loading={loadingMedications}
-          emptyMessage="No medication records yet"
+          emptyMessage={t("reg_empty_medications")}
         />
       )}
 
@@ -959,12 +959,12 @@ export default function RegisterPage() {
           columns={appointmentColumns}
           onCellEdit={handleAppointmentCellEdit}
           onAddRow={() => setShowAddAppointment(true)}
-          addRowLabel="Add Appointment"
-          searchPlaceholder="Search appointments..."
+          addRowLabel={t("reg_add_appointment")}
+          searchPlaceholder={t("reg_search_appointments")}
           exportFilename="appointments"
           loading={loadingAppointments}
-          emptyMessage="No appointments yet"
-          emptyAction="Schedule your first appointment"
+          emptyMessage={t("reg_empty_appointments")}
+          emptyAction={t("reg_empty_appointments_action")}
         />
       )}
 
@@ -972,7 +972,7 @@ export default function RegisterPage() {
       <Modal
         isOpen={showAddPatient}
         onClose={() => setShowAddPatient(false)}
-        title="Add New Patient"
+        title={t("reg_modal_add_patient")}
         size="lg"
         footer={
           <>

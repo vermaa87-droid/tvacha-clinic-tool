@@ -514,18 +514,18 @@ export default function PrescriptionsPage() {
           className="bg-primary-500 hover:bg-primary-600 text-white"
           onClick={openCreatePrescription}
         >
-          + New Prescription
+          + {t("rx_create_rx")}
         </Button>
       </div>
 
       {/* ---------- Recent Prescriptions Table ---------- */}
       <div>
         <h2 className="text-2xl font-serif font-semibold text-text-primary mb-4">
-          Recent Prescriptions
+          {t("rx_recent")}
         </h2>
         {prescriptions.length === 0 ? (
           <p className="text-text-muted text-center py-8">
-            No prescriptions yet. Create your first prescription above.
+            {t("rx_no_prescriptions")}
           </p>
         ) : (
           <Card>
@@ -597,16 +597,16 @@ export default function PrescriptionsPage() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-serif font-semibold text-text-primary">
-            Template Library
+            {t("rx_templates")}
           </h2>
           <Button variant="ghost" onClick={openTemplateCreate}>
-            + New Template
+            + {t("rx_create_template")}
           </Button>
         </div>
 
         {templates.length === 0 ? (
           <p className="text-text-muted text-center py-8">
-            No templates available. Create one or wait for system templates.
+            {t("rx_no_templates")}
           </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
@@ -635,7 +635,7 @@ export default function PrescriptionsPage() {
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm font-medium text-text-secondary mb-3">
-                        Medicines:
+                        {t("rx_medicine_name")}:
                       </p>
                       <ul className="space-y-2">
                         {template.medicines.map((med, idx) => (
@@ -655,7 +655,7 @@ export default function PrescriptionsPage() {
                     {template.special_instructions && (
                       <div className="border-t border-primary-200 pt-4">
                         <p className="text-sm text-text-secondary mb-2">
-                          <strong>Instructions:</strong>
+                          <strong>{t("rx_special_instructions")}:</strong>
                         </p>
                         <p className="text-sm text-text-secondary">
                           {template.special_instructions}
@@ -683,7 +683,7 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={showTemplateModal}
         onClose={closeTemplateModal}
-        title={editingTemplate ? "Edit Template" : "Create New Template"}
+        title={editingTemplate ? t("rx_edit_template") : t("rx_create_new_template")}
         size="xl"
         footer={
           <>
@@ -696,14 +696,14 @@ export default function PrescriptionsPage() {
               loading={templateSaving}
               disabled={!templateForm.name || !templateForm.condition}
             >
-              {editingTemplate ? "Save Changes" : "Save Template"}
+              {editingTemplate ? t("rx_save_changes") : t("rx_save_template")}
             </Button>
           </>
         }
       >
         <div className="space-y-4 max-h-96 overflow-y-auto">
           <Input
-            label="Template Name"
+            label={t("rx_template_name")}
             placeholder="e.g., Tinea Corporis - Standard"
             value={templateForm.name}
             onChange={(e) =>
@@ -711,7 +711,7 @@ export default function PrescriptionsPage() {
             }
           />
           <Input
-            label="Condition"
+            label={t("rx_condition")}
             placeholder="e.g., Tinea Corporis"
             value={templateForm.condition}
             onChange={(e) =>
@@ -720,7 +720,7 @@ export default function PrescriptionsPage() {
           />
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
-              Category
+              {t("rx_category")}
             </label>
             <select
               className={selectClasses}
@@ -739,7 +739,7 @@ export default function PrescriptionsPage() {
             </select>
           </div>
           <Textarea
-            label="Medicines (one per line: Name, Dosage, Frequency, Duration)"
+            label={t("rx_medicines_label")}
             placeholder={
               "Clotrimazole 1% Cream, Apply thin layer, Twice daily, 4 weeks\nFluconazole 150mg, 1 tablet, Once weekly, 2 weeks"
             }
@@ -753,8 +753,8 @@ export default function PrescriptionsPage() {
             rows={6}
           />
           <Textarea
-            label="Special Instructions"
-            placeholder="Patient care instructions..."
+            label={t("rx_special_instructions")}
+            placeholder={t("rx_special_instructions_placeholder")}
             value={templateForm.special_instructions}
             onChange={(e) =>
               setTemplateForm((p) => ({
@@ -765,7 +765,7 @@ export default function PrescriptionsPage() {
             rows={3}
           />
           <Input
-            label="Follow-up Days"
+            label={t("rx_followup_days")}
             type="number"
             placeholder="e.g., 14"
             value={templateForm.follow_up_days}
@@ -786,7 +786,7 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={!!viewRx}
         onClose={() => setViewRx(null)}
-        title="Prescription Details"
+        title={t("rx_details")}
         size="xl"
         footer={
           <Button variant="ghost" onClick={() => setViewRx(null)}>
@@ -800,7 +800,7 @@ export default function PrescriptionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg font-semibold text-text-primary">
-                  {viewRx.patients?.name || "Unknown Patient"}
+                  {viewRx.patients?.name || t("rx_unknown_patient")}
                 </p>
                 <p className="text-sm text-text-secondary">
                   {format(new Date(viewRx.created_at), "dd MMM yyyy, hh:mm a")}
@@ -822,7 +822,7 @@ export default function PrescriptionsPage() {
             {/* Diagnosis */}
             <div>
               <p className="text-sm font-medium text-text-secondary mb-1">
-                Diagnosis
+                {t("rx_diagnosis")}
               </p>
               <p className="text-text-primary">{viewRx.diagnosis}</p>
             </div>
@@ -923,10 +923,10 @@ export default function PrescriptionsPage() {
         onClose={closeCreateModal}
         title={
           createStep === 1
-            ? "New Prescription - Select Patient"
+            ? t("rx_new_rx_select")
             : createStep === 2
-            ? "New Prescription - Choose Template"
-            : "New Prescription - Prescription Form"
+            ? t("rx_new_rx_template")
+            : t("rx_new_rx_form")
         }
         size="xl"
         footer={

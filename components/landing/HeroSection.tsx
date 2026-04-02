@@ -14,7 +14,7 @@ function TextReveal({ text, className, delay = 0 }: { text: string; className?: 
   return (
     <h1 className={className}>
       {words.map((word, i) => (
-        <span key={i} style={{ display: "inline-block", overflow: "hidden", marginRight: "0.3em" }}>
+        <span key={i} style={{ display: "inline-block", marginRight: "0.3em" }}>
           <motion.span
             style={{ display: "inline-block" }}
             initial={{ y: "100%", opacity: 0 }}

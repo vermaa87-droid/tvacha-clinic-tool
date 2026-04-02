@@ -49,6 +49,20 @@ export default function LoginPage() {
     if (!forgotEmail.trim()) return;
     setForgotLoading(true);
     setForgotError("");
+
+    // Check if the email belongs to a registered doctor
+    const { data: doctor } = await supabase
+      .from("doctors")
+      .select("id")
+      .eq("email", forgotEmail.trim().toLowerCase())
+      .maybeSingle();
+
+    if (!doctor) {
+      setForgotError("No account found with this email address.");
+      setForgotLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     });
