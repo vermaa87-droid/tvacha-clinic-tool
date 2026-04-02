@@ -347,7 +347,16 @@ export function PatientPhotosTab({ patientId }: { patientId: string }) {
           </>
         }
       >
-        <div className="space-y-4">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleUpload(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !(e.target instanceof HTMLTextAreaElement) && !e.shiftKey) {
+              e.preventDefault();
+              if (selectedFile) handleUpload();
+            }
+          }}
+          className="space-y-4"
+        >
           {/* File Select */}
           <div>
             <input
@@ -424,7 +433,8 @@ export function PatientPhotosTab({ patientId }: { patientId: string }) {
             }
             rows={3}
           />
-        </div>
+          <button type="submit" className="hidden" />
+        </form>
       </Modal>
 
       {/* View Photo Modal */}

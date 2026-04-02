@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
+import { Trash2 } from "lucide-react";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -69,6 +70,8 @@ export default function PatientsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
+  const [patientToDelete, setPatientToDelete] = useState<PatientWithDetails | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Search & filter state
   const [search, setSearch] = useState("");
@@ -254,6 +257,23 @@ export default function PatientsPage() {
     }
   };
 
+  const handleUnlinkPatient = async () => {
+    if (!patientToDelete) return;
+    setDeleteLoading(true);
+    try {
+      await supabase
+        .from("patients")
+        .update({ linked_doctor_id: null })
+        .eq("id", patientToDelete.id);
+      setPatientToDelete(null);
+      await fetchPatients();
+    } catch (err) {
+      console.error("[patients] unlink error:", err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const selectClass =
     "w-full px-4 py-2.5 border border-primary-200 rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors";
 
@@ -358,15 +378,24 @@ export default function PatientsPage() {
                 <CardBody>
                   <div className="space-y-3">
                     {/* Name + ID */}
-                    <div>
-                      <p className="font-bold text-text-primary text-lg">
-                        {patient.name}
-                      </p>
-                      {patient.patient_display_id && (
-                        <p className="text-sm text-text-muted">
-                          {patient.patient_display_id}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-text-primary text-lg truncate" title={patient.name}>
+                          {patient.name}
                         </p>
-                      )}
+                        {patient.patient_display_id && (
+                          <p className="text-sm text-text-muted">
+                            {patient.patient_display_id}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        className="flex-shrink-0 p-1 text-text-muted hover:text-red-500 transition-colors"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
+                        title="Remove patient"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
 
                     {/* Age, Gender */}
@@ -442,6 +471,32 @@ export default function PatientsPage() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!patientToDelete}
+        onClose={() => setPatientToDelete(null)}
+        title="Remove Patient"
+        size="sm"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setPatientToDelete(null)} disabled={deleteLoading}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleUnlinkPatient}
+              loading={deleteLoading}
+            >
+              Remove
+            </Button>
+          </>
+        }
+      >
+        <p className="text-text-secondary">
+          Remove <span className="font-semibold text-text-primary">{patientToDelete?.name}</span>? This will unlink them from your clinic.
+        </p>
+      </Modal>
 
       {/* Add Patient Modal */}
       <Modal

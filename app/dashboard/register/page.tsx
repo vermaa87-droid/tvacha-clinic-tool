@@ -12,7 +12,7 @@ import type { Prescription } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import Link from "next/link";
-import { Pencil, Plus, Phone } from "lucide-react";
+import { Pencil, Plus, Phone, Trash2 } from "lucide-react";
 import {
   SEVERITY_OPTIONS,
   SEVERITY_COLORS,
@@ -143,6 +143,8 @@ export default function RegisterPage() {
   // Modal states
   const [showAddPatient, setShowAddPatient] = useState(false);
   const [patientFormError, setPatientFormError] = useState("");
+  const [patientToDelete, setPatientToDelete] = useState<PatientRow | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
@@ -411,7 +413,8 @@ export default function RegisterPage() {
         cell: ({ row }) => (
           <Link
             href={`/dashboard/patients/${row.original.id}`}
-            className="text-primary-500 hover:underline"
+            className="text-primary-500 hover:underline block max-w-[200px] truncate"
+            title={row.original.name}
           >
             {row.original.name}
           </Link>
@@ -519,6 +522,13 @@ export default function RegisterPage() {
                 <Phone className="w-3.5 h-3.5" />
               </a>
             )}
+            <button
+              title="Remove patient"
+              className="p-1 rounded hover:bg-red-50 text-text-muted hover:text-red-500 transition-colors"
+              onClick={() => setPatientToDelete(row.original)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
           </div>
         ),
       },
@@ -652,6 +662,25 @@ export default function RegisterPage() {
     ],
     [t]
   );
+
+  // ─── Unlink Patient ───────────────────────────────────────────────────────
+
+  const handleUnlinkPatient = async () => {
+    if (!patientToDelete) return;
+    setDeleteLoading(true);
+    try {
+      await supabase
+        .from("patients")
+        .update({ linked_doctor_id: null })
+        .eq("id", patientToDelete.id);
+      setPatientToDelete(null);
+      fetchPatients(true);
+    } catch (err) {
+      console.error("[register] unlink error:", err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   // ─── Add Patient Form ─────────────────────────────────────────────────────
 
@@ -967,6 +996,32 @@ export default function RegisterPage() {
           emptyAction={t("reg_empty_appointments_action")}
         />
       )}
+
+      {/* ─── Remove Patient Modal ─────────────────────────────────────────────── */}
+      <Modal
+        isOpen={!!patientToDelete}
+        onClose={() => setPatientToDelete(null)}
+        title="Remove Patient"
+        size="sm"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setPatientToDelete(null)} disabled={deleteLoading}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleUnlinkPatient}
+              loading={deleteLoading}
+            >
+              Remove
+            </Button>
+          </>
+        }
+      >
+        <p className="text-text-secondary">
+          Remove <span className="font-semibold text-text-primary">{patientToDelete?.name}</span>? This will unlink them from your clinic.
+        </p>
+      </Modal>
 
       {/* ─── Add Patient Modal ──────────────────────────────────────────────── */}
       <Modal

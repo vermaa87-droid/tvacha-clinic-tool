@@ -366,7 +366,7 @@ export default function DashboardHome() {
                         {apt.appointment_time}
                       </div>
                       <div>
-                        <p className="font-medium text-text-primary text-sm">
+                        <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={apt.patients?.name || "Unknown"}>
                           {apt.patients?.name || "Unknown"}
                         </p>
                       </div>
@@ -415,7 +415,7 @@ export default function DashboardHome() {
                   >
                     <div className="mt-0.5">{activityIcon(item.type)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-primary">{item.label}</p>
+                      <p className="text-sm text-text-primary truncate">{item.label}</p>
                       <p className="text-xs text-text-muted mt-0.5">
                         {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                       </p>
@@ -523,7 +523,7 @@ export default function DashboardHome() {
                     className="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
                   >
                     <div>
-                      <p className="font-medium text-text-primary text-sm">{patient.name}</p>
+                      <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={patient.name}>{patient.name}</p>
                       <p className="text-xs text-text-muted">
                         {t("dash_followup_was")} {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
                       </p>

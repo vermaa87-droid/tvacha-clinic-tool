@@ -52,7 +52,7 @@ export default function DashboardLayout({
           onMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
         />
         <div className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+          <div className="w-full px-4 md:px-8 py-4 md:py-8">
             <RefreshProvider>
               {children}
             </RefreshProvider>

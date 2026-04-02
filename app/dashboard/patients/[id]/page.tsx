@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -40,6 +41,8 @@ import {
   Thermometer,
   Weight,
   Copy,
+  Upload,
+  Trash2,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
@@ -77,6 +80,16 @@ const QUICK_COMPLAINTS = [
 
 // ─── Extended Patient type ──────────────────────────────────────────────────
 
+interface LabReport {
+  title: string;
+  date: string;
+  notes: string;
+  file_url: string;
+  file_type: string;
+  storage_path: string;
+  uploaded_at: string;
+}
+
 interface PatientWithDetails extends Patient {
   patient_display_id: string | null;
   chief_complaint: string | null;
@@ -89,6 +102,7 @@ interface PatientWithDetails extends Patient {
   blood_group: string | null;
   chronic_conditions: string[] | null;
   family_history: string | null;
+  medical_history: Record<string, unknown>;
 }
 
 interface Visit {
@@ -171,11 +185,14 @@ export default function PatientDetailPage({
   params: { id: string };
 }) {
   const { user } = useAuthStore();
+  const router = useRouter();
   const refreshTick = useRefreshTick();
 
   // Patient data
   const [patient, setPatient] = useState<PatientWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Tabs
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
@@ -204,6 +221,13 @@ export default function PatientDetailPage({
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
+
+  // Lab reports
+  const [showLabModal, setShowLabModal] = useState(false);
+  const [labForm, setLabForm] = useState({ title: "", date: new Date().toISOString().split("T")[0], notes: "" });
+  const [labFile, setLabFile] = useState<File | null>(null);
+  const [labUploading, setLabUploading] = useState(false);
+  const [labError, setLabError] = useState("");
 
   // ─── Fetch patient ───────────────────────────────────────────────────────
 
@@ -468,6 +492,103 @@ export default function PatientDetailPage({
     }
   };
 
+  // ─── Delete / Unlink Patient ────────────────────────────────────────────
+
+  const handleUnlinkPatient = async () => {
+    if (!patient) return;
+    setDeleteLoading(true);
+    try {
+      await supabase
+        .from("patients")
+        .update({ linked_doctor_id: null })
+        .eq("id", patient.id);
+      router.push("/dashboard/patients");
+    } catch (err) {
+      console.error("[patient-detail] unlink error:", err);
+      setDeleteLoading(false);
+    }
+  };
+
+  // ─── Lab Reports ────────────────────────────────────────────────────────
+
+  const labReports: LabReport[] = (patient?.medical_history?.lab_reports as LabReport[] | undefined) ?? [];
+
+  const handleLabUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !patient || !labFile) return;
+    setLabError("");
+    setLabUploading(true);
+    try {
+      const timestamp = Date.now();
+      const safeName = labFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${user.id}/${patient.id}/${timestamp}_${safeName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("lab-reports")
+        .upload(path, labFile, { upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("lab-reports").getPublicUrl(path);
+      const fileUrl = urlData.publicUrl;
+
+      const newReport: LabReport = {
+        title: labForm.title || labFile.name,
+        date: labForm.date,
+        notes: labForm.notes,
+        file_url: fileUrl,
+        file_type: labFile.type,
+        storage_path: path,
+        uploaded_at: new Date().toISOString(),
+      };
+
+      const updatedReports = [...labReports, newReport];
+      const existingHistory = (patient.medical_history as Record<string, unknown>) ?? {};
+      await supabase
+        .from("patients")
+        .update({ medical_history: { ...existingHistory, lab_reports: updatedReports } })
+        .eq("id", patient.id);
+
+      setLabForm({ title: "", date: new Date().toISOString().split("T")[0], notes: "" });
+      setLabFile(null);
+      setShowLabModal(false);
+      await fetchPatient(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Bucket not found") || msg.includes("not found")) {
+        setLabError('Storage bucket "lab-reports" not found. Create it in Supabase: Storage → New bucket → name "lab-reports" → enable Public.');
+      } else if (msg.includes("aborted") || msg.includes("security policy") || msg.includes("violates")) {
+        setLabError('Upload blocked by storage permissions. Run the storage policies in your Supabase SQL Editor to allow uploads.');
+      } else {
+        setLabError(msg || "Upload failed");
+      }
+    } finally {
+      setLabUploading(false);
+    }
+  };
+
+  const handleLabDownload = async (report: LabReport) => {
+    const { data, error } = await supabase.storage
+      .from("lab-reports")
+      .download(report.storage_path);
+    if (error || !data) return;
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = report.title || "lab-report";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLabDelete = async (index: number) => {
+    if (!patient) return;
+    const updated = labReports.filter((_, i) => i !== index);
+    const existingHistory = (patient.medical_history as Record<string, unknown>) ?? {};
+    await supabase
+      .from("patients")
+      .update({ medical_history: { ...existingHistory, lab_reports: updated } })
+      .eq("id", patient.id);
+    await fetchPatient(true);
+  };
+
   // ─── Duplicate prescription ─────────────────────────────────────────────
 
   const duplicatePrescription = async (rx: Prescription) => {
@@ -558,14 +679,49 @@ export default function PatientDetailPage({
         style={{ backgroundColor: "#f5f2ed" }}
       >
         <div className="p-6 space-y-5">
-          {/* Back link */}
-          <Link
-            href="/dashboard/patients"
-            className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors text-sm"
+          {/* Back link + Delete */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/dashboard/patients"
+              className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors text-sm"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Link>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="p-2 text-text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title="Remove patient"
+            >
+              <Trash2 size={17} />
+            </button>
+          </div>
+
+          {/* Delete confirmation modal */}
+          <Modal
+            isOpen={showDeleteModal}
+            onClose={() => setShowDeleteModal(false)}
+            title="Remove Patient"
+            size="sm"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={handleUnlinkPatient}
+                  loading={deleteLoading}
+                >
+                  Remove
+                </Button>
+              </>
+            }
           >
-            <ArrowLeft size={16} />
-            Back
-          </Link>
+            <p className="text-text-secondary">
+              Remove <span className="font-semibold text-text-primary">{patient?.name}</span>? This will unlink them from your clinic.
+            </p>
+          </Modal>
 
           {/* Avatar + Name */}
           <div className="flex flex-col items-center text-center">
@@ -1374,29 +1530,135 @@ export default function PatientDetailPage({
           {activeTab === "lab_reports" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-serif font-semibold text-text-primary">
-                  Lab Reports
-                </h3>
-                <Button variant="outline" size="sm" disabled>
+                <h3 className="text-xl font-serif font-semibold text-text-primary">Lab Reports</h3>
+                <Button variant="outline" size="sm" onClick={() => { setLabError(""); setShowLabModal(true); }}>
                   <span className="inline-flex items-center gap-2">
-                    <FlaskConical size={16} /> Upload Report
+                    <Upload size={16} /> Upload Report
                   </span>
                 </Button>
               </div>
 
-              <Card>
-                <CardBody>
-                  <div className="flex flex-col items-center justify-center py-16 text-text-muted">
-                    <FlaskConical size={48} className="mb-4 opacity-30" />
-                    <p className="text-lg font-medium">
-                      Lab report management coming soon
-                    </p>
-                    <p className="text-sm mt-1">
-                      Upload and manage lab results for this patient.
-                    </p>
+              {labReports.length === 0 ? (
+                <Card>
+                  <CardBody>
+                    <div className="flex flex-col items-center justify-center py-16 text-text-muted">
+                      <FlaskConical size={48} className="mb-4 opacity-30" />
+                      <p className="text-lg font-medium">No lab reports yet</p>
+                      <p className="text-sm mt-1">Upload and manage lab results for this patient.</p>
+                    </div>
+                  </CardBody>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {labReports.map((report, idx) => (
+                    <Card key={idx}>
+                      <CardBody>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
+                              {report.file_type?.startsWith("image/") ? (
+                                <img
+                                  src={report.file_url}
+                                  alt={report.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FileText size={24} className="text-primary-500" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-text-primary">{report.title}</p>
+                              <p className="text-sm text-text-secondary">{report.date}</p>
+                              {report.notes && <p className="text-sm text-text-muted mt-1">{report.notes}</p>}
+                              <p className="text-xs text-text-muted mt-1">
+                                Uploaded {new Date(report.uploaded_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleLabDownload(report)}
+                              className="text-sm text-primary-500 hover:text-primary-600 font-medium"
+                            >
+                              Download
+                            </button>
+                            <button
+                              onClick={() => handleLabDelete(idx)}
+                              className="p-1 text-text-muted hover:text-red-500 transition-colors"
+                              title="Delete report"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload Modal */}
+              <Modal
+                isOpen={showLabModal}
+                onClose={() => setShowLabModal(false)}
+                title="Upload Lab Report"
+                size="md"
+                footer={
+                  <>
+                    <Button variant="outline" onClick={() => setShowLabModal(false)} disabled={labUploading}>Cancel</Button>
+                    <Button className="bg-primary-500 hover:bg-primary-600 text-white" onClick={handleLabUpload} loading={labUploading} disabled={!labFile}>
+                      Upload
+                    </Button>
+                  </>
+                }
+              >
+                <form
+                  onSubmit={handleLabUpload}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !(e.target instanceof HTMLTextAreaElement) && !e.shiftKey) {
+                      e.preventDefault();
+                      e.currentTarget.requestSubmit();
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  {labError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{labError}</div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">Report File *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-100 file:text-primary-500 hover:file:bg-primary-200"
+                      onChange={(e) => setLabFile(e.target.files?.[0] ?? null)}
+                      required
+                    />
                   </div>
-                </CardBody>
-              </Card>
+                  <Input
+                    label="Report Title"
+                    placeholder="e.g. CBC, Thyroid Panel, Skin Biopsy"
+                    value={labForm.title}
+                    onChange={(e) => setLabForm((f) => ({ ...f, title: e.target.value }))}
+                  />
+                  <Input
+                    label="Report Date"
+                    type="date"
+                    value={labForm.date}
+                    onChange={(e) => setLabForm((f) => ({ ...f, date: e.target.value }))}
+                  />
+                  <Textarea
+                    label="Notes (optional)"
+                    placeholder="Any additional notes about this report..."
+                    value={labForm.notes}
+                    onChange={(e) => setLabForm((f) => ({ ...f, notes: e.target.value }))}
+                    rows={3}
+                  />
+                  <button type="submit" className="hidden" />
+                </form>
+              </Modal>
             </div>
           )}
 
