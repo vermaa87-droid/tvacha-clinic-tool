@@ -40,7 +40,7 @@ interface PulseRipple {
 
 // --- Constants ---
 const GOLD = { r: 184, g: 147, b: 106 };
-const CONNECTION_RADIUS = 150;
+const CONNECTION_RADIUS = 180;
 const MOUSE_ATTRACT_RADIUS = 120;
 const MOUSE_HIGHLIGHT_RADIUS = 150;
 const PULSE_INTERVAL = 2500;
@@ -82,7 +82,13 @@ export function NeuralNetworkBackground() {
   const initNodes = useCallback((w: number, h: number) => {
     const isMobile = w < 768;
     isMobileRef.current = isMobile;
-    const count = isMobile ? 35 : 70;
+    // Scale node count with canvas area so tall pages (like how-it-works) stay dense.
+    // Target: avg inter-node spacing < CONNECTION_RADIUS so lines actually form.
+    // For good connectivity: count ≈ area / (CONNECTION_RADIUS²) gives ~1 node per radius²
+    const area = w * h;
+    const count = isMobile
+      ? Math.min(Math.floor(area / 9000), 80)
+      : Math.min(Math.floor(area / 13000), 250);
     const nodes: Node[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -442,7 +448,11 @@ export function NeuralNetworkBackground() {
       if (ctx) ctx.scale(dpr, dpr);
 
       // Re-init or reposition nodes
-      if (nodesRef.current.length === 0) {
+      const targetCount = isMobileRef.current
+        ? Math.min(Math.floor((w * h) / 9000), 80)
+        : Math.min(Math.floor((w * h) / 13000), 250);
+      if (nodesRef.current.length === 0 || Math.abs(nodesRef.current.length - targetCount) > targetCount * 0.3) {
+        // Re-init when canvas is first created, or when the target count differs by >30% (e.g. page grew taller)
         initNodes(w, h);
       } else {
         // Proportionally reposition

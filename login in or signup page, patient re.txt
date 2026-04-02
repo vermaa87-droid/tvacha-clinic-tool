@@ -1,0 +1,32 @@
+login in or signup page, patient register should have limits such as 10-digit number
+
+visiting the same site breaks it as it doesn't load anymore, I have to keep refreshing to bring it back
+
+if doctor forgets password then there should be a "forgot password"
+
+add patient button doesn't work in phone
+
+when uploading photo in my patient tab, only camera opens in phone and not gallery
+
+in graph and analytics, some things are still English
+
+spreadsheet in clinic register is still English
+
+in template library, some things such as instruction is still in English
+
+add an option to remove patient in patient register and my patients tab
+
+in "my patients" tab, the lab report upload button should work so that doctor can take a photo of the lab report or upload from gallery
+
+if the name is very long then in my patients tab, the name goes outside of the patient window, I want that the long name basically ends in "...." it surpasses a limit.
+
+in main page, the main title gets cut, specifically in hindi.
+
+make it more optimised so that if i add a patient lets say on my other device but same account then it should be visible on my first device(same account) in less than 5 second
+"how our AI works" is still in English and not hindi changeable.
+
+The main landing page is buggy, the scrolling ad cursor has latency and the fps drops
+
+when adding a patient in "add patient" sometimes it doesn't late you add a patient because you didn't fill all the detail, but theres no clear warning as to what detail you didn't fill.
+
+in sign up, sign in, pricing page, make it so that clicking the "tvacha clinic" on the top left redirects to the landing page.

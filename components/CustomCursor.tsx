@@ -21,20 +21,21 @@ export function CustomCursor() {
     };
     window.addEventListener("mousemove", onMove, { passive: true });
 
-    const handleEnter = () => setHovered(true);
-    const handleLeave = () => setHovered(false);
-
-    const attachListeners = () => {
-      const els = document.querySelectorAll("a, button, .card, [data-cursor]");
-      els.forEach((el) => {
-        el.addEventListener("mouseenter", handleEnter);
-        el.addEventListener("mouseleave", handleLeave);
-      });
+    // Event delegation instead of MutationObserver — no per-element listeners
+    const onOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest("a, button, .card, [data-cursor]")) {
+        setHovered(true);
+      }
     };
-
-    attachListeners();
-    const observer = new MutationObserver(attachListeners);
-    observer.observe(document.body, { childList: true, subtree: true });
+    const onOut = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest("a, button, .card, [data-cursor]")) {
+        setHovered(false);
+      }
+    };
+    document.addEventListener("mouseover", onOver, { passive: true });
+    document.addEventListener("mouseout", onOut, { passive: true });
 
     let raf: number;
     const lerp = 0.35;
@@ -51,7 +52,8 @@ export function CustomCursor() {
 
     return () => {
       window.removeEventListener("mousemove", onMove);
-      observer.disconnect();
+      document.removeEventListener("mouseover", onOver);
+      document.removeEventListener("mouseout", onOut);
       cancelAnimationFrame(raf);
     };
   }, [visible]);

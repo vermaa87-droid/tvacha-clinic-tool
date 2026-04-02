@@ -9,6 +9,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { PrescriptionTemplate, Prescription, Medicine, Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 import { Badge } from "@/components/ui/Badge";
 import { format } from "date-fns";
 import { Pencil, PenLine, X } from "lucide-react";
@@ -240,33 +241,47 @@ export default function PrescriptionsPage() {
     }
   }, [user]);
 
+  const fetchAll = useCallback(async (silent?: boolean) => {
+    if (!user) return;
+    if (!silent) setLoading(true);
+    try {
+      const [templatesRes, , patientsRes] = await Promise.all([
+        supabase
+          .from("prescription_templates")
+          .select("*")
+          .or(`is_system.eq.true,doctor_id.eq.${user.id}`)
+          .order("usage_count", { ascending: false }),
+        fetchPrescriptions(),
+        supabase
+          .from("patients")
+          .select("*")
+          .eq("linked_doctor_id", user.id)
+          .order("name"),
+      ]);
+      setTemplates((templatesRes.data as PrescriptionTemplate[]) || []);
+      setPatients((patientsRes.data as Patient[]) || []);
+    } catch (err) {
+      console.error("[prescriptions] initial fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, fetchPrescriptions]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  useRefetchOnFocus(useCallback(() => { fetchAll(true); }, [fetchAll]));
+
+  // Realtime: sync across devices (requires Supabase Realtime enabled for prescriptions table)
   useEffect(() => {
     if (!user) return;
-    const fetchAll = async () => {
-      try {
-        const [templatesRes, , patientsRes] = await Promise.all([
-          supabase
-            .from("prescription_templates")
-            .select("*")
-            .or(`is_system.eq.true,doctor_id.eq.${user.id}`)
-            .order("usage_count", { ascending: false }),
-          fetchPrescriptions(),
-          supabase
-            .from("patients")
-            .select("*")
-            .eq("linked_doctor_id", user.id)
-            .order("name"),
-        ]);
-        setTemplates((templatesRes.data as PrescriptionTemplate[]) || []);
-        setPatients((patientsRes.data as Patient[]) || []);
-      } catch (err) {
-        console.error("[prescriptions] initial fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAll();
-  }, [user, fetchPrescriptions]);
+    const channel = supabase
+      .channel("prescriptions-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "prescriptions", filter: `doctor_id=eq.${user.id}` }, () => { fetchAll(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchAll]);
 
   /* ---- Template CRUD ---- */
 

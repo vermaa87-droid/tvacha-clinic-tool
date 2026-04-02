@@ -1,8 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 export function Logo() {
-  return (
-    <div className="flex items-center gap-2">
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith("/dashboard");
+
+  const inner = (
+    <>
       <svg
         viewBox="0 0 44 50"
         fill="none"
@@ -39,6 +45,16 @@ export function Logo() {
           INTELLIGENCE INFRASTRUCTURE
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  if (isDashboard) {
+    return <div className="flex items-center gap-2">{inner}</div>;
+  }
+
+  return (
+    <Link href="/" className="flex items-center gap-2">
+      {inner}
+    </Link>
   );
 }

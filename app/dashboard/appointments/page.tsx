@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +10,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 import type { Appointment, Patient } from "@/lib/types";
 import {
   VISIT_TYPE_OPTIONS,
@@ -142,32 +143,46 @@ export default function AppointmentsPage() {
   // Data fetching
   // -------------------------------------------------------------------------
 
+  const fetchData = useCallback(async (silent?: boolean) => {
+    if (!user) return;
+    if (!silent) setLoading(true);
+    try {
+      const [aptsRes, patientsRes] = await Promise.all([
+        supabase
+          .from("appointments")
+          .select("*, patients(name)")
+          .eq("doctor_id", user.id)
+          .order("appointment_date", { ascending: true }),
+        supabase
+          .from("patients")
+          .select("id, name")
+          .eq("linked_doctor_id", user.id)
+          .order("name"),
+      ]);
+      setAppointments((aptsRes.data as Appointment[]) || []);
+      setPatients((patientsRes.data as Patient[]) || []);
+    } catch (err) {
+      console.error("[appointments] fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useRefetchOnFocus(useCallback(() => { fetchData(true); }, [fetchData]));
+
+  // Realtime: sync across devices (requires Supabase Realtime enabled for appointments table)
   useEffect(() => {
     if (!user) return;
-    const fetchData = async () => {
-      try {
-        const [aptsRes, patientsRes] = await Promise.all([
-          supabase
-            .from("appointments")
-            .select("*, patients(name)")
-            .eq("doctor_id", user.id)
-            .order("appointment_date", { ascending: true }),
-          supabase
-            .from("patients")
-            .select("id, name")
-            .eq("linked_doctor_id", user.id)
-            .order("name"),
-        ]);
-        setAppointments((aptsRes.data as Appointment[]) || []);
-        setPatients((patientsRes.data as Patient[]) || []);
-      } catch (err) {
-        console.error("[appointments] fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user]);
+    const channel = supabase
+      .channel("appointments-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter: `doctor_id=eq.${user.id}` }, () => { fetchData(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchData]);
 
   // -------------------------------------------------------------------------
   // Sorted appointments

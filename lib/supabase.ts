@@ -6,4 +6,25 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 console.log("[supabase] URL:", supabaseUrl ?? "MISSING");
 console.log("[supabase] Anon key present:", !!supabaseAnonKey);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Wrap fetch with a 15-second timeout so queries never hang indefinitely
+// (e.g. when a free-tier Supabase project is waking from auto-pause).
+function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  const controller = new AbortController();
+  const timerId = setTimeout(() => controller.abort(), 15_000);
+  const signal = init?.signal
+    ? // merge with any existing signal the caller passed
+      (AbortSignal as any).any
+        ? (AbortSignal as any).any([init.signal, controller.signal])
+        : controller.signal
+    : controller.signal;
+  return fetch(input, { ...init, signal }).finally(() =>
+    clearTimeout(timerId)
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: fetchWithTimeout },
+});

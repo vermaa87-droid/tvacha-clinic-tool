@@ -24,6 +24,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshDoctor: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -91,6 +92,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ user: null, doctor: null, loading: false, initialized: true });
         }
       });
+
+      // 3. Re-validate session when tab regains focus
+      if (typeof window !== "undefined") {
+        document.addEventListener("visibilitychange", async () => {
+          if (document.visibilityState !== "visible") return;
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              set({
+                user: { id: session.user.id, email: session.user.email! },
+                loading: false,
+                initialized: true,
+              });
+              const { data: doctor } = await supabase
+                .from("doctors")
+                .select("*")
+                .eq("id", session.user.id)
+                .maybeSingle();
+              if (doctor) set({ doctor });
+            } else {
+              set({ user: null, doctor: null, loading: false, initialized: true });
+            }
+          } catch (err) {
+            console.error("[store] visibilitychange refresh error:", err);
+          }
+        });
+      }
     } catch (err) {
       console.error("[store] initialize error:", err);
       set({ loading: false, initialized: true });
@@ -215,5 +243,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .maybeSingle();
     if (error) console.error("[store] refreshDoctor error:", error);
     if (doctor) set({ doctor });
+  },
+
+  resetPassword: async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return { error: error.message };
+    return { error: null };
   },
 }));

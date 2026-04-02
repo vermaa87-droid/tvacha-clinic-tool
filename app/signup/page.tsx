@@ -88,6 +88,13 @@ export default function SignupPage() {
       setError(t("signup_error_password_length"));
       return;
     }
+    if (formData.phone) {
+      const phoneDigits = formData.phone.replace(/\D/g, "");
+      if (phoneDigits.length !== 10 && !(phoneDigits.length === 12 && phoneDigits.startsWith("91"))) {
+        setError("Please enter a valid 10-digit phone number.");
+        return;
+      }
+    }
 
     setIsLoading(true);
 
@@ -203,6 +210,7 @@ export default function SignupPage() {
                     name="phone"
                     type="tel"
                     placeholder="+91 XXXXX XXXXX"
+                    maxLength={15}
                     value={formData.phone}
                     onChange={handleChange}
                     required

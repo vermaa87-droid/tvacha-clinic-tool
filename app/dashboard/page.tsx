@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -28,6 +28,7 @@ import {
 import Link from "next/link";
 import { format, formatDistanceToNow, endOfWeek, differenceInDays } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 
 interface ActivityItem {
   type: "patient" | "prescription" | "visit";
@@ -52,140 +53,156 @@ export default function DashboardHome() {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
 
+  const fetchData = useCallback(async (silent?: boolean) => {
+    if (!user) return;
+    if (!silent) setLoading(true);
+    try {
+      const now = new Date();
+      const todayStr = format(now, "yyyy-MM-dd");
+
+      const weekEndStr = format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+      const [
+        patientsRes,
+        visitsTodayRes,
+        appointmentsTodayRes,
+        followupsDueRes,
+        scheduleRes,
+        recentPatientsRes,
+        recentPrescriptionsRes,
+        recentVisitsRes,
+        overdueFollowupsRes,
+      ] = await Promise.all([
+        // Total Patients
+        supabase
+          .from("patients")
+          .select("id", { count: "exact" })
+          .eq("linked_doctor_id", user.id),
+        // Visits Today
+        supabase
+          .from("visits")
+          .select("id", { count: "exact" })
+          .eq("doctor_id", user.id)
+          .eq("visit_date", todayStr),
+        // Appointments Today
+        supabase
+          .from("appointments")
+          .select("id", { count: "exact" })
+          .eq("doctor_id", user.id)
+          .eq("appointment_date", todayStr),
+        // Follow-ups Due This Week
+        supabase
+          .from("patients")
+          .select("id", { count: "exact" })
+          .eq("linked_doctor_id", user.id)
+          .gte("next_followup_date", todayStr)
+          .lte("next_followup_date", weekEndStr),
+        // Today's Schedule (full details)
+        supabase
+          .from("appointments")
+          .select("*, patients(name)")
+          .eq("doctor_id", user.id)
+          .eq("appointment_date", todayStr)
+          .order("appointment_time"),
+        // Recent patients
+        supabase
+          .from("patients")
+          .select("name, created_at")
+          .eq("linked_doctor_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        // Recent prescriptions
+        supabase
+          .from("prescriptions")
+          .select("created_at, patients(name)")
+          .eq("doctor_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        // Recent visits
+        supabase
+          .from("visits")
+          .select("created_at, patients(name)")
+          .eq("doctor_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        // Overdue follow-ups
+        supabase
+          .from("patients")
+          .select("id, name, next_followup_date")
+          .eq("linked_doctor_id", user.id)
+          .lt("next_followup_date", todayStr)
+          .not("treatment_status", "eq", "recovered")
+          .not("treatment_status", "eq", "discontinued")
+          .order("next_followup_date", { ascending: true })
+          .limit(5),
+      ]);
+
+      setTotalPatients(patientsRes.count || 0);
+      setVisitsToday(visitsTodayRes.count || 0);
+      setAppointmentsToday(appointmentsTodayRes.count || 0);
+      setFollowupsDueThisWeek(followupsDueRes.count || 0);
+      setOverdueFollowups(overdueFollowupsRes.data || []);
+      setTodaySchedule((scheduleRes.data as Appointment[]) || []);
+
+      // Merge recent activity
+      const activities: ActivityItem[] = [];
+
+      if (recentPatientsRes.data) {
+        for (const p of recentPatientsRes.data) {
+          activities.push({
+            type: "patient",
+            label: `Added patient ${p.name}`,
+            created_at: p.created_at,
+          });
+        }
+      }
+      if (recentPrescriptionsRes.data) {
+        for (const p of recentPrescriptionsRes.data as any[]) {
+          activities.push({
+            type: "prescription",
+            label: `Created prescription for ${p.patients?.name || "Unknown"}`,
+            created_at: p.created_at,
+          });
+        }
+      }
+      if (recentVisitsRes.data) {
+        for (const v of recentVisitsRes.data as any[]) {
+          activities.push({
+            type: "visit",
+            label: `Logged visit for ${v.patients?.name || "Unknown"}`,
+            created_at: v.created_at,
+          });
+        }
+      }
+
+      activities.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setRecentActivity(activities.slice(0, 5));
+    } catch (err) {
+      console.error("[dashboard] fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useRefetchOnFocus(useCallback(() => { fetchData(true); }, [fetchData]));
+
+  // Realtime: sync across devices (requires Supabase Realtime enabled for these tables)
   useEffect(() => {
     if (!user) return;
-    const fetchData = async () => {
-      try {
-        const now = new Date();
-        const todayStr = format(now, "yyyy-MM-dd");
-
-        const weekEndStr = format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
-
-        const [
-          patientsRes,
-          visitsTodayRes,
-          appointmentsTodayRes,
-          followupsDueRes,
-          scheduleRes,
-          recentPatientsRes,
-          recentPrescriptionsRes,
-          recentVisitsRes,
-          overdueFollowupsRes,
-        ] = await Promise.all([
-          // Total Patients
-          supabase
-            .from("patients")
-            .select("id", { count: "exact" })
-            .eq("linked_doctor_id", user.id),
-          // Visits Today
-          supabase
-            .from("visits")
-            .select("id", { count: "exact" })
-            .eq("doctor_id", user.id)
-            .eq("visit_date", todayStr),
-          // Appointments Today
-          supabase
-            .from("appointments")
-            .select("id", { count: "exact" })
-            .eq("doctor_id", user.id)
-            .eq("appointment_date", todayStr),
-          // Follow-ups Due This Week
-          supabase
-            .from("patients")
-            .select("id", { count: "exact" })
-            .eq("linked_doctor_id", user.id)
-            .gte("next_followup_date", todayStr)
-            .lte("next_followup_date", weekEndStr),
-          // Today's Schedule (full details)
-          supabase
-            .from("appointments")
-            .select("*, patients(name)")
-            .eq("doctor_id", user.id)
-            .eq("appointment_date", todayStr)
-            .order("appointment_time"),
-          // Recent patients
-          supabase
-            .from("patients")
-            .select("name, created_at")
-            .eq("linked_doctor_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(5),
-          // Recent prescriptions
-          supabase
-            .from("prescriptions")
-            .select("created_at, patients(name)")
-            .eq("doctor_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(5),
-          // Recent visits
-          supabase
-            .from("visits")
-            .select("created_at, patients(name)")
-            .eq("doctor_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(5),
-          // Overdue follow-ups
-          supabase
-            .from("patients")
-            .select("id, name, next_followup_date")
-            .eq("linked_doctor_id", user.id)
-            .lt("next_followup_date", todayStr)
-            .not("treatment_status", "eq", "recovered")
-            .not("treatment_status", "eq", "discontinued")
-            .order("next_followup_date", { ascending: true })
-            .limit(5),
-        ]);
-
-        setTotalPatients(patientsRes.count || 0);
-        setVisitsToday(visitsTodayRes.count || 0);
-        setAppointmentsToday(appointmentsTodayRes.count || 0);
-        setFollowupsDueThisWeek(followupsDueRes.count || 0);
-        setOverdueFollowups(overdueFollowupsRes.data || []);
-        setTodaySchedule((scheduleRes.data as Appointment[]) || []);
-
-        // Merge recent activity
-        const activities: ActivityItem[] = [];
-
-        if (recentPatientsRes.data) {
-          for (const p of recentPatientsRes.data) {
-            activities.push({
-              type: "patient",
-              label: `Added patient ${p.name}`,
-              created_at: p.created_at,
-            });
-          }
-        }
-        if (recentPrescriptionsRes.data) {
-          for (const p of recentPrescriptionsRes.data as any[]) {
-            activities.push({
-              type: "prescription",
-              label: `Created prescription for ${p.patients?.name || "Unknown"}`,
-              created_at: p.created_at,
-            });
-          }
-        }
-        if (recentVisitsRes.data) {
-          for (const v of recentVisitsRes.data as any[]) {
-            activities.push({
-              type: "visit",
-              label: `Logged visit for ${v.patients?.name || "Unknown"}`,
-              created_at: v.created_at,
-            });
-          }
-        }
-
-        activities.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setRecentActivity(activities.slice(0, 5));
-      } catch (err) {
-        console.error("[dashboard] fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user]);
+    const channel = supabase
+      .channel("dashboard-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "patients", filter: `linked_doctor_id=eq.${user.id}` }, () => { fetchData(true); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter: `doctor_id=eq.${user.id}` }, () => { fetchData(true); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "visits", filter: `doctor_id=eq.${user.id}` }, () => { fetchData(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchData]);
 
   const handleSendFeedback = async () => {
     if (!user || !feedbackText.trim()) return;

@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Prescription } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 import Link from "next/link";
 import { Pencil, Plus, Phone } from "lucide-react";
 import {
@@ -140,6 +141,7 @@ export default function RegisterPage() {
 
   // Modal states
   const [showAddPatient, setShowAddPatient] = useState(false);
+  const [patientFormError, setPatientFormError] = useState("");
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
@@ -147,9 +149,9 @@ export default function RegisterPage() {
 
   // ─── Data Fetching ─────────────────────────────────────────────────────────
 
-  const fetchPatients = useCallback(async () => {
+  const fetchPatients = useCallback(async (silent?: boolean) => {
     if (!user) return;
-    setLoadingPatients(true);
+    if (!silent) setLoadingPatients(true);
     try {
       const { data, error } = await supabase
         .from("patients")
@@ -168,9 +170,9 @@ export default function RegisterPage() {
     }
   }, [user]);
 
-  const fetchVisits = useCallback(async () => {
+  const fetchVisits = useCallback(async (silent?: boolean) => {
     if (!user) return;
-    setLoadingVisits(true);
+    if (!silent) setLoadingVisits(true);
     try {
       const { data, error } = await supabase
         .from("visits")
@@ -196,9 +198,9 @@ export default function RegisterPage() {
     }
   }, [user]);
 
-  const fetchTreatmentPlans = useCallback(async () => {
+  const fetchTreatmentPlans = useCallback(async (silent?: boolean) => {
     if (!user) return;
-    setLoadingTreatments(true);
+    if (!silent) setLoadingTreatments(true);
     try {
       const { data, error } = await supabase
         .from("treatment_plans")
@@ -221,9 +223,9 @@ export default function RegisterPage() {
     }
   }, [user]);
 
-  const fetchMedications = useCallback(async () => {
+  const fetchMedications = useCallback(async (silent?: boolean) => {
     if (!user) return;
-    setLoadingMedications(true);
+    if (!silent) setLoadingMedications(true);
     try {
       const { data, error } = await supabase
         .from("prescriptions")
@@ -260,9 +262,9 @@ export default function RegisterPage() {
     }
   }, [user]);
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async (silent?: boolean) => {
     if (!user) return;
-    setLoadingAppointments(true);
+    if (!silent) setLoadingAppointments(true);
     try {
       const { data, error } = await supabase
         .from("appointments")
@@ -285,14 +287,31 @@ export default function RegisterPage() {
     }
   }, [user]);
 
+  const refetchAll = useCallback((silent?: boolean) => {
+    fetchPatients(silent);
+    fetchVisits(silent);
+    fetchTreatmentPlans(silent);
+    fetchMedications(silent);
+    fetchAppointments(silent);
+  }, [fetchPatients, fetchVisits, fetchTreatmentPlans, fetchMedications, fetchAppointments]);
+
   useEffect(() => {
     if (!user) return;
-    fetchPatients();
-    fetchVisits();
-    fetchTreatmentPlans();
-    fetchMedications();
-    fetchAppointments();
-  }, [user, fetchPatients, fetchVisits, fetchTreatmentPlans, fetchMedications, fetchAppointments]);
+    refetchAll();
+  }, [user, refetchAll]);
+
+  useRefetchOnFocus(useCallback(() => { refetchAll(true); }, [refetchAll]));
+
+  // Realtime: sync across devices (requires Supabase Realtime enabled for these tables)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("register-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "patients", filter: `linked_doctor_id=eq.${user.id}` }, () => { refetchAll(true); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter: `doctor_id=eq.${user.id}` }, () => { fetchAppointments(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, refetchAll, fetchAppointments]);
 
   // ─── Cell Edit Handlers ────────────────────────────────────────────────────
 
@@ -653,7 +672,26 @@ export default function RegisterPage() {
   });
 
   const handleAddPatient = async () => {
-    if (!user || !patientForm.name || !patientForm.age || !patientForm.gender || !patientForm.chief_complaint) return;
+    if (!user) return;
+    setPatientFormError("");
+
+    const missing: string[] = [];
+    if (!patientForm.name.trim()) missing.push("Name");
+    if (!patientForm.age) missing.push("Age");
+    if (!patientForm.gender) missing.push("Gender");
+    if (!patientForm.chief_complaint?.trim()) missing.push("Chief Complaint");
+    if (missing.length > 0) {
+      setPatientFormError(`Please fill in: ${missing.join(", ")}`);
+      return;
+    }
+    if (patientForm.phone) {
+      const phoneDigits = patientForm.phone.replace(/\D/g, "");
+      if (phoneDigits.length !== 10 && !(phoneDigits.length === 12 && phoneDigits.startsWith("91"))) {
+        setPatientFormError("Please enter a valid 10-digit phone number.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const displayId = `TVP-${String(patients.length + 1).padStart(4, "0")}`;
@@ -947,7 +985,13 @@ export default function RegisterPage() {
           </>
         }
       >
-        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {patientFormError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {patientFormError}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
           <Input
             label="Name *"
             value={patientForm.name}
@@ -976,6 +1020,8 @@ export default function RegisterPage() {
           </div>
           <Input
             label="Phone"
+            type="tel"
+            maxLength={15}
             value={patientForm.phone}
             onChange={(e) => setPatientForm((f) => ({ ...f, phone: e.target.value }))}
             placeholder="Phone number"
@@ -1054,6 +1100,7 @@ export default function RegisterPage() {
               onChange={(e) => setPatientForm((f) => ({ ...f, family_history: e.target.value }))}
               placeholder="Relevant family medical history"
             />
+          </div>
           </div>
         </div>
       </Modal>

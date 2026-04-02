@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -65,6 +66,7 @@ export default function PatientsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
 
   // Search & filter state
@@ -73,10 +75,10 @@ export default function PatientsPage() {
   const [filterSeverity, setFilterSeverity] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("created_at");
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async (silent?: boolean) => {
     if (!user) return;
+    if (!silent) setLoading(true);
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from("patients")
         .select("*")
@@ -92,13 +94,23 @@ export default function PatientsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
-    if (!user) return;
     fetchPatients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [fetchPatients]);
+
+  useRefetchOnFocus(useCallback(() => { fetchPatients(true); }, [fetchPatients]));
+
+  // Realtime: sync across devices (requires Supabase Realtime enabled for patients table)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("patients-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "patients", filter: `linked_doctor_id=eq.${user.id}` }, () => { fetchPatients(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchPatients]);
 
   // Filtered + sorted patients
   const filteredPatients = useMemo(() => {
@@ -164,6 +176,25 @@ export default function PatientsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setFormError("");
+
+    // Validate required fields
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("Patient name");
+    if (!form.age) missing.push("Age");
+    if (!form.gender) missing.push("Gender");
+    if (!form.phone.trim()) missing.push("Phone number");
+    if (missing.length > 0) {
+      setFormError(`Please fill in: ${missing.join(", ")}`);
+      return;
+    }
+
+    // Phone validation
+    const phoneDigits = form.phone.replace(/\D/g, "");
+    if (phoneDigits.length !== 10 && !(phoneDigits.length === 12 && phoneDigits.startsWith("91"))) {
+      setFormError("Please enter a valid 10-digit phone number.");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -252,7 +283,7 @@ export default function PatientsPage() {
             {t("patients_subtitle")}
           </p>
         </div>
-        <Button variant="primary" onClick={() => setShowModal(true)}>
+        <Button variant="primary" onClick={() => { setFormError(""); setShowModal(true); }}>
           {t("patients_add")}
         </Button>
       </div>
@@ -311,7 +342,7 @@ export default function PatientsPage() {
           <Button
             variant="primary"
             className="mt-6"
-            onClick={() => setShowModal(true)}
+            onClick={() => { setFormError(""); setShowModal(true); }}
           >
             {t("patients_add")}
           </Button>
@@ -439,6 +470,11 @@ export default function PatientsPage() {
         }
       >
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
+          {formError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {formError}
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label={t("patients_form_name")}
@@ -482,7 +518,9 @@ export default function PatientsPage() {
             <Input
               label={t("patients_form_phone")}
               name="phone"
+              type="tel"
               placeholder="Phone number"
+              maxLength={15}
               value={form.phone}
               onChange={handleFormChange}
             />

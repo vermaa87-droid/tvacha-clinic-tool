@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -42,6 +42,7 @@ import {
   Copy,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 
 // ─── Common diagnoses for autocomplete ──────────────────────────────────────
 
@@ -205,10 +206,10 @@ export default function PatientDetailPage({
 
   // ─── Fetch patient ───────────────────────────────────────────────────────
 
-  const fetchPatient = async () => {
+  const fetchPatient = useCallback(async (silent?: boolean) => {
     if (!user) return;
+    if (!silent) setLoading(true);
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from("patients")
         .select("*")
@@ -223,14 +224,14 @@ export default function PatientDetailPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, params.id]);
 
   // ─── Fetch visits ────────────────────────────────────────────────────────
 
-  const fetchVisits = async () => {
+  const fetchVisits = useCallback(async (silent?: boolean) => {
     if (!user) return;
+    if (!silent) setVisitsLoading(true);
     try {
-      setVisitsLoading(true);
       const { data, error } = await supabase
         .from("visits")
         .select("*")
@@ -245,14 +246,14 @@ export default function PatientDetailPage({
     } finally {
       setVisitsLoading(false);
     }
-  };
+  }, [user, params.id]);
 
   // ─── Fetch prescriptions ────────────────────────────────────────────────
 
-  const fetchPrescriptions = async () => {
+  const fetchPrescriptions = useCallback(async (silent?: boolean) => {
     if (!user) return;
+    if (!silent) setPrescriptionsLoading(true);
     try {
-      setPrescriptionsLoading(true);
       const { data, error } = await supabase
         .from("prescriptions")
         .select("*")
@@ -267,17 +268,32 @@ export default function PatientDetailPage({
     } finally {
       setPrescriptionsLoading(false);
     }
-  };
+  }, [user, params.id]);
 
   // ─── Effects ─────────────────────────────────────────────────────────────
 
+  const fetchAllData = useCallback((silent?: boolean) => {
+    fetchPatient(silent);
+    fetchVisits(silent);
+    fetchPrescriptions(silent);
+  }, [fetchPatient, fetchVisits, fetchPrescriptions]);
+
   useEffect(() => {
     if (!user) return;
-    fetchPatient();
-    fetchVisits();
-    fetchPrescriptions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, params.id]);
+    fetchAllData();
+  }, [user, fetchAllData]);
+
+  useRefetchOnFocus(useCallback(() => { fetchAllData(true); }, [fetchAllData]));
+
+  // Realtime: sync visits across devices (requires Supabase Realtime enabled for visits table)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`patient-${params.id}-changes`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "visits", filter: `patient_id=eq.${params.id}` }, () => { fetchAllData(true); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, params.id, fetchAllData]);
 
   // ─── Visit form helpers ──────────────────────────────────────────────────
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
+import { useRefetchOnFocus } from "@/lib/useRefetchOnFocus";
 import { format, startOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import {
   ResponsiveContainer,
@@ -117,11 +118,10 @@ export default function AnalyticsPage() {
   const [avgVisits, setAvgVisits] = useState<string | null>(null);
   const [recoveryRate, setRecoveryRate] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchAll = useCallback(async (silent?: boolean) => {
     if (!user) return;
-
-    const fetchAll = async () => {
-      try {
+    if (!silent) setLoading(true);
+    try {
         const now = new Date();
         const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
         const todayStr = format(now, "yyyy-MM-dd");
@@ -359,10 +359,13 @@ export default function AnalyticsPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchAll();
   }, [user]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  useRefetchOnFocus(useCallback(() => { fetchAll(true); }, [fetchAll]));
 
   if (loading) {
     return (
