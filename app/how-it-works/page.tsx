@@ -340,7 +340,8 @@ export default function HowItWorksPage() {
   const { t } = useLanguage();
 
   return (
-    <main className="min-h-screen" style={{ background: "#f2efe9" }}>
+    <main className="min-h-screen" style={{ background: "#f2efe9", position: "relative" }}>
+      <NeuralNetworkBackground />
       {/* Mobile overlay menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -403,41 +404,38 @@ export default function HowItWorksPage() {
         </div>
       </nav>
 
-      {/* Hero with neural net background (hero-only, not full page) */}
-      <div style={{ position: "relative", overflow: "hidden" }}>
-        <NeuralNetworkBackground />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <section className="py-20 md:py-28" style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.65), rgba(242,239,233,0.25))" }}>
-            <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
-              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
-                  {t("hiw_title")}
-                </h1>
-                <p className="text-lg font-light leading-relaxed max-w-2xl mx-auto" style={{ color: "#9a8a76" }}>
-                  {t("hiw_subtitle")}
-                </p>
-              </motion.div>
+      {/* Hero */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <section className="py-20 md:py-28" style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.65), rgba(242,239,233,0.25))" }}>
+          <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
+                {t("hiw_title")}
+              </h1>
+              <p className="text-lg font-light leading-relaxed max-w-2xl mx-auto" style={{ color: "#9a8a76" }}>
+                {t("hiw_subtitle")}
+              </p>
+            </motion.div>
 
-              <motion.div className="flex flex-wrap justify-center gap-3 mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
-                {[
-                  { value: "50M", label: t("hiw_stat_params") },
-                  { value: "5 Cr+", label: t("hiw_stat_images") },
-                  { value: "7×", label: t("hiw_stat_passes") },
-                  { value: "2.5×", label: t("hiw_stat_cancer") },
-                ].map(({ value, label }) => (
-                  <div key={label} className="rounded-lg px-5 py-3 text-center" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                    <p className="text-2xl font-bold" style={{ color: "#b8936a" }}>{value}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{label}</p>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-          </section>
-        </div>
+            <motion.div className="flex flex-wrap justify-center gap-3 mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+              {[
+                { value: "50M", label: t("hiw_stat_params") },
+                { value: "5 Cr+", label: t("hiw_stat_images") },
+                { value: "7×", label: t("hiw_stat_passes") },
+                { value: "2.5×", label: t("hiw_stat_cancer") },
+              ].map(({ value, label }) => (
+                <div key={label} className="rounded-lg px-5 py-3 text-center" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                  <p className="text-2xl font-bold" style={{ color: "#b8936a" }}>{value}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
       </div>
 
-      {/* Content sections – no background animation below hero */}
-      <div className="max-w-4xl mx-auto px-6 md:px-8 pb-20">
+      {/* Content sections */}
+      <div className="max-w-4xl mx-auto px-6 md:px-8 pb-20" style={{ position: "relative", zIndex: 1 }}>
 
         {/* ── Group 1: The AI Engine ── */}
         <GroupHeading
@@ -545,7 +543,7 @@ export default function HowItWorksPage() {
       </div>
 
       {/* CTA */}
-      <section className="py-20 text-white text-center" style={{ background: "rgba(184,147,106,0.95)" }}>
+      <section className="py-20 text-white text-center" style={{ background: "rgba(184,147,106,0.95)", position: "relative", zIndex: 1 }}>
         <motion.div className="max-w-2xl mx-auto px-6" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           <h2 className="text-3xl font-serif font-bold mb-4">{t("hiw_bottom_title")}</h2>
           <p className="text-lg mb-8" style={{ opacity: 0.9 }}>{t("hiw_bottom_subtitle")}</p>
@@ -555,7 +553,7 @@ export default function HowItWorksPage() {
         </motion.div>
       </section>
 
-      <Footer />
+      <div style={{ position: "relative", zIndex: 1 }}><Footer /></div>
     </main>
   );
 }

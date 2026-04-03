@@ -39,7 +39,7 @@ interface PulseRipple {
 }
 
 // --- Constants ---
-const GOLD = { r: 184, g: 147, b: 106 };
+const GOLD = { r: 212, g: 168, b: 45 };
 const CONNECTION_RADIUS = 180;
 const MOUSE_ATTRACT_RADIUS = 120;
 const MOUSE_HIGHLIGHT_RADIUS = 150;
@@ -112,7 +112,7 @@ export function NeuralNetworkBackground() {
       const isAccent = Math.random() < 0.1;
       const sizeRoll = Math.random();
       const radius = sizeRoll < 0.5 ? 1.5 : sizeRoll < 0.85 ? 2.5 : 4;
-      const baseOpacity = isAccent ? 0.55 : (Math.random() < 0.5 ? 0.2 : 0.35);
+      const baseOpacity = isAccent ? 0.95 : (Math.random() < 0.5 ? 0.60 : 0.80);
 
       nodes.push({
         x, y,
@@ -200,7 +200,7 @@ export function NeuralNetworkBackground() {
         // Breathing glow for accent nodes
         if (node.isAccent) {
           const breathe = Math.sin((now / BREATHE_PERIOD) * Math.PI * 2 + node.breatheOffset);
-          node.opacity = lerp(0.4, 0.7, (breathe + 1) / 2);
+          node.opacity = lerp(0.80, 1.0, (breathe + 1) / 2);
         }
 
         // Flash decay
@@ -217,7 +217,7 @@ export function NeuralNetworkBackground() {
         const d = dist(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
         if (d > CONNECTION_RADIUS) continue;
 
-        let alpha = 0.06 * (1 - d / CONNECTION_RADIUS);
+        let alpha = 0.35 * (1 - d / CONNECTION_RADIUS);
 
         // Mouse highlight
         if (mouse.active && !isMobile) {
@@ -235,7 +235,7 @@ export function NeuralNetworkBackground() {
           const key2 = `${j}-${i}`;
           if (pulse.visitedEdges.has(key1) || pulse.visitedEdges.has(key2)) {
             const age = (now - pulse.startTime) / pulse.duration;
-            const edgeGlow = Math.max(0, 1 - age) * 0.25;
+            const edgeGlow = Math.max(0, 1 - age) * 0.75;
             alpha = Math.max(alpha, edgeGlow);
           }
         }
