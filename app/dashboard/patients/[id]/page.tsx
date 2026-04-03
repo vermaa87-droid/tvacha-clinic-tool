@@ -672,7 +672,7 @@ export default function PatientDetailPage({
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] overflow-hidden">
+    <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] md:overflow-hidden">
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
         className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 overflow-y-auto"
@@ -730,7 +730,7 @@ export default function PatientDetailPage({
                 {getInitials(patient.name)}
               </span>
             </div>
-            <h2 className="text-xl font-serif font-bold text-text-primary">
+            <h2 className="text-xl font-serif font-bold text-text-primary truncate w-full px-2" title={patient.name}>
               {patient.name}
             </h2>
             <p className="text-sm text-text-muted mt-0.5">
@@ -898,7 +898,7 @@ export default function PatientDetailPage({
       </aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 overflow-y-auto md:min-h-0">
         {/* Tabs */}
         <div className="border-b border-primary-200 bg-primary-50 sticky top-0 z-10 overflow-x-auto">
           <div className="flex gap-0 overflow-x-auto px-4 md:px-6 whitespace-nowrap">

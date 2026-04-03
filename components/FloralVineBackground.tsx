@@ -314,7 +314,7 @@ export function FloralVineBackground() {
   const mobileRef = useRef(false);
   const lastWidthRef = useRef(0);
 
-  /* ── build 6 vines in distinct zones ── */
+  /* ── build 4 vines in distinct zones ── */
   const build = useCallback((w: number, h: number, straight: boolean) => {
     const mobile = w < 768;
     mobileRef.current = mobile;
@@ -325,15 +325,13 @@ export function FloralVineBackground() {
       vines.push(generateVine(rand(w * 0.01, w * 0.05), h + 20, "left",  true,  h, 1.0,  straight));
       vines.push(generateVine(rand(w * 0.95, w * 0.99), h + 20, "right", true,  h, 1.0,  straight));
     } else {
-      // LEFT — 3 vines in distinct x lanes, decreasing height toward center
+      // LEFT — 2 vines in distinct x lanes, decreasing height toward center
       vines.push(generateVine(rand(w * 0.01, w * 0.03), h + 20, "left",  false, h, 1.0,  straight));
       vines.push(generateVine(rand(w * 0.06, w * 0.09), h + 20, "left",  false, h, 0.75, straight));
-      vines.push(generateVine(rand(w * 0.13, w * 0.18), h + 20, "left",  false, h, 0.50, straight));
 
       // RIGHT — mirror zones
       vines.push(generateVine(rand(w * 0.97, w * 0.99), h + 20, "right", false, h, 1.0,  straight));
       vines.push(generateVine(rand(w * 0.91, w * 0.94), h + 20, "right", false, h, 0.75, straight));
-      vines.push(generateVine(rand(w * 0.82, w * 0.87), h + 20, "right", false, h, 0.50, straight));
     }
 
     vinesRef.current = vines;
@@ -351,7 +349,6 @@ export function FloralVineBackground() {
     const reduced = reducedRef.current;
     const mobile = mobileRef.current;
     const mouse = mouseRef.current;
-    const scrollY = window.scrollY;
 
     ctx.clearRect(0, 0, w, h);
 
@@ -370,7 +367,7 @@ export function FloralVineBackground() {
           const t = Math.min(i / steps, frac);
           const pt = bPt(seg.p0, seg.cp1, seg.cp2, seg.p1, t);
           const swF = 1 - pt.y / (h + 20);
-          pts.push({ x: pt.x + sway * swF, y: pt.y - scrollY });
+          pts.push({ x: pt.x + sway * swF, y: pt.y });
           if (t >= frac) break;
         }
       };
@@ -453,7 +450,7 @@ export function FloralVineBackground() {
 
         const swF = 1 - leaf.pos.y / (h + 20);
         let lx = leaf.pos.x + sway * swF;
-        let ly = leaf.pos.y - scrollY;
+        let ly = leaf.pos.y;
         let la = leaf.angle + (reduced ? 0 : Math.sin(now * 0.001 + leaf.phase) * 0.07);
 
         if (!mobile && !reduced) {
@@ -480,7 +477,7 @@ export function FloralVineBackground() {
 
         const swF = 1 - fl.pos.y / (h + 20);
         let fx = fl.pos.x + sway * swF;
-        let fy = fl.pos.y - scrollY;
+        let fy = fl.pos.y;
 
         if (!mobile && !reduced) {
           const dx = fx - mouse.x, dy = fy - mouse.y;
@@ -507,7 +504,7 @@ export function FloralVineBackground() {
         const pulse = reduced ? 1 : 1 + Math.sin(now * 0.002 + orb.phase) * 0.3;
         const swF = 1 - orb.pos.y / (h + 20);
         let ox = orb.pos.x + sway * swF;
-        let oy = orb.pos.y - scrollY;
+        let oy = orb.pos.y;
 
         if (!mobile && !reduced) {
           const dx = ox - mouse.x, dy = oy - mouse.y;
@@ -538,14 +535,13 @@ export function FloralVineBackground() {
 
     const setup = (rebuildVines: boolean) => {
       const w = window.innerWidth;
-      // Use clientHeight to ignore mobile URL bar height changes
-      const vh = document.documentElement.clientHeight || window.innerHeight;
-      const h = Math.max(document.documentElement.scrollHeight, vh);
+      // Full document height — canvas is absolute so it scrolls with the page
+      const h = Math.max(document.documentElement.scrollHeight, window.innerHeight);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = w * dpr;
-      canvas.height = vh * dpr;
-      canvas.style.width = "100vw";
-      canvas.style.height = "100vh";
+      canvas.height = h * dpr;
+      canvas.style.width = "100%";
+      canvas.style.height = h + "px";
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       sizeRef.current = { w, h };
@@ -570,10 +566,9 @@ export function FloralVineBackground() {
       clearTimeout(timer);
       timer = setTimeout(() => {
         const newWidth = window.innerWidth;
-        // Only rebuild vines if width changed significantly (mobile URL bar only changes height)
         const widthChanged = Math.abs(newWidth - lastWidthRef.current) > 50;
         setup(widthChanged);
-      }, 500);
+      }, 300);
     };
     window.addEventListener("resize", onResize);
 
@@ -590,7 +585,7 @@ export function FloralVineBackground() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 0, pointerEvents: "none" }}
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", zIndex: 0, pointerEvents: "none" }}
     />
   );
 }

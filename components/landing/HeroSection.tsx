@@ -76,12 +76,16 @@ export function HeroSection() {
             />
 
             <motion.p
-              className="text-xl text-text-secondary mb-8 font-light"
+              className="text-lg text-text-primary mb-8 font-medium leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
             >
-              {t("hero_subtitle")}
+              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">AI pre-screening.</span>{" "}
+              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Patient management.</span>{" "}
+              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Prescription templates.</span>{" "}
+              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Clinic analytics.</span>{" "}
+              All for <span className="text-primary-600 font-bold">₹2,000/month</span>.
             </motion.p>
 
             <motion.div
@@ -122,7 +126,7 @@ export function HeroSection() {
           </div>
 
           <motion.div
-            className="relative"
+            className="relative pb-16 md:pb-0"
             ref={mockupRef}
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -153,7 +157,7 @@ export function HeroSection() {
               </div>
             </div>
 
-            <div className="absolute right-0 bottom-0 w-32 h-48 bg-surface border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-12 translate-y-12 hidden md:block">
+            <div className="absolute right-0 bottom-0 w-32 h-48 bg-surface border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-2 translate-y-14 md:translate-x-12 md:translate-y-12">
               <h4 className="text-xs font-semibold text-text-primary mb-3">My Patients</h4>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-center gap-2">
