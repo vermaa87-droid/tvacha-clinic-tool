@@ -34,6 +34,10 @@ export function HeroSection() {
   const mockupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Skip parallax on mobile — saves a scroll listener + RAF per scroll
+    const isTouch = window.matchMedia("(hover: none)").matches || window.innerWidth < 768;
+    if (isTouch) return;
+
     let ticking = false;
     const onScroll = () => {
       if (!ticking) {

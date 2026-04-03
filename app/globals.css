@@ -75,6 +75,14 @@ p {
   will-change: transform;
 }
 
+/* Disable floating animations on mobile for performance */
+@media (max-width: 767px) {
+  .float-element {
+    animation: none;
+    will-change: auto;
+  }
+}
+
 /* Custom cursor — hide default on desktop when cursor component is active */
 @media (min-width: 768px) {
   body:has(.custom-cursor) {
