@@ -497,6 +497,30 @@ function renderGrowth(
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
+/*  Convert canvas to <img> — frees the canvas buffer from GPU memory.    */
+/*  An <img> is a static texture the compositor handles cheaply.          */
+/* ═══════════════════════════════════════════════════════════════════════ */
+function canvasToImage(canvas: HTMLCanvasElement) {
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      // Copy positioning from canvas
+      img.style.cssText = canvas.style.cssText;
+      img.style.width = canvas.style.width;
+      img.style.height = canvas.style.height;
+      img.setAttribute("aria-hidden", "true");
+      canvas.parentNode?.insertBefore(img, canvas);
+      canvas.remove();
+      // Revoke after a short delay to ensure rendering is settled
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    img.src = url;
+  }, "image/png");
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
 /*  COMPONENT                                                             */
 /* ═══════════════════════════════════════════════════════════════════════ */
 const GROWTH_DURATION = 4000; // ms
@@ -509,7 +533,7 @@ export function FloralVineBackground() {
   const startRef = useRef(0);
   const sizeRef = useRef({ w: 0, h: 0 });
   const lastWidthRef = useRef(0);
-  const doneRef = useRef(false); // true once growth animation is finished
+  const doneRef = useRef(false);
 
   /* ── build vines ── */
   const build = useCallback((w: number, h: number, straight: boolean) => {
@@ -531,7 +555,7 @@ export function FloralVineBackground() {
     doneRef.current = false;
   }, []);
 
-  /* ── growth animation loop — runs only until growth completes, then paints static and stops ── */
+  /* ── growth animation loop (desktop only) — stops and converts to img when done ── */
   const animate = useCallback((now: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -546,10 +570,11 @@ export function FloralVineBackground() {
       renderGrowth(ctx, vinesRef.current, w, h, growT);
       rafRef.current = requestAnimationFrame(animate);
     } else {
-      // Growth done — render final static frame and stop the loop
+      // Growth done — render final frame, convert to img, free canvas
       renderStatic(ctx, vinesRef.current, w, h);
       doneRef.current = true;
       rafRef.current = 0;
+      canvasToImage(canvas);
     }
   }, []);
 
@@ -566,7 +591,7 @@ export function FloralVineBackground() {
     const setup = (rebuildVines: boolean) => {
       const w = window.innerWidth;
       const h = Math.max(document.documentElement.scrollHeight, window.innerHeight);
-      // DPR 1 on mobile to keep canvas buffer small (huge canvas = jank)
+      // DPR 1 on mobile to keep canvas buffer small
       const dpr = mobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = w * dpr;
       canvas.height = h * dpr;
@@ -580,16 +605,16 @@ export function FloralVineBackground() {
         build(w, h, pathname === "/");
 
         if (reduced || mobile) {
-          // Skip animation on mobile & reduced-motion — paint static immediately
+          // Skip animation — paint static, then swap to img immediately
           if (ctx) renderStatic(ctx, vinesRef.current, w, h);
           doneRef.current = true;
+          canvasToImage(canvas);
         } else {
           // Start growth animation (desktop only)
           cancelAnimationFrame(rafRef.current);
           rafRef.current = requestAnimationFrame(animate);
         }
       } else if (doneRef.current) {
-        // Resize without rebuilding — just repaint static
         if (ctx) renderStatic(ctx, vinesRef.current, w, h);
       }
     };
