@@ -70,7 +70,12 @@ export function HeroSection() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="mb-4"
             >
-              <span className="badge">Clinical Intelligence Platform</span>
+              <span
+                className="inline-block text-xs font-semibold uppercase"
+                style={{ color: "#2d4a3e", letterSpacing: "0.18em" }}
+              >
+                Clinical Intelligence Platform
+              </span>
             </motion.div>
 
             <TextReveal
@@ -99,11 +104,11 @@ export function HeroSection() {
               transition={{ type: "spring", damping: 20, stiffness: 200, delay: 1.1 }}
             >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="relative overflow-hidden rounded-lg">
-                <Button size="lg" className="bg-primary-500 hover:bg-primary-600 relative overflow-hidden group">
+                <Button size="lg" className="bg-[#7a5c35] hover:bg-[#7a5c35] relative overflow-hidden group">
                   <Link href="/signup" className="flex items-center gap-2 relative z-10">
                     {t("hero_cta_trial")} <ArrowRight size={20} />
                   </Link>
-                  <span className="absolute inset-0 bg-primary-700 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                  <span className="absolute inset-0 bg-[#5c4527] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -122,7 +127,8 @@ export function HeroSection() {
               <p className="text-text-muted text-sm">{t("hero_trial_note")}</p>
               <Link
                 href="/how-it-works"
-                className="text-sm text-primary-500 hover:text-primary-600 font-medium underline underline-offset-4 transition-colors"
+                className="text-sm font-medium underline underline-offset-4 transition-colors"
+                style={{ color: "#2d4a3e" }}
               >
                 {t("hero_how_ai")}
               </Link>
@@ -137,44 +143,89 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.4, ease }}
             style={{ willChange: "transform" }}
           >
-            <div className="bg-surface border border-primary-200 rounded-lg shadow-2xl p-6 space-y-4">
+            <div className="border border-primary-200 rounded-lg shadow-2xl p-6 space-y-4" style={{ background: "#f9f6f0" }}>
               <div className="flex items-center justify-between">
-                <h3 className="font-serif font-semibold">Today&apos;s Patients</h3>
-                <span className="text-2xl font-bold text-primary-500">12</span>
+                <div>
+                  <h3 className="font-serif font-semibold text-text-primary">Today&apos;s Patients</h3>
+                  <p className="text-xs mt-0.5" style={{ color: "#2d4a3e" }}>3 pending reviews</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-bold text-primary-500">12</span>
+                  <p className="text-xs text-text-muted">seen today</p>
+                </div>
               </div>
               <div className="border-t border-primary-200 pt-4">
-                <h4 className="text-sm font-semibold text-text-primary mb-3">Case Queue</h4>
-                <div className="space-y-2">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold text-text-primary">Case Queue</h4>
+                  <span className="text-xs text-text-muted">AI pre-screened</span>
+                </div>
+                <div className="space-y-2.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-text-secondary">Fungal</span>
-                    <span className="font-semibold">8 cases</span>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#d97706" }} />
+                      <span className="text-sm text-text-secondary">Fungal</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-text-primary">8 cases</span>
+                      <div className="w-12 h-1.5 bg-primary-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: "67%", background: "#d97706" }} />
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-text-secondary">Bacterial</span>
-                    <span className="font-semibold">5 cases</span>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#2d4a3e" }} />
+                      <span className="text-sm text-text-secondary">Bacterial</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-text-primary">5 cases</span>
+                      <div className="w-12 h-1.5 bg-primary-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: "42%", background: "#2d4a3e" }} />
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-text-secondary">Complex</span>
-                    <span className="font-semibold">3 cases</span>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#dc2626" }} />
+                      <span className="text-sm text-text-secondary">Complex</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-text-primary">3 cases</span>
+                      <div className="w-12 h-1.5 bg-primary-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: "25%", background: "#dc2626" }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute right-0 bottom-0 w-32 h-48 bg-surface border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-2 translate-y-14 md:translate-x-12 md:translate-y-12">
-              <h4 className="text-xs font-semibold text-text-primary mb-3">My Patients</h4>
-              <ul className="space-y-2 text-xs">
-                <li className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-primary-200 rounded-full" />
-                  <span>Rajesh K.</span>
+            <div className="absolute right-0 bottom-0 w-44 border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-2 translate-y-14 md:translate-x-12 md:translate-y-12" style={{ background: "#f9f6f0" }}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-semibold text-text-primary">My Patients</h4>
+                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: "rgba(45,74,62,0.1)", color: "#2d4a3e" }}>24 total</span>
+              </div>
+              <ul className="space-y-2.5 text-xs">
+                <li className="flex items-start gap-2">
+                  <div className="w-6 h-6 bg-primary-400 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ fontSize: "9px" }}>RK</div>
+                  <div>
+                    <p className="font-medium text-text-primary leading-tight">Rajesh K.</p>
+                    <p className="text-text-muted leading-tight" style={{ fontSize: "9px" }}>Last visit: 2d ago</p>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-secondary-400 rounded-full" />
-                  <span>Priya S.</span>
+                <li className="flex items-start gap-2">
+                  <div className="w-6 h-6 bg-primary-300 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ fontSize: "9px" }}>PS</div>
+                  <div>
+                    <p className="font-medium text-text-primary leading-tight">Priya S.</p>
+                    <p className="text-text-muted leading-tight" style={{ fontSize: "9px" }}>Follow-up pending</p>
+                  </div>
                 </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-primary-300 rounded-full" />
-                  <span>Amit P.</span>
+                <li className="flex items-start gap-2">
+                  <div className="w-6 h-6 bg-primary-200 rounded-full flex items-center justify-center font-bold flex-shrink-0" style={{ fontSize: "9px", color: "#7a5c35" }}>AP</div>
+                  <div>
+                    <p className="font-medium text-text-primary leading-tight">Amit P.</p>
+                    <p className="text-text-muted leading-tight" style={{ fontSize: "9px" }}>New patient</p>
+                  </div>
                 </li>
               </ul>
             </div>

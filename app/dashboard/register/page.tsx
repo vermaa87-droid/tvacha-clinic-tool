@@ -39,6 +39,7 @@ interface PatientRow extends Record<string, unknown> {
   age: number | null;
   gender: string | null;
   phone: string | null;
+  email: string | null;
   chief_complaint: string | null;
   current_diagnosis: string | null;
   severity: string | null;
@@ -47,6 +48,12 @@ interface PatientRow extends Record<string, unknown> {
   next_followup_date: string | null;
   total_visits: number | null;
   city: string | null;
+  state: string | null;
+  blood_group: string | null;
+  allergies: string[] | null;
+  chronic_conditions: string[] | null;
+  current_medications: string | null;
+  fitzpatrick_type: number | null;
 }
 
 interface VisitRow extends Record<string, unknown> {
@@ -476,6 +483,31 @@ export default function RegisterPage() {
       },
       { accessorKey: "total_visits", header: t("reg_col_total_visits") },
       { accessorKey: "city", header: t("reg_col_city") },
+      { accessorKey: "state", header: "State" },
+      { accessorKey: "blood_group", header: "Blood Group" },
+      {
+        accessorKey: "allergies",
+        header: "Allergies",
+        cell: ({ row }: { row: { original: PatientRow } }) => {
+          const a = row.original.allergies;
+          return Array.isArray(a) && a.length > 0 ? a.join(", ") : "";
+        },
+      },
+      {
+        accessorKey: "chronic_conditions",
+        header: "Chronic Conditions",
+        cell: ({ row }: { row: { original: PatientRow } }) => {
+          const c = row.original.chronic_conditions;
+          return Array.isArray(c) && c.length > 0 ? c.join(", ") : "";
+        },
+      },
+      { accessorKey: "current_medications", header: "Current Medications" },
+      {
+        accessorKey: "fitzpatrick_type",
+        header: "Skin Tone",
+        cell: ({ row }: { row: { original: PatientRow } }) =>
+          row.original.fitzpatrick_type ? `Type ${row.original.fitzpatrick_type}` : "",
+      },
       {
         id: "quick_actions",
         header: t("reg_col_quick_actions"),

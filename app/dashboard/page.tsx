@@ -152,7 +152,7 @@ export default function DashboardHome() {
         for (const p of recentPatientsRes.data) {
           activities.push({
             type: "patient",
-            label: `Added patient ${p.name}`,
+            label: `Added patient ${capitalizeName(p.name)}`,
             created_at: p.created_at,
           });
         }
@@ -161,7 +161,7 @@ export default function DashboardHome() {
         for (const p of recentPrescriptionsRes.data as any[]) {
           activities.push({
             type: "prescription",
-            label: `Created prescription for ${p.patients?.name || "Unknown"}`,
+            label: `Created prescription for ${capitalizeName(p.patients?.name || "Unknown")}`,
             created_at: p.created_at,
           });
         }
@@ -170,7 +170,7 @@ export default function DashboardHome() {
         for (const v of recentVisitsRes.data as any[]) {
           activities.push({
             type: "visit",
-            label: `Logged visit for ${v.patients?.name || "Unknown"}`,
+            label: `Logged visit for ${capitalizeName(v.patients?.name || "Unknown")}`,
             created_at: v.created_at,
           });
         }
@@ -233,6 +233,9 @@ export default function DashboardHome() {
     ? doctor.full_name.startsWith("Dr.") ? doctor.full_name : `Dr. ${doctor.full_name.split(" ")[0]}`
     : "Doctor";
 
+  const capitalizeName = (name: string) =>
+    name.replace(/\b\w/g, (c) => c.toUpperCase());
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -277,60 +280,79 @@ export default function DashboardHome() {
   return (
     <main className="space-y-8">
       {/* Welcome Banner */}
-      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 p-6">
+      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 px-6 py-5">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-text-primary">
           {getGreeting()}, {displayName}
         </h1>
-        <p className="text-text-secondary mt-2">
+        <p className="text-text-secondary mt-1.5">
           {format(new Date(), "EEEE, MMMM do, yyyy")}
+        </p>
+        <p className="text-text-muted text-sm mt-1">
+          {appointmentsToday > 0
+            ? `You have ${appointmentsToday} appointment${appointmentsToday !== 1 ? "s" : ""} today${followupsDueThisWeek > 0 ? `, ${followupsDueThisWeek} follow-up${followupsDueThisWeek !== 1 ? "s" : ""} pending this week` : ""}.`
+            : followupsDueThisWeek > 0
+            ? `${followupsDueThisWeek} follow-up${followupsDueThisWeek !== 1 ? "s" : ""} pending this week — schedule is clear for today.`
+            : "Your schedule is clear today. A great day to focus."}
         </p>
       </div>
 
       {/* Quick Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <Card>
-          <CardBody className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">{t("dash_total_patients")}</span>
-              <Users className="text-primary-500" size={20} />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{totalPatients}</p>
-            <p className="text-text-muted text-xs">{t("dash_all_time")}</p>
-          </CardBody>
-        </Card>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg z-10" style={{ background: "#b8936a" }} />
+          <Card>
+            <CardBody className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_total_patients")}</span>
+                <Users className="text-primary-400" size={18} />
+              </div>
+              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{totalPatients}</p>
+              <p className="text-text-muted text-xs">{t("dash_all_time")}</p>
+            </CardBody>
+          </Card>
+        </div>
 
-        <Card>
-          <CardBody className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">{t("dash_visits_today")}</span>
-              <Activity className="text-primary-500" size={20} />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{visitsToday}</p>
-            <p className="text-text-muted text-xs">{t("dash_today")}</p>
-          </CardBody>
-        </Card>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg z-10" style={{ background: "#b8936a" }} />
+          <Card>
+            <CardBody className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_visits_today")}</span>
+                <Activity className="text-primary-400" size={18} />
+              </div>
+              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{visitsToday}</p>
+              <p className="text-text-muted text-xs">{t("dash_today")}</p>
+            </CardBody>
+          </Card>
+        </div>
 
-        <Card>
-          <CardBody className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">{t("dash_appointments_today")}</span>
-              <Calendar className="text-primary-500" size={20} />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{appointmentsToday}</p>
-            <p className="text-text-muted text-xs">{t("dash_appointments_today_sub")}</p>
-          </CardBody>
-        </Card>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg z-10" style={{ background: "#b8936a" }} />
+          <Card>
+            <CardBody className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_appointments_today")}</span>
+                <Calendar className="text-primary-400" size={18} />
+              </div>
+              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{appointmentsToday}</p>
+              <p className="text-text-muted text-xs">{t("dash_appointments_today_sub")}</p>
+            </CardBody>
+          </Card>
+        </div>
 
-        <Card>
-          <CardBody className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">{t("dash_followups_due")}</span>
-              <CalendarPlus className="text-primary-500" size={20} />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-primary-500">{followupsDueThisWeek}</p>
-            <p className="text-text-muted text-xs">{t("dash_followups_due_sub")}</p>
-          </CardBody>
-        </Card>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg z-10" style={{ background: "#b8936a" }} />
+          <Card>
+            <CardBody className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_followups_due")}</span>
+                <CalendarPlus className="text-primary-400" size={18} />
+              </div>
+              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{followupsDueThisWeek}</p>
+              <p className="text-text-muted text-xs">{t("dash_followups_due_sub")}</p>
+            </CardBody>
+          </Card>
+        </div>
       </div>
 
       {/* Today's Schedule & Recent Activity */}
@@ -366,8 +388,8 @@ export default function DashboardHome() {
                         {apt.appointment_time}
                       </div>
                       <div>
-                        <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={apt.patients?.name || "Unknown"}>
-                          {apt.patients?.name || "Unknown"}
+                        <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={capitalizeName(apt.patients?.name || "Unknown")}>
+                          {capitalizeName(apt.patients?.name || "Unknown")}
                         </p>
                       </div>
                     </div>
@@ -382,13 +404,19 @@ export default function DashboardHome() {
               </div>
             ) : (
               <div className="text-center py-10">
-                <Calendar className="mx-auto text-primary-200 mb-3" size={32} />
-                <p className="text-text-muted text-sm">{t("dash_no_appointments")}</p>
+                <div
+                  className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(184,147,106,0.08)" }}
+                >
+                  <Calendar className="text-primary-300" size={30} />
+                </div>
+                <p className="text-text-muted text-xs mb-1">Your day is clear</p>
+                <p className="text-text-secondary text-sm font-medium mb-4">No appointments scheduled for today</p>
                 <Link href="/dashboard/appointments">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-primary-500 text-primary-500 mt-3"
+                    className="border-primary-400 text-primary-500"
                   >
                     {t("dash_schedule_one")}
                   </Button>
@@ -442,9 +470,7 @@ export default function DashboardHome() {
           <Link href="/dashboard/patients">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
               <CardBody className="flex flex-col items-center gap-3 py-6">
-                <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
-                  <UserPlus className="text-primary-500" size={22} />
-                </div>
+                <UserPlus size={30} style={{ color: "#b8936a" }} />
                 <span className="text-sm font-medium text-text-primary">{t("dash_add_patient")}</span>
               </CardBody>
             </Card>
@@ -453,9 +479,7 @@ export default function DashboardHome() {
           <Link href="/dashboard/prescriptions">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
               <CardBody className="flex flex-col items-center gap-3 py-6">
-                <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
-                  <ClipboardPlus className="text-primary-500" size={22} />
-                </div>
+                <ClipboardPlus size={30} style={{ color: "#b8936a" }} />
                 <span className="text-sm font-medium text-text-primary">{t("dash_new_prescription")}</span>
               </CardBody>
             </Card>
@@ -464,9 +488,7 @@ export default function DashboardHome() {
           <Link href="/dashboard/appointments">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
               <CardBody className="flex flex-col items-center gap-3 py-6">
-                <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
-                  <CalendarPlus className="text-primary-500" size={22} />
-                </div>
+                <CalendarPlus size={30} style={{ color: "#b8936a" }} />
                 <span className="text-sm font-medium text-text-primary">{t("dash_schedule_appointment")}</span>
               </CardBody>
             </Card>
@@ -475,9 +497,7 @@ export default function DashboardHome() {
           <Link href="/dashboard/register">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
               <CardBody className="flex flex-col items-center gap-3 py-6">
-                <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
-                  <Activity className="text-primary-500" size={22} />
-                </div>
+                <Activity size={30} style={{ color: "#b8936a" }} />
                 <span className="text-sm font-medium text-text-primary">{t("dash_log_visit")}</span>
               </CardBody>
             </Card>
@@ -486,9 +506,7 @@ export default function DashboardHome() {
           <Link href="/dashboard/register">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
               <CardBody className="flex flex-col items-center gap-3 py-6">
-                <div className="p-3 rounded-full bg-primary-50 group-hover:bg-primary-100 transition-colors">
-                  <Table2 className="text-primary-500" size={22} />
-                </div>
+                <Table2 size={30} style={{ color: "#b8936a" }} />
                 <span className="text-sm font-medium text-text-primary">{t("dash_clinic_register")}</span>
               </CardBody>
             </Card>
@@ -523,7 +541,7 @@ export default function DashboardHome() {
                     className="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
                   >
                     <div>
-                      <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={patient.name}>{patient.name}</p>
+                      <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={capitalizeName(patient.name)}>{capitalizeName(patient.name)}</p>
                       <p className="text-xs text-text-muted">
                         {t("dash_followup_was")} {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
                       </p>

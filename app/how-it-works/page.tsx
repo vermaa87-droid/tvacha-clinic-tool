@@ -13,320 +13,232 @@ import {
   RotateCcw,
   Zap,
   BarChart3,
-  ChevronDown,
   Menu,
   X,
+  Shield,
+  ArrowRight,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  Expandable wrapper – smooth height animation                            */
+/*  Editorial section divider — uppercase label + extending line             */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-function Expandable({
-  expanded,
-  children,
-  onCollapse,
+function SectionDivider({
+  label,
+  desc,
+  topClass = "mt-28",
 }: {
-  expanded: boolean;
-  children: React.ReactNode;
-  onCollapse: () => void;
+  label: string;
+  desc: string;
+  topClass?: string;
 }) {
   return (
-    <AnimatePresence initial={false}>
-      {expanded && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="overflow-hidden"
-        >
-          <div className="pt-6" style={{ borderTop: "1px solid #e8e0d0" }}>
-            {children}
-            <button
-              onClick={onCollapse}
-              className="mt-5 text-xs font-medium hover:underline"
-              style={{ color: "#9a8a76" }}
-            >
-              Show less &uarr;
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  Pattern A – "Hero Feature" card (full-width, big heading, mini visual)  */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function HeroCard({
-  title,
-  subtitle,
-  paragraphs,
-  Visual,
-  borderAccent,
-  delay,
-}: {
-  title: string;
-  subtitle: string;
-  paragraphs: string[];
-  Visual: React.ReactNode;
-  borderAccent?: string;
-  delay?: number;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.6, delay: delay || 0, ease: "easeOut" }}
-      className="rounded-xl overflow-hidden transition-shadow duration-300"
-      style={{
-        background: expanded ? "#fff" : "rgba(255,255,255,0.85)",
-        border: "1px solid #e8e0d0",
-        borderLeft: borderAccent ? `4px solid ${borderAccent}` : "1px solid #e8e0d0",
-        boxShadow: expanded ? "0 8px 32px rgba(0,0,0,0.06)" : "0 2px 8px rgba(0,0,0,0.03)",
-      }}
-    >
-      <button className="w-full text-left p-6 md:p-8" onClick={() => setExpanded(!expanded)}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex-1">
-            <h3 className="text-2xl md:text-3xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
-              {title}
-            </h3>
-            <p className="text-sm italic leading-relaxed" style={{ color: "#9a8a76" }}>
-              {subtitle}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden md:block flex-shrink-0">{Visual}</div>
-            <ChevronDown
-              size={20}
-              className="flex-shrink-0 transition-transform duration-300"
-              style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
-            />
-          </div>
-        </div>
-      </button>
-
-      <div className="px-6 md:px-8 pb-6 md:pb-8">
-        <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
-          <div className="space-y-4 max-w-2xl">
-            {paragraphs.map((p, i) => (
-              <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
-            ))}
-          </div>
-          <div className="md:hidden mt-4">{Visual}</div>
-        </Expandable>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  Pattern B – Side-by-side compact cards                                  */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function CompactCard({
-  Icon,
-  title,
-  subtitle,
-  paragraphs,
-  delay,
-}: {
-  Icon: React.ElementType;
-  title: string;
-  subtitle: string;
-  paragraphs: string[];
-  delay?: number;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: delay || 0, ease: "easeOut" }}
-      className="rounded-xl overflow-hidden transition-shadow duration-300"
-      style={{
-        background: expanded ? "#fff" : "rgba(255,255,255,0.7)",
-        border: "1px solid #e8e0d0",
-        boxShadow: expanded ? "0 8px 24px rgba(0,0,0,0.06)" : "0 1px 4px rgba(0,0,0,0.02)",
-      }}
-    >
-      <button className="w-full text-left p-5 md:p-6" onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <Icon size={18} style={{ color: "#b8936a" }} className="flex-shrink-0" />
-              <h3 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>{title}</h3>
-            </div>
-            <p className="text-sm" style={{ color: "#9a8a76" }}>{subtitle}</p>
-          </div>
-          <ChevronDown
-            size={18}
-            className="flex-shrink-0 mt-1 transition-transform duration-300"
-            style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
-          />
-        </div>
-      </button>
-
-      <div className="px-5 md:px-6 pb-5 md:pb-6">
-        <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
-          <div className="space-y-3">
-            {paragraphs.map((p, i) => (
-              <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
-            ))}
-          </div>
-        </Expandable>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  Pattern C – Timeline / numbered step                                    */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function TimelineCard({
-  num,
-  title,
-  subtitle,
-  paragraphs,
-  isLast,
-  tinted,
-  borderAccent,
-  Visual,
-  delay,
-}: {
-  num: string;
-  title: string;
-  subtitle: string;
-  paragraphs: string[];
-  isLast?: boolean;
-  tinted?: boolean;
-  borderAccent?: string;
-  Visual?: React.ReactNode;
-  delay?: number;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: delay || 0, ease: "easeOut" }}
-      className="flex gap-5 md:gap-8"
-    >
-      {/* Number + line */}
-      <div className="flex flex-col items-center flex-shrink-0">
-        <span className="text-4xl md:text-5xl font-serif font-bold select-none" style={{ color: "#e0d5c4" }}>
-          {num}
-        </span>
-        {!isLast && <div className="flex-1 w-px mt-2" style={{ background: "#e0d5c4" }} />}
-      </div>
-
-      {/* Content */}
-      <div
-        className="flex-1 rounded-xl overflow-hidden mb-6 transition-shadow duration-300"
-        style={{
-          background: tinted ? "#fef5f5" : expanded ? "#fff" : "rgba(255,255,255,0.7)",
-          border: "1px solid #e8e0d0",
-          borderLeft: borderAccent ? `4px solid ${borderAccent}` : "1px solid #e8e0d0",
-          boxShadow: expanded ? "0 8px 24px rgba(0,0,0,0.06)" : "0 1px 4px rgba(0,0,0,0.02)",
-        }}
-      >
-        <button className="w-full text-left p-5 md:p-6" onClick={() => setExpanded(!expanded)}>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-xl font-serif font-bold mb-1" style={{ color: "#1a1612" }}>{title}</h3>
-              <p className="text-sm italic" style={{ color: "#9a8a76" }}>{subtitle}</p>
-            </div>
-            <ChevronDown
-              size={18}
-              className="flex-shrink-0 mt-1 transition-transform duration-300"
-              style={{ color: "#9a8a76", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
-            />
-          </div>
-        </button>
-
-        <div className="px-5 md:px-6 pb-5 md:pb-6">
-          <Expandable expanded={expanded} onCollapse={() => setExpanded(false)}>
-            <div className="space-y-3">
-              {paragraphs.map((p, i) => (
-                <p key={i} className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
-              ))}
-            </div>
-            {Visual && <div className="mt-4">{Visual}</div>}
-          </Expandable>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  Section group heading                                                    */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function GroupHeading({ label, desc }: { label: string; desc: string }) {
-  return (
-    <motion.div
-      className="mb-8 mt-16 first:mt-0"
+      className={`mb-12 ${topClass}`}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-2" style={{ color: "#b8936a" }}>
-        {label}
+      <div className="flex items-center gap-4 mb-3">
+        <span
+          className="text-xs font-bold uppercase whitespace-nowrap"
+          style={{ color: "#2d4a3e", letterSpacing: "0.2em" }}
+        >
+          {label}
+        </span>
+        <div className="flex-1 h-px" style={{ background: "#d0c8b8" }} />
+      </div>
+      <p className="text-sm max-w-xl leading-relaxed" style={{ color: "#9a8a76" }}>
+        {desc}
       </p>
-      <p className="text-sm max-w-xl" style={{ color: "#9a8a76" }}>{desc}</p>
     </motion.div>
   );
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  Mini visuals (styled-div illustrations for Hero cards)                  */
+/*  Deep Learning Pipeline visual                                             */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-function NeuralNetVisual() {
+function DeepLearningPipeline() {
+  const steps = [
+    { title: "ImageNet-22k", sub: "Pre-training", desc: "22k classes · rich visual features", bg: "#f0ebe3" },
+    { title: "Skin Dataset", sub: "Fine-tuning", desc: "5 Cr+ dermoscopy images", bg: "#fdf0e0" },
+    { title: "Clinical", sub: "Validation", desc: "Real-world accuracy testing", bg: "#f0f5f0" },
+  ];
   return (
-    <div className="flex items-center gap-1.5">
-      {["Input", "Hidden", "Output"].map((label, i) => (
-        <div key={label} className="flex items-center gap-1.5">
-          <div
-            className="px-2.5 py-1.5 rounded text-xs font-semibold"
-            style={{ background: "#fdf0e0", color: "#b8936a", border: "1px solid #e8d5bc" }}
-          >
-            {label}
+    <div className="rounded-xl p-5" style={{ background: "rgba(255,255,255,0.65)", border: "1px solid #e8e0d0" }}>
+      <p
+        className="text-[10px] font-semibold uppercase mb-4"
+        style={{ color: "#9a8a76", letterSpacing: "0.12em" }}
+      >
+        Model Architecture Pipeline
+      </p>
+      <div className="flex items-stretch flex-wrap gap-y-2">
+        {steps.map((step, i) => (
+          <div key={i} className="flex items-center">
+            <div
+              className="px-3.5 py-2.5 rounded-lg text-center"
+              style={{ background: step.bg, border: "1px solid #e0d8cc" }}
+            >
+              <p className="text-xs font-bold" style={{ color: "#b8936a" }}>{step.title}</p>
+              <p className="text-[10px] font-semibold" style={{ color: "#7a5c35" }}>{step.sub}</p>
+              <p className="text-[9px] mt-1" style={{ color: "#9a8a76" }}>{step.desc}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="px-2">
+                <ArrowRight size={13} style={{ color: "#c8b898" }} />
+              </div>
+            )}
           </div>
-          {i < 2 && (
-            <svg width="20" height="12" viewBox="0 0 20 12">
-              <line x1="0" y1="3" x2="14" y2="3" stroke="#e8d5bc" strokeWidth="1.5" />
-              <line x1="0" y1="9" x2="14" y2="9" stroke="#e8d5bc" strokeWidth="1.5" />
-              <line x1="0" y1="6" x2="18" y2="6" stroke="#b8936a" strokeWidth="1.5" />
-            </svg>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
+      <div className="mt-4 pt-3" style={{ borderTop: "1px solid #e8e0d0" }}>
+        <p className="text-xs font-bold" style={{ color: "#b8936a" }}>50M parameters · ConvNeXt architecture</p>
+        <p className="text-[10px] mt-0.5" style={{ color: "#9a8a76" }}>
+          Mixed precision training · Gradient accumulation
+        </p>
+      </div>
     </div>
   );
 }
 
-function ShieldVisual() {
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Fitzpatrick + Processing Stages visual                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function ImageProcessingVisual() {
+  const tones = [
+    { hex: "#f5d5b8", label: "I" },
+    { hex: "#e8b891", label: "II" },
+    { hex: "#c68642", label: "III" },
+    { hex: "#a0522d", label: "IV" },
+    { hex: "#6b3a2a", label: "V" },
+    { hex: "#3b1f15", label: "VI" },
+  ];
+  const stages = ["Detect", "Quality Check", "Normalize", "Enhance"];
   return (
-    <div className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
-      <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
-        <path d="M24 4 L42 12 L42 24 C42 36 24 44 24 44 C24 44 6 36 6 24 L6 12 Z" fill="#fef5f5" stroke="#e8a0a0" strokeWidth="2" />
-        <text x="24" y="28" textAnchor="middle" fontSize="11" fontWeight="700" fill="#c44a4a">×2.5</text>
-      </svg>
+    <div className="space-y-4">
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.65)", border: "1px solid #e8e0d0" }}>
+        <p
+          className="text-[10px] font-semibold uppercase mb-3"
+          style={{ color: "#9a8a76", letterSpacing: "0.12em" }}
+        >
+          Fitzpatrick Scale I–VI Coverage
+        </p>
+        <div className="flex items-center gap-2.5">
+          {tones.map(({ hex, label }) => (
+            <div key={hex} className="flex flex-col items-center gap-1">
+              <div className="w-7 h-7 rounded-full shadow-sm" style={{ background: hex }} />
+              <span className="text-[8px] font-medium" style={{ color: "#9a8a76" }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.65)", border: "1px solid #e8e0d0" }}>
+        <p
+          className="text-[10px] font-semibold uppercase mb-3"
+          style={{ color: "#9a8a76", letterSpacing: "0.12em" }}
+        >
+          Processing Stages
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {stages.map((s, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div
+                className="px-2.5 py-1.5 rounded-md"
+                style={{ background: "#fdf0e0", border: "1px solid #e8d5bc" }}
+              >
+                <p className="text-[10px] font-bold" style={{ color: "#b8936a" }}>{s}</p>
+              </div>
+              {i < stages.length - 1 && <ArrowRight size={10} style={{ color: "#c8b898" }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  7-Pass Ensemble visual                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function SevenPassVisual() {
+  const heights = [58, 72, 54, 80, 66, 74, 86];
+  return (
+    <div
+      className="mt-5 rounded-xl p-5"
+      style={{ background: "rgba(255,255,255,0.65)", border: "1px solid #e8e0d0" }}
+    >
+      <p
+        className="text-[10px] font-semibold uppercase mb-4"
+        style={{ color: "#9a8a76", letterSpacing: "0.12em" }}
+      >
+        7-Pass Ensemble Analysis
+      </p>
+      <div className="flex items-end gap-2">
+        <div className="flex items-end gap-1.5 h-14 flex-1">
+          {heights.map((h, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                className="w-full rounded-t-sm"
+                style={{ height: `${h}%`, background: "#e0d4c0", minHeight: "8px" }}
+              />
+              <span className="text-[8px] font-medium" style={{ color: "#9a8a76" }}>P{i + 1}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 pb-5 flex-shrink-0">
+          <ArrowRight size={14} style={{ color: "#c8b898" }} />
+          <div
+            className="px-3 py-2.5 rounded-lg text-center"
+            style={{ background: "#fdf0e0", border: "1.5px solid #b8936a" }}
+          >
+            <p className="text-[10px] font-bold" style={{ color: "#b8936a" }}>Combined</p>
+            <p className="text-[9px]" style={{ color: "#9a8a76" }}>Ensemble</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Augmentation strategies visual                                           */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function AugmentationVisual() {
+  const strategies = [
+    "Rotation", "Flip", "Zoom", "Brightness", "Contrast",
+    "Blur", "Crop", "Color Jitter", "MixUp", "CutMix", "+ 7 more",
+  ];
+  return (
+    <div
+      className="mt-4 rounded-xl p-4"
+      style={{ background: "rgba(255,255,255,0.65)", border: "1px solid #e8e0d0" }}
+    >
+      <p
+        className="text-[10px] font-semibold uppercase mb-3"
+        style={{ color: "#9a8a76", letterSpacing: "0.12em" }}
+      >
+        17 Augmentation Strategies
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {strategies.map((s, i) => (
+          <span
+            key={i}
+            className="text-[10px] font-medium px-2 py-1 rounded"
+            style={{
+              background: i === strategies.length - 1 ? "#fdf0e0" : "rgba(184,147,106,0.1)",
+              color: i === strategies.length - 1 ? "#b8936a" : "#7a5c35",
+              border: i === strategies.length - 1 ? "1px solid #e8d5bc" : "none",
+            }}
+          >
+            {s}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -342,6 +254,7 @@ export default function HowItWorksPage() {
   return (
     <main className="min-h-screen" style={{ background: "#f2efe9", position: "relative" }}>
       <NeuralNetworkBackground />
+
       {/* Mobile overlay menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -361,7 +274,10 @@ export default function HowItWorksPage() {
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.25 }}
             >
-              <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #e8e0d0" }}>
+              <div
+                className="flex items-center justify-between px-6 py-5"
+                style={{ borderBottom: "1px solid #e8e0d0" }}
+              >
                 <span className="font-serif font-semibold" style={{ color: "#1a1612" }}>Menu</span>
                 <button onClick={() => setMobileMenuOpen(false)} className="p-2" style={{ color: "#9a8a76" }}>
                   <X size={22} />
@@ -373,12 +289,23 @@ export default function HowItWorksPage() {
                   { label: t("nav_pricing"), href: "/pricing" },
                   { label: t("nav_signin"), href: "/login" },
                 ].map(({ label, href }) => (
-                  <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg font-medium" style={{ color: "#9a8a76" }}>
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-3 rounded-lg font-medium"
+                    style={{ color: "#9a8a76" }}
+                  >
                     {label}
                   </Link>
                 ))}
                 <div className="mt-4 px-4">
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center text-sm font-semibold px-4 py-3 rounded-lg text-white" style={{ background: "#b8936a" }}>
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-center text-sm font-semibold px-4 py-3 rounded-lg text-white"
+                    style={{ background: "#b8936a" }}
+                  >
                     {t("nav_getstarted")}
                   </Link>
                 </div>
@@ -389,27 +316,59 @@ export default function HowItWorksPage() {
       </AnimatePresence>
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-40" style={{ background: "rgba(250,248,244,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e8e0d0" }}>
+      <nav
+        className="sticky top-0 z-40"
+        style={{
+          background: "rgba(250,248,244,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid #e8e0d0",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4 md:gap-6">
-            <Link href="/pricing" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>{t("nav_pricing")}</Link>
-            <Link href="/login" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>{t("nav_signin")}</Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-lg text-white hidden md:block" style={{ background: "#b8936a" }}>{t("nav_getstarted")}</Link>
+            <Link href="/pricing" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>
+              {t("nav_pricing")}
+            </Link>
+            <Link href="/login" className="font-medium text-sm hidden md:block" style={{ color: "#9a8a76" }}>
+              {t("nav_signin")}
+            </Link>
+            <Link
+              href="/signup"
+              className="text-sm font-semibold px-4 py-2 rounded-lg text-white hidden md:block"
+              style={{ background: "#b8936a" }}
+            >
+              {t("nav_getstarted")}
+            </Link>
             <LanguageToggle />
-            <button className="md:hidden p-2" style={{ color: "#9a8a76" }} onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+            <button
+              className="md:hidden p-2"
+              style={{ color: "#9a8a76" }}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
               <Menu size={24} />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* ── Hero ── */}
       <div style={{ position: "relative", zIndex: 1 }}>
-        <section className="py-20 md:py-28" style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.65), rgba(242,239,233,0.25))" }}>
+        <section
+          className="py-24 md:py-32"
+          style={{ background: "linear-gradient(to bottom, rgba(237,233,225,0.65), rgba(242,239,233,0.25))" }}
+        >
           <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold mb-5 leading-tight" style={{ color: "#1a1612" }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold mb-5 leading-tight"
+                style={{ color: "#1a1612" }}
+              >
                 {t("hiw_title")}
               </h1>
               <p className="text-lg font-light leading-relaxed max-w-2xl mx-auto" style={{ color: "#9a8a76" }}>
@@ -417,16 +376,32 @@ export default function HowItWorksPage() {
               </p>
             </motion.div>
 
-            <motion.div className="flex flex-wrap justify-center gap-3 mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+            {/* Hero-sized typographic stat callouts — no pills, no borders */}
+            <motion.div
+              className="flex flex-wrap justify-center gap-10 md:gap-16 mt-14"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               {[
                 { value: "50M", label: t("hiw_stat_params") },
                 { value: "5 Cr+", label: t("hiw_stat_images") },
                 { value: "7×", label: t("hiw_stat_passes") },
                 { value: "2.5×", label: t("hiw_stat_cancer") },
               ].map(({ value, label }) => (
-                <div key={label} className="rounded-lg px-5 py-3 text-center" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #e8e0d0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                  <p className="text-2xl font-bold" style={{ color: "#b8936a" }}>{value}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{label}</p>
+                <div key={label} className="text-center">
+                  <p
+                    className="text-5xl md:text-6xl font-serif font-bold leading-none"
+                    style={{ color: "#b8936a" }}
+                  >
+                    {value}
+                  </p>
+                  <p
+                    className="text-xs font-semibold uppercase mt-3"
+                    style={{ color: "#9a8a76", letterSpacing: "0.14em" }}
+                  >
+                    {label}
+                  </p>
                 </div>
               ))}
             </motion.div>
@@ -434,122 +409,442 @@ export default function HowItWorksPage() {
         </section>
       </div>
 
-      {/* Content sections */}
-      <div className="max-w-4xl mx-auto px-6 md:px-8 pb-20" style={{ position: "relative", zIndex: 1 }}>
+      {/* ── Architecture + Training sections ── */}
+      <div
+        className="max-w-4xl mx-auto px-6 md:px-8 pt-12 pb-28"
+        style={{ position: "relative", zIndex: 1 }}
+      >
 
-        {/* ── Group 1: The AI Engine ── */}
-        <GroupHeading
+        {/* ARCHITECTURE */}
+        <SectionDivider
           label={t("hiw_s1_badge")}
           desc={t("hiw_s1_summary")}
+          topClass="mt-0"
         />
 
-        <div className="space-y-5">
-          <HeroCard
-            title={t("hiw_s1_title")}
-            subtitle={t("hiw_s1_b1")}
-            paragraphs={[t("hiw_s1_b2"), t("hiw_s1_b3")]}
-            Visual={<NeuralNetVisual />}
-            borderAccent="#b8936a"
-            delay={0.1}
-          />
-          <HeroCard
-            title={t("hiw_s2_title")}
-            subtitle={t("hiw_s2_summary")}
-            paragraphs={[t("hiw_s2_b1"), t("hiw_s2_b2"), t("hiw_s2_b3"), t("hiw_s2_b4")]}
-            Visual={
-              <div className="flex gap-1">
-                {["#f5d5b8", "#c68642", "#a0522d", "#6b3a2a", "#3b1f15"].map((hex) => (
-                  <div key={hex} className="w-4 h-4 rounded-full" style={{ background: hex }} />
+        <div className="space-y-6">
+
+          {/* Advanced Deep Learning Model */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="rounded-2xl p-7 md:p-9"
+            style={{
+              background: "rgba(255,255,255,0.85)",
+              border: "1px solid #e8e0d0",
+              borderLeft: "4px solid #b8936a",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+            }}
+          >
+            <h3 className="text-2xl md:text-3xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+              {t("hiw_s1_title")}
+            </h3>
+            <p className="text-sm italic mb-6" style={{ color: "#9a8a76" }}>{t("hiw_s1_b1")}</p>
+            <div className="grid md:grid-cols-2 gap-6 items-start">
+              <div className="space-y-3">
+                {[t("hiw_s1_b2"), t("hiw_s1_b3")].map((p, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                      style={{ background: "#b8936a" }}
+                    />
+                    <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                  </div>
                 ))}
               </div>
-            }
-            borderAccent="#b8936a"
-            delay={0.15}
-          />
+              <DeepLearningPipeline />
+            </div>
+          </motion.div>
+
+          {/* Smart Image Processing */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+            className="rounded-2xl p-7 md:p-9"
+            style={{
+              background: "rgba(255,255,255,0.85)",
+              border: "1px solid #e8e0d0",
+              borderLeft: "4px solid #b8936a",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+            }}
+          >
+            <h3 className="text-2xl md:text-3xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+              {t("hiw_s2_title")}
+            </h3>
+            <p className="text-sm italic mb-6" style={{ color: "#9a8a76" }}>{t("hiw_s2_summary")}</p>
+            <div className="grid md:grid-cols-2 gap-6 items-start">
+              <div className="space-y-3">
+                {[t("hiw_s2_b1"), t("hiw_s2_b2"), t("hiw_s2_b3"), t("hiw_s2_b4")].map((p, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                      style={{ background: "#b8936a" }}
+                    />
+                    <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                  </div>
+                ))}
+              </div>
+              <ImageProcessingVisual />
+            </div>
+          </motion.div>
         </div>
 
-        {/* ── Group 2: How We Train It ── */}
-        <GroupHeading
+        {/* TRAINING */}
+        <SectionDivider
           label={t("hiw_s7_badge")}
           desc={t("hiw_s3_summary")}
         />
 
-        <div className="grid md:grid-cols-2 gap-5">
-          <CompactCard
-            Icon={Layers}
-            title={t("hiw_s3_title")}
-            subtitle={t("hiw_s3_summary")}
-            paragraphs={[t("hiw_s3_b1"), t("hiw_s3_b2")]}
-            delay={0.1}
-          />
-          <CompactCard
-            Icon={RotateCcw}
-            title={t("hiw_s4_title")}
-            subtitle={t("hiw_s4_summary")}
-            paragraphs={[t("hiw_s4_b1"), t("hiw_s4_b2"), t("hiw_s4_b3")]}
-            delay={0.15}
-          />
-          <CompactCard
-            Icon={Zap}
-            title={t("hiw_s7_title")}
-            subtitle={t("hiw_s7_summary")}
-            paragraphs={[t("hiw_s7_b1"), t("hiw_s7_b2"), t("hiw_s7_b3"), t("hiw_s7_b4")]}
-            delay={0.2}
-          />
-          <CompactCard
-            Icon={BarChart3}
-            title={t("hiw_s8_title")}
-            subtitle={t("hiw_s8_summary")}
-            paragraphs={[t("hiw_s8_b1"), t("hiw_s8_b2"), t("hiw_s8_b3"), t("hiw_s8_b4"), t("hiw_s8_footer")]}
-            delay={0.25}
-          />
-        </div>
+        {/* Asymmetric staggered layout */}
+        <div className="space-y-5">
 
-        {/* ── Group 3: Safety & Accuracy ── */}
-        <GroupHeading
-          label={t("hiw_s5_badge")}
-          desc={t("hiw_s5_summary")}
-        />
+          {/* Row 1: 7-Pass (col-2, featured) + Smart Training Pipeline (col-1) */}
+          <div className="grid lg:grid-cols-3 gap-5 items-start">
 
-        <div>
-          <TimelineCard
-            num="01"
-            title={t("hiw_s5_title")}
-            subtitle={t("hiw_s5_summary")}
-            paragraphs={[t("hiw_s5_b1"), t("hiw_s5_b2"), t("hiw_s5_b3"), t("hiw_s5_b4")]}
-            tinted
-            borderAccent="#c44a4a"
-            Visual={<ShieldVisual />}
-            delay={0.1}
-          />
-          <TimelineCard
-            num="02"
-            title={t("hiw_s6_title")}
-            subtitle={t("hiw_s6_summary")}
-            paragraphs={[t("hiw_s6_b1"), t("hiw_s6_b2"), t("hiw_s6_b3")]}
-            Visual={
-              <div className="flex gap-2 flex-wrap">
-                {[t("hiw_s6_q1"), t("hiw_s6_q2"), t("hiw_s6_q3"), t("hiw_s6_q4"), t("hiw_s6_q5")].map((q, i) => (
-                  <span key={i} className="text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: "#f0ebe3", color: "#9a8a76" }}>
-                    {q}
-                  </span>
-                ))}
+            {/* 7-Pass Analysis Per Photo — featured */}
+            <motion.div
+              className="lg:col-span-2"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <div
+                className="rounded-2xl p-6 md:p-8"
+                style={{
+                  background: "rgba(255,255,255,0.85)",
+                  border: "1px solid #e8e0d0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                }}
+              >
+                <div className="flex items-center gap-2.5 mb-2">
+                  <RotateCcw size={20} style={{ color: "#b8936a" }} />
+                  <h3 className="text-xl font-serif font-bold" style={{ color: "#1a1612" }}>
+                    {t("hiw_s4_title")}
+                  </h3>
+                </div>
+                <p className="text-sm mb-3" style={{ color: "#9a8a76" }}>{t("hiw_s4_b1")}</p>
+                <div className="space-y-1.5">
+                  {[t("hiw_s4_b2"), t("hiw_s4_b3")].map((p, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#b8936a" }} />
+                      <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+                <SevenPassVisual />
               </div>
-            }
-            isLast
-            delay={0.15}
-          />
+            </motion.div>
+
+            {/* Smart Training Pipeline */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            >
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  background: "rgba(255,255,255,0.85)",
+                  border: "1px solid #e8e0d0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                }}
+              >
+                <div className="flex items-center gap-2.5 mb-2">
+                  <Zap size={18} style={{ color: "#b8936a" }} />
+                  <h3 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>
+                    {t("hiw_s7_title")}
+                  </h3>
+                </div>
+                <p className="text-xs mb-4" style={{ color: "#9a8a76" }}>{t("hiw_s7_summary")}</p>
+                <div className="space-y-3">
+                  {[t("hiw_s7_b1"), t("hiw_s7_b2"), t("hiw_s7_b3"), t("hiw_s7_b4")].map((p, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#b8936a" }} />
+                      <p className="text-xs leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Row 2: 17 Data Augmentation (col-1) + Evaluation (col-2, featured) */}
+          <div className="grid lg:grid-cols-3 gap-5 items-start">
+
+            {/* 17 Data Augmentation Strategies */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: 0.05, ease: "easeOut" }}
+            >
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  background: "rgba(255,255,255,0.85)",
+                  border: "1px solid #e8e0d0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                }}
+              >
+                <div className="flex items-center gap-2.5 mb-2">
+                  <Layers size={18} style={{ color: "#b8936a" }} />
+                  <h3 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>
+                    {t("hiw_s3_title")}
+                  </h3>
+                </div>
+                <p className="text-xs mb-4" style={{ color: "#9a8a76" }}>{t("hiw_s3_summary")}</p>
+                <div className="space-y-3">
+                  {[t("hiw_s3_b1"), t("hiw_s3_b2")].map((p, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#b8936a" }} />
+                      <p className="text-xs leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+                <AugmentationVisual />
+              </div>
+            </motion.div>
+
+            {/* Evaluation & Transparency — featured */}
+            <motion.div
+              className="lg:col-span-2"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            >
+              <div
+                className="rounded-2xl p-6 md:p-8"
+                style={{
+                  background: "rgba(255,255,255,0.85)",
+                  border: "1px solid #e8e0d0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                }}
+              >
+                <div className="flex items-center gap-2.5 mb-2">
+                  <BarChart3 size={20} style={{ color: "#b8936a" }} />
+                  <h3 className="text-xl font-serif font-bold" style={{ color: "#1a1612" }}>
+                    {t("hiw_s8_title")}
+                  </h3>
+                </div>
+                <p className="text-sm mb-5" style={{ color: "#9a8a76" }}>{t("hiw_s8_summary")}</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[t("hiw_s8_b1"), t("hiw_s8_b2"), t("hiw_s8_b3"), t("hiw_s8_b4")].map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-2.5 p-3 rounded-xl"
+                      style={{
+                        background: "rgba(184,147,106,0.06)",
+                        border: "1px solid rgba(184,147,106,0.15)",
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#b8936a" }} />
+                      <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm mt-4 italic" style={{ color: "#9a8a76" }}>{t("hiw_s8_footer")}</p>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* CTA */}
-      <section className="py-20 text-white text-center" style={{ background: "rgba(184,147,106,0.95)", position: "relative", zIndex: 1 }}>
-        <motion.div className="max-w-2xl mx-auto px-6" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+      {/* ── Safety Critical — visually distinct section ── */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          background: "rgba(45,74,62,0.045)",
+          borderTop: "1px solid rgba(45,74,62,0.1)",
+          borderBottom: "1px solid rgba(45,74,62,0.1)",
+        }}
+      >
+        <div className="max-w-4xl mx-auto px-6 md:px-8 py-20">
+
+          {/* Section label — same editorial style */}
+          <motion.div
+            className="mb-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center gap-4 mb-3">
+              <span
+                className="text-xs font-bold uppercase whitespace-nowrap"
+                style={{ color: "#2d4a3e", letterSpacing: "0.2em" }}
+              >
+                {t("hiw_s5_badge")}
+              </span>
+              <div className="flex-1 h-px" style={{ background: "#d0c8b8" }} />
+            </div>
+            <p className="text-sm max-w-xl leading-relaxed" style={{ color: "#9a8a76" }}>
+              {t("hiw_s5_summary")}
+            </p>
+          </motion.div>
+
+          <div className="space-y-8">
+
+            {/* 01 — Cancer Safety System */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+              className="flex gap-6 md:gap-8"
+            >
+              <div className="flex-shrink-0 pt-1">
+                <span
+                  className="text-5xl md:text-6xl font-serif font-bold select-none"
+                  style={{ color: "#b8936a", lineHeight: 1 }}
+                >
+                  01
+                </span>
+              </div>
+              <div
+                className="flex-1 rounded-2xl p-6 md:p-8"
+                style={{
+                  background: "rgba(255,255,255,0.92)",
+                  border: "1px solid #e8e0d0",
+                  borderLeft: "4px solid #c44a4a",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div className="flex items-start gap-3 mb-5">
+                  <Shield
+                    size={22}
+                    style={{ color: "#c44a4a", flexShrink: 0, marginTop: 3 }}
+                  />
+                  <div>
+                    <h3
+                      className="text-xl md:text-2xl font-serif font-bold"
+                      style={{ color: "#1a1612" }}
+                    >
+                      {t("hiw_s5_title")}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Safety claim callout — most prominent element */}
+                <div
+                  className="p-4 rounded-xl mb-5"
+                  style={{
+                    background: "rgba(196,74,74,0.06)",
+                    border: "1px solid rgba(196,74,74,0.2)",
+                  }}
+                >
+                  <p className="text-base font-bold mb-1.5" style={{ color: "#c44a4a" }}>
+                    2.5× cancer weighting · Triple-layer detection
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: "#9a8a76" }}>
+                    {t("hiw_s5_b1")}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {[t("hiw_s5_b2"), t("hiw_s5_b3"), t("hiw_s5_b4")].map((p, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                        style={{ background: "#c44a4a" }}
+                      />
+                      <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 02 — Clinical Questionnaire */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.55, delay: 0.1, ease: "easeOut" }}
+              className="flex gap-6 md:gap-8"
+            >
+              <div className="flex-shrink-0 pt-1">
+                <span
+                  className="text-5xl md:text-6xl font-serif font-bold select-none"
+                  style={{ color: "#b8936a", lineHeight: 1 }}
+                >
+                  02
+                </span>
+              </div>
+              <div
+                className="flex-1 rounded-2xl p-6 md:p-8"
+                style={{
+                  background: "rgba(255,255,255,0.92)",
+                  border: "1px solid #e8e0d0",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                }}
+              >
+                <h3
+                  className="text-xl md:text-2xl font-serif font-bold mb-2"
+                  style={{ color: "#1a1612" }}
+                >
+                  {t("hiw_s6_title")}
+                </h3>
+                <p className="text-sm italic mb-5" style={{ color: "#9a8a76" }}>
+                  {t("hiw_s6_summary")}
+                </p>
+                <div className="space-y-3 mb-5">
+                  {[t("hiw_s6_b1"), t("hiw_s6_b2"), t("hiw_s6_b3")].map((p, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                        style={{ background: "#b8936a" }}
+                      />
+                      <p className="text-sm leading-relaxed" style={{ color: "#1a1612" }}>{p}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {[t("hiw_s6_q1"), t("hiw_s6_q2"), t("hiw_s6_q3"), t("hiw_s6_q4"), t("hiw_s6_q5")].map((q, i) => (
+                    <span
+                      key={i}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                      style={{ background: "#f0ebe3", color: "#7a5c35" }}
+                    >
+                      {q}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer CTA ── */}
+      <section
+        className="py-24 text-white text-center"
+        style={{ background: "rgba(184,147,106,0.95)", position: "relative", zIndex: 1 }}
+      >
+        <motion.div
+          className="max-w-2xl mx-auto px-6"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-3xl font-serif font-bold mb-4">{t("hiw_bottom_title")}</h2>
           <p className="text-lg mb-8" style={{ opacity: 0.9 }}>{t("hiw_bottom_subtitle")}</p>
-          <Link href="/signup" className="inline-block font-semibold px-8 py-3 rounded-lg transition-colors" style={{ background: "#fff", color: "#b8936a" }}>
+          <Link
+            href="/signup"
+            className="inline-block font-semibold px-8 py-3.5 rounded-lg text-white transition-opacity hover:opacity-90"
+            style={{ background: "#7a5c35" }}
+          >
             {t("hiw_cta_trial")}
           </Link>
+          <p className="text-sm mt-3" style={{ opacity: 0.7 }}>No credit card required</p>
         </motion.div>
       </section>
 

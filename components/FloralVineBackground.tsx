@@ -635,7 +635,7 @@ export function FloralVineBackground() {
 
   if (pathname.startsWith("/dashboard") || pathname === "/how-it-works") return null;
 
-  const posStyle: React.CSSProperties = { position: "absolute", top: 0, left: 0, width: "100%", zIndex: 0, pointerEvents: "none" };
+  const posStyle: React.CSSProperties = { position: "absolute", top: 0, left: 0, width: "100%", zIndex: 0, pointerEvents: "none", opacity: 0.45 };
 
   // Once frozen: render lightweight <img>, hide canvas
   // During growth animation: render canvas

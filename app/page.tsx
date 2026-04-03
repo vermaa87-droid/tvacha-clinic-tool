@@ -182,20 +182,26 @@ export default function Home() {
           >
             {t("ai_section_subtitle")}
           </motion.p>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="flex flex-col md:flex-row items-stretch justify-center mt-12 max-w-3xl mx-auto divide-y md:divide-y-0 md:divide-x divide-primary-200">
             {highlights.map((h, i) => (
               <motion.div
                 key={i}
-                className="bg-surface border border-primary-200 rounded-lg p-6 text-center"
-                initial={{ opacity: 0, y: 30 }}
+                className="flex-1 text-center px-8 py-8"
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.12, ease: "easeOut" }}
-                whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(26,22,18,0.08)" }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
               >
-                <p className="text-4xl font-bold text-primary-500 mb-1">{h.stat}</p>
-                <p className="font-semibold text-text-primary mb-3">{h.labelKey}</p>
-                <p className="text-text-secondary text-sm leading-relaxed">{h.desc}</p>
+                <p
+                  className="text-5xl font-serif font-bold leading-none mb-2"
+                  style={{ color: "#b8936a" }}
+                >
+                  {h.stat}
+                </p>
+                <p className="font-semibold text-text-primary mb-2">{h.labelKey}</p>
+                <p className="text-text-secondary text-sm leading-relaxed max-w-[200px] mx-auto">
+                  {h.desc}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -224,7 +230,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="secondary"
-                className="bg-surface text-primary-500 hover:bg-primary-50"
+                className="bg-[#7a5c35] text-white hover:bg-white hover:text-primary-600 transition-colors"
               >
                 <Link href="/signup">{t("cta_trial")}</Link>
               </Button>

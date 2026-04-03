@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   X,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
@@ -37,14 +38,15 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
   const { t } = useLanguage();
 
   const navItems = [
-    { labelKey: "dash_sidebar_dashboard" as const, href: "/dashboard", icon: Home },
-    { labelKey: "dash_sidebar_register" as const, href: "/dashboard/register", icon: Table2 },
-    { labelKey: "dash_sidebar_patients" as const, href: "/dashboard/patients", icon: Users },
-    { labelKey: "dash_sidebar_prescriptions" as const, href: "/dashboard/prescriptions", icon: Pill },
-    { labelKey: "dash_sidebar_appointments" as const, href: "/dashboard/appointments", icon: Calendar },
-    { labelKey: "dash_sidebar_analytics" as const, href: "/dashboard/analytics", icon: BarChart3 },
-    { labelKey: "dash_sidebar_cases" as const, href: "/dashboard/cases", icon: FileText },
-    { labelKey: "dash_sidebar_settings" as const, href: "/dashboard/settings", icon: Settings },
+    { labelKey: "dash_sidebar_dashboard" as const, href: "/dashboard", icon: Home, badge: null },
+    { labelKey: "dash_sidebar_add_patient" as const, href: "/dashboard/add-patient", icon: UserPlus, badge: "AI" },
+    { labelKey: "dash_sidebar_register" as const, href: "/dashboard/register", icon: Table2, badge: null },
+    { labelKey: "dash_sidebar_patients" as const, href: "/dashboard/patients", icon: Users, badge: null },
+    { labelKey: "dash_sidebar_prescriptions" as const, href: "/dashboard/prescriptions", icon: Pill, badge: null },
+    { labelKey: "dash_sidebar_appointments" as const, href: "/dashboard/appointments", icon: Calendar, badge: null },
+    { labelKey: "dash_sidebar_analytics" as const, href: "/dashboard/analytics", icon: BarChart3, badge: null },
+    { labelKey: "dash_sidebar_cases" as const, href: "/dashboard/cases", icon: FileText, badge: null },
+    { labelKey: "dash_sidebar_settings" as const, href: "/dashboard/settings", icon: Settings, badge: null },
   ];
 
   const handleLogout = async () => {
@@ -104,7 +106,15 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
                     }
                   >
                     <Icon size={20} />
-                    <span>{t(item.labelKey)}</span>
+                    <span className="flex-1">{t(item.labelKey)}</span>
+                    {item.badge && (
+                      <span
+                        className="text-xs font-bold px-1.5 py-0.5 rounded"
+                        style={{ background: "#b8936a", color: "#fff", fontSize: "10px" }}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

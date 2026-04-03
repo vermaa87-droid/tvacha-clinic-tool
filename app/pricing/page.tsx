@@ -249,21 +249,22 @@ export default function PricingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-primary-500 text-white">
+      <section className="py-20 text-white" style={{ background: "rgba(184,147,106,0.95)" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Start your 2-week free trial today. No credit card required.
+            Start your 1-month free trial today. No credit card required.
           </p>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="bg-surface text-primary-500 hover:bg-primary-50"
+          <Link
+            href="/signup"
+            className="inline-block font-semibold px-8 py-3.5 rounded-lg text-white transition-opacity hover:opacity-90"
+            style={{ background: "#7a5c35" }}
           >
-            <Link href="/signup">Start Your Free Trial</Link>
-          </Button>
+            Start Your Free Trial
+          </Link>
+          <p className="text-sm mt-3" style={{ opacity: 0.7 }}>No credit card required</p>
         </div>
       </section>
 

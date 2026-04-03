@@ -140,7 +140,7 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "overview", label: "Overview", icon: <Activity size={16} /> },
   { key: "visits", label: "Visits", icon: <Clipboard size={16} /> },
   { key: "prescriptions", label: "Prescriptions", icon: <FileText size={16} /> },
-  { key: "photos", label: "Photos & Skin AI", icon: <Camera size={16} /> },
+  { key: "photos", label: "Affected Area Photos", icon: <Camera size={16} /> },
   { key: "lab_reports", label: "Lab Reports", icon: <FlaskConical size={16} /> },
   { key: "billing", label: "Billing", icon: <DollarSign size={16} /> },
 ];
@@ -229,6 +229,10 @@ export default function PatientDetailPage({
   const [labUploading, setLabUploading] = useState(false);
   const [labError, setLabError] = useState("");
 
+  // Medical records uploaded during patient registration (from photos table)
+  const [wizardRecords, setWizardRecords] = useState<{ id: string; photo_url: string; notes: string | null; created_at: string }[]>([]);
+  const [viewingRecord, setViewingRecord] = useState<{ photo_url: string; notes: string | null } | null>(null);
+
   // ─── Fetch patient ───────────────────────────────────────────────────────
 
   const fetchPatient = useCallback(async (silent?: boolean) => {
@@ -293,6 +297,19 @@ export default function PatientDetailPage({
     } finally {
       setPrescriptionsLoading(false);
     }
+  }, [user, params.id]);
+
+  // ─── Fetch wizard medical records (uploaded during registration) ──────────
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("photos")
+      .select("id, photo_url, notes, created_at")
+      .eq("patient_id", params.id)
+      .eq("photo_type", "medical_record")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { if (data) setWizardRecords(data); });
   }, [user, params.id]);
 
   // ─── Effects ─────────────────────────────────────────────────────────────
@@ -495,16 +512,21 @@ export default function PatientDetailPage({
   // ─── Delete / Unlink Patient ────────────────────────────────────────────
 
   const handleUnlinkPatient = async () => {
-    if (!patient) return;
+    if (!patient || !user) return;
     setDeleteLoading(true);
     try {
-      await supabase
-        .from("patients")
-        .update({ linked_doctor_id: null })
-        .eq("id", patient.id);
+      const res = await fetch("/api/delete-patient", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: patient.id, doctorId: user.id }),
+      });
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? "Delete failed");
+      }
       router.push("/dashboard/patients");
     } catch (err) {
-      console.error("[patient-detail] unlink error:", err);
+      console.error("[patient-detail] delete error:", err);
       setDeleteLoading(false);
     }
   };
@@ -719,7 +741,7 @@ export default function PatientDetailPage({
             }
           >
             <p className="text-text-secondary">
-              Remove <span className="font-semibold text-text-primary">{patient?.name}</span>? This will unlink them from your clinic.
+              Permanently delete <span className="font-semibold text-text-primary">{patient?.name}</span>? This will remove all their visits, prescriptions, photos, and lab reports from Supabase. This cannot be undone.
             </p>
           </Modal>
 
@@ -1538,7 +1560,7 @@ export default function PatientDetailPage({
                 </Button>
               </div>
 
-              {labReports.length === 0 ? (
+              {labReports.length === 0 && wizardRecords.length === 0 ? (
                 <Card>
                   <CardBody>
                     <div className="flex flex-col items-center justify-center py-16 text-text-muted">
@@ -1596,8 +1618,76 @@ export default function PatientDetailPage({
                       </CardBody>
                     </Card>
                   ))}
+
+                  {/* Records uploaded during patient registration */}
+                  {wizardRecords.map((record) => {
+                    const isImage = /\.(jpe?g|png|gif|webp)(\?|$)/i.test(record.photo_url) || record.photo_url.includes("image");
+                    return (
+                      <Card key={record.id}>
+                        <CardBody>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
+                                {isImage ? (
+                                  <img src={record.photo_url} alt={record.notes || "Medical record"} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <FileText size={24} className="text-primary-500" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-text-primary">{record.notes || "Medical record"}</p>
+                                <p className="text-xs text-text-muted mt-1">
+                                  Uploaded {new Date(record.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                </p>
+                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full" style={{ background: "#f5f2ed", color: "#9a8a76" }}>
+                                  Added during registration
+                                </span>
+                              </div>
+                            </div>
+                            {isImage ? (
+                              <button
+                                type="button"
+                                onClick={() => setViewingRecord(record)}
+                                className="text-sm text-primary-500 hover:text-primary-600 font-medium flex-shrink-0"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              <a
+                                href={record.photo_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary-500 hover:text-primary-600 font-medium flex-shrink-0"
+                              >
+                                Download
+                              </a>
+                            )}
+                          </div>
+                        </CardBody>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
+
+              {/* Image viewer modal */}
+              <Modal
+                isOpen={!!viewingRecord}
+                onClose={() => setViewingRecord(null)}
+                title={viewingRecord?.notes || "Medical record"}
+                size="xl"
+                footer={<Button variant="ghost" onClick={() => setViewingRecord(null)}>Close</Button>}
+              >
+                {viewingRecord && (
+                  <img
+                    src={viewingRecord.photo_url}
+                    alt={viewingRecord.notes || "Medical record"}
+                    className="w-full max-h-[70vh] object-contain rounded-lg"
+                  />
+                )}
+              </Modal>
 
               {/* Upload Modal */}
               <Modal

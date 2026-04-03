@@ -3,13 +3,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 
-function CountUp({ target, duration = 2, prefix = "", suffix = "" }: { target: number; duration?: number; prefix?: string; suffix?: string }) {
+function CountUp({
+  target,
+  duration = 2,
+  prefix = "",
+  suffix = "",
+}: {
+  target: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+}) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
@@ -42,7 +50,7 @@ const features = [
   "AI pre-screening",
   "Prescription templates",
   "Analytics dashboard",
-  "AI case queue (coming soon)",
+  "AI case queue (phased rollout)",
   "Appointment management",
   "Patient messaging",
   "24/7 support",
@@ -75,33 +83,62 @@ export function PricingSection() {
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between">
+          {/* Premium card — warm ivory bg, gold top accent, elevated shadow */}
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: "#f9f6f0",
+              border: "1px solid rgba(184,147,106,0.28)",
+              boxShadow: "0 4px 28px rgba(26,22,18,0.09), 0 1px 4px rgba(26,22,18,0.04)",
+            }}
+          >
+            {/* Gold top accent line */}
+            <div
+              className="h-1 w-full"
+              style={{ background: "linear-gradient(90deg, #b8936a 0%, #d4b896 50%, #b8936a 100%)" }}
+            />
+
+            {/* Header */}
+            <div
+              className="px-7 pt-7 pb-6 md:px-10 md:pt-9"
+              style={{ borderBottom: "1px solid rgba(184,147,106,0.15)" }}
+            >
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-3xl font-serif font-bold text-text-primary">
                     {t("pricing_plan_name")}
                   </h3>
-                  <p className="text-text-secondary mt-2">
-                    {t("pricing_plan_desc")}
-                  </p>
+                  <p className="text-text-secondary mt-2">{t("pricing_plan_desc")}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-500">
                     ₹<CountUp target={2000} />
                   </span>
                   <p className="text-text-secondary text-sm">{t("pricing_monthly")}</p>
                 </div>
               </div>
-            </CardHeader>
-            <CardBody className="space-y-6">
-              <div className="bg-success-bg border border-success-text border-opacity-30 rounded-lg p-4 text-center">
-                <p className="font-semibold text-success-text">
-                  {t("pricing_trial_badge")}
-                </p>
-              </div>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Trial banner — full-width centered, main marketing hook */}
+            <div
+              className="px-7 py-4 md:px-10 text-center"
+              style={{
+                background: "linear-gradient(90deg, rgba(196,146,42,0.08) 0%, rgba(196,146,42,0.16) 50%, rgba(196,146,42,0.08) 100%)",
+                borderBottom: "1px solid rgba(196,146,42,0.22)",
+              }}
+            >
+              <p
+                className="text-lg font-extrabold tracking-wide uppercase"
+                style={{ color: "#c4922a", letterSpacing: "0.06em" }}
+              >
+                {t("pricing_trial_badge")}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div className="px-7 py-7 md:px-10 md:py-9 space-y-8">
+              {/* Feature checklist — gold checks, more breathing room */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 {features.map((feature, idx) => (
                   <motion.div
                     key={idx}
@@ -111,49 +148,32 @@ export function PricingSection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: idx * 0.05 }}
                   >
-                    <Check size={20} className="text-success-text flex-shrink-0" />
+                    <Check
+                      size={16}
+                      className="flex-shrink-0"
+                      style={{ color: "#b8936a" }}
+                    />
                     <span className="text-text-primary">{feature}</span>
                   </motion.div>
                 ))}
               </div>
 
-              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                <Button
-                  size="lg"
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold relative overflow-hidden group"
+              {/* CTA — deep bronze matching landing page hero */}
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="relative overflow-hidden rounded-lg group"
+              >
+                <Link
+                  href="/signup"
+                  className="block w-full py-3.5 text-center rounded-lg font-semibold text-white relative z-10"
+                  style={{ background: "#7a5c35" }}
                 >
-                  <Link href="/signup" className="relative z-10">{t("pricing_cta")}</Link>
-                  <span className="absolute inset-0 bg-primary-700 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-                </Button>
+                  {t("pricing_cta")}
+                </Link>
+                <span className="absolute inset-0 rounded-lg bg-[#5c4527] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
               </motion.div>
-            </CardBody>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          className="mt-16 bg-surface border border-primary-200 rounded-lg p-6 md:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-center"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-        >
-          <div>
-            <p className="text-4xl font-bold text-primary-500">
-              <CountUp target={25} suffix="+" />
-            </p>
-            <p className="text-text-secondary mt-2">{t("pricing_stat_conditions")}</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-primary-500">
-              <CountUp target={14} suffix=" days" />
-            </p>
-            <p className="text-text-secondary mt-2">{t("pricing_stat_trial")}</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-primary-500">
-              <CountUp target={5} suffix=" Cr+" />
-            </p>
-            <p className="text-text-secondary mt-2">{t("pricing_stat_images")}</p>
+            </div>
           </div>
         </motion.div>
       </div>
