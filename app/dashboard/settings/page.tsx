@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/Badge";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Mail, Phone, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function SettingsPage() {
   const { doctor, refreshDoctor } = useAuthStore();
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editData, setEditData] = useState({
@@ -218,10 +219,21 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-text-primary">{t("settings_support")}</h3>
         </CardHeader>
         <CardBody className="space-y-3">
-          <Button variant="ghost" className="w-full justify-start">{t("settings_knowledge_base")}</Button>
-          <Button variant="ghost" className="w-full justify-start">{t("settings_contact_support")}</Button>
-          <Button variant="ghost" className="w-full justify-start">{t("settings_video_training")}</Button>
-          <Button variant="ghost" className="w-full justify-start">{t("settings_faq")}</Button>
+          <Button variant="ghost" className="w-full justify-start" onClick={() => alert("Video tutorial coming soon!")}>{t("settings_video_training")}</Button>
+          <Button variant="ghost" className="w-full justify-start" onClick={() => setShowContact(!showContact)}>{t("settings_contact_support")}</Button>
+          {showContact && (
+            <div className="rounded-xl p-4 space-y-3" style={{ background: "#faf8f4", border: "1px solid #e8ddd0" }}>
+              <a href="mailto:support@tvacha-clinic.com" className="flex items-center gap-2.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#5c4030" }}>
+                <Mail size={15} style={{ color: "#b8936a" }} /> support@tvacha-clinic.com
+              </a>
+              <a href="tel:+917881154003" className="flex items-center gap-2.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#5c4030" }}>
+                <Phone size={15} style={{ color: "#b8936a" }} /> +91 7881154003
+              </a>
+              <a href="https://wa.me/917881154003" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#5c4030" }}>
+                <MessageCircle size={15} style={{ color: "#b8936a" }} /> WhatsApp
+              </a>
+            </div>
+          )}
         </CardBody>
       </Card>
     </main>

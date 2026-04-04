@@ -48,7 +48,8 @@ interface PatientRow extends Record<string, unknown> {
   next_followup_date: string | null;
   total_visits: number | null;
   city: string | null;
-  state: string | null;
+  total_fees: number;
+  latest_diagnosis: string | null;
   blood_group: string | null;
   allergies: string[] | null;
   chronic_conditions: string[] | null;
@@ -117,6 +118,12 @@ const TABS = [
   { key: "appointments", labelKey: "register_tab_appointments" as const },
 ] as const;
 
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
 type TabKey = (typeof TABS)[number]["key"];
 
 // ─── Page Component ────────────────────────────────────────────────────────────
@@ -167,10 +174,38 @@ export default function RegisterPage() {
         .from("patients")
         .select("*")
         .eq("linked_doctor_id", user.id)
+        .neq("treatment_status", "pending_diagnosis")
         .order("created_at", { ascending: false });
       if (error) throw error;
       if (data) {
-        setPatients(data as unknown as PatientRow[]);
+        // Fetch total fees + latest diagnosis per patient
+        const patientIds = data.map((p: Record<string, unknown>) => p.id as string);
+        let feesMap: Record<string, number> = {};
+        let diagMap: Record<string, string> = {};
+        if (patientIds.length > 0) {
+          const [feesRes, visitsRes] = await Promise.all([
+            supabase.from("patient_fees").select("patient_id, amount").in("patient_id", patientIds),
+            supabase.from("visits").select("patient_id, diagnosis").in("patient_id", patientIds).order("created_at", { ascending: false }),
+          ]);
+          if (feesRes.data) {
+            for (const f of feesRes.data) {
+              const pid = f.patient_id as string;
+              feesMap[pid] = (feesMap[pid] || 0) + Number(f.amount || 0);
+            }
+          }
+          if (visitsRes.data) {
+            for (const v of visitsRes.data) {
+              const pid = v.patient_id as string;
+              if (!diagMap[pid] && v.diagnosis) diagMap[pid] = v.diagnosis as string;
+            }
+          }
+        }
+        const patientsEnriched = data.map((p: Record<string, unknown>) => ({
+          ...p,
+          total_fees: feesMap[p.id as string] || 0,
+          latest_diagnosis: diagMap[p.id as string] || null,
+        }));
+        setPatients(patientsEnriched as unknown as PatientRow[]);
         setPatientList(data.map((p: Record<string, unknown>) => ({ id: p.id as string, name: p.name as string })));
       }
     } catch (err) {
@@ -328,14 +363,21 @@ export default function RegisterPage() {
     async (rowIndex: number, columnId: string, value: unknown) => {
       const row = patients[rowIndex];
       if (!row) return;
+      // Array fields: convert comma-separated string back to array
+      let dbValue = value;
+      if (columnId === "allergies" || columnId === "chronic_conditions") {
+        dbValue = typeof value === "string" && value.trim()
+          ? value.split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+      }
       try {
         const { error } = await supabase
           .from("patients")
-          .update({ [columnId]: value })
+          .update({ [columnId]: dbValue })
           .eq("id", row.id);
         if (error) throw error;
         setPatients((prev) =>
-          prev.map((p, i) => (i === rowIndex ? { ...p, [columnId]: value } : p))
+          prev.map((p, i) => (i === rowIndex ? { ...p, [columnId]: dbValue } : p))
         );
       } catch (err) {
         console.error("[register] update patient error:", err);
@@ -411,6 +453,7 @@ export default function RegisterPage() {
       {
         id: "sno",
         header: "S.No",
+        size: 48,
         cell: ({ row }) => row.index + 1,
       },
       { accessorKey: "patient_display_id", header: t("reg_col_patient_id") },
@@ -420,7 +463,7 @@ export default function RegisterPage() {
         cell: ({ row }) => (
           <Link
             href={`/dashboard/patients/${row.original.id}`}
-            className="text-primary-500 hover:underline block max-w-[200px] truncate"
+            className="text-primary-500 font-medium capitalize hover:underline block max-w-[200px] truncate"
             title={row.original.name}
           >
             {row.original.name}
@@ -439,7 +482,15 @@ export default function RegisterPage() {
       },
       { accessorKey: "phone", header: t("reg_col_phone") },
       { accessorKey: "chief_complaint", header: t("reg_col_chief_complaint") },
-      { accessorKey: "current_diagnosis", header: t("reg_col_diagnosis") },
+      { accessorKey: "current_diagnosis", header: "Disease Classification" },
+      {
+        accessorKey: "latest_diagnosis",
+        header: "Diagnosis",
+        cell: ({ row }) => {
+          const val = row.original.latest_diagnosis;
+          return <span className="text-xs" style={{ color: val ? "#1a1612" : "#9a8a76" }}>{val || "—"}</span>;
+        },
+      },
       {
         accessorKey: "severity",
         header: t("reg_col_severity"),
@@ -466,47 +517,83 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "last_visit_date", header: t("reg_col_last_visit") },
+      {
+        accessorKey: "last_visit_date",
+        header: t("reg_col_last_visit"),
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.last_visit_date || ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "last_visit_date", val)}
+            type="date"
+            displayFormatter={(v) => formatDate(String(v))}
+          />
+        ),
+      },
       {
         accessorKey: "next_followup_date",
         header: t("reg_col_next_followup"),
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const date = row.original.next_followup_date;
-          if (!date) return "";
-          const isOverdue = new Date(date) < new Date(new Date().toISOString().split("T")[0]);
+          const isOverdue = !!date && new Date(date) < new Date(new Date().toISOString().split("T")[0]);
           return (
-            <span className={isOverdue ? "text-red-600 font-semibold" : ""}>
-              {date}
-            </span>
+            <EditableCell
+              value={date || ""}
+              onSave={(val) => (table.options.meta as any).updateData(row.index, "next_followup_date", val)}
+              type="date"
+              displayFormatter={(v) => formatDate(String(v))}
+              displayClassName={isOverdue ? "text-red-600 font-semibold" : undefined}
+            />
           );
         },
       },
       { accessorKey: "total_visits", header: t("reg_col_total_visits") },
       { accessorKey: "city", header: t("reg_col_city") },
-      { accessorKey: "state", header: "State" },
+      {
+        accessorKey: "total_fees",
+        header: "Total Fees",
+        cell: ({ row }) => {
+          const fees = row.original.total_fees;
+          return (
+            <span className="text-xs font-medium whitespace-nowrap" style={{ color: fees > 0 ? "#1a1612" : "#9a8a76" }}>
+              {fees > 0 ? `₹${fees.toLocaleString("en-IN")}` : "—"}
+            </span>
+          );
+        },
+      },
       { accessorKey: "blood_group", header: "Blood Group" },
       {
         accessorKey: "allergies",
         header: "Allergies",
-        cell: ({ row }: { row: { original: PatientRow } }) => {
-          const a = row.original.allergies;
-          return Array.isArray(a) && a.length > 0 ? a.join(", ") : "";
-        },
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={Array.isArray(row.original.allergies) ? row.original.allergies.join(", ") : (row.original.allergies || "")}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "allergies", val)}
+          />
+        ),
       },
       {
         accessorKey: "chronic_conditions",
         header: "Chronic Conditions",
-        cell: ({ row }: { row: { original: PatientRow } }) => {
-          const c = row.original.chronic_conditions;
-          return Array.isArray(c) && c.length > 0 ? c.join(", ") : "";
-        },
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={Array.isArray(row.original.chronic_conditions) ? row.original.chronic_conditions.join(", ") : (row.original.chronic_conditions || "")}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "chronic_conditions", val)}
+          />
+        ),
       },
       { accessorKey: "current_medications", header: "Current Medications" },
       {
         accessorKey: "fitzpatrick_type",
         header: "Skin Tone",
-        cell: ({ row }: { row: { original: PatientRow } }) =>
-          row.original.fitzpatrick_type ? `Type ${row.original.fitzpatrick_type}` : "",
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.fitzpatrick_type ? String(row.original.fitzpatrick_type) : ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "fitzpatrick_type", val ? Number(val) : null)}
+            type="select"
+            options={FITZPATRICK_OPTIONS}
+            displayFormatter={(v) => v ? `Type ${v}` : "—"}
+          />
+        ),
       },
       {
         id: "quick_actions",
@@ -570,8 +657,19 @@ export default function RegisterPage() {
 
   const visitColumns = useMemo<ColumnDef<VisitRow, unknown>[]>(
     () => [
-      { accessorKey: "visit_date", header: t("reg_col_date") },
-      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      {
+        accessorKey: "visit_date",
+        header: t("reg_col_date"),
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.visit_date || ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "visit_date", val)}
+            type="date"
+            displayFormatter={(v) => formatDate(String(v))}
+          />
+        ),
+      },
+      { accessorKey: "patient_name", header: t("reg_col_patient"), cell: ({ row }: { row: { original: VisitRow } }) => String(row.original.patient_name ?? "") },
       { accessorKey: "chief_complaint", header: t("reg_col_chief_complaint") },
       { accessorKey: "diagnosis", header: t("reg_col_diagnosis") },
       {
@@ -598,9 +696,20 @@ export default function RegisterPage() {
 
   const treatmentColumns = useMemo<ColumnDef<TreatmentPlanRow, unknown>[]>(
     () => [
-      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      { accessorKey: "patient_name", header: t("reg_col_patient"), cell: ({ row }: { row: { original: TreatmentPlanRow } }) => String(row.original.patient_name ?? "") },
       { accessorKey: "condition", header: t("reg_col_condition") },
-      { accessorKey: "treatment_started", header: t("reg_col_started") },
+      {
+        accessorKey: "treatment_started",
+        header: t("reg_col_started"),
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.treatment_started || ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "treatment_started", val)}
+            type="date"
+            displayFormatter={(v) => formatDate(String(v))}
+          />
+        ),
+      },
       { accessorKey: "treatment_plan", header: t("reg_col_plan") },
       {
         accessorKey: "response",
@@ -639,15 +748,30 @@ export default function RegisterPage() {
           />
         ),
       },
-      { accessorKey: "next_assessment", header: t("reg_col_next_assessment") },
+      {
+        accessorKey: "next_assessment",
+        header: t("reg_col_next_assessment"),
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.next_assessment || ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "next_assessment", val)}
+            type="date"
+            displayFormatter={(v) => formatDate(String(v))}
+          />
+        ),
+      },
     ],
     [t]
   );
 
   const medicationColumns = useMemo<ColumnDef<MedicationRow, unknown>[]>(
     () => [
-      { accessorKey: "created_at", header: t("reg_col_date") },
-      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      {
+        accessorKey: "created_at",
+        header: t("reg_col_date"),
+        cell: ({ row }: { row: { original: MedicationRow } }) => formatDate(row.original.created_at),
+      },
+      { accessorKey: "patient_name", header: t("reg_col_patient"), cell: ({ row }: { row: { original: MedicationRow } }) => String(row.original.patient_name ?? "") },
       { accessorKey: "medicine_name", header: t("reg_col_medicine") },
       { accessorKey: "dosage", header: t("reg_col_dosage") },
       { accessorKey: "frequency", header: t("reg_col_frequency") },
@@ -660,9 +784,20 @@ export default function RegisterPage() {
 
   const appointmentColumns = useMemo<ColumnDef<AppointmentRow, unknown>[]>(
     () => [
-      { accessorKey: "appointment_date", header: t("reg_col_date") },
+      {
+        accessorKey: "appointment_date",
+        header: t("reg_col_date"),
+        cell: ({ row, table }) => (
+          <EditableCell
+            value={row.original.appointment_date || ""}
+            onSave={(val) => (table.options.meta as any).updateData(row.index, "appointment_date", val)}
+            type="date"
+            displayFormatter={(v) => formatDate(String(v))}
+          />
+        ),
+      },
       { accessorKey: "appointment_time", header: t("reg_col_time") },
-      { accessorKey: "patient_name", header: t("reg_col_patient") },
+      { accessorKey: "patient_name", header: t("reg_col_patient"), cell: ({ row }: { row: { original: AppointmentRow } }) => String(row.original.patient_name ?? "") },
       {
         accessorKey: "type",
         header: t("reg_col_type"),
@@ -930,10 +1065,10 @@ export default function RegisterPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-5 py-3 text-sm transition-colors whitespace-nowrap ${
                 activeTab === tab.key
-                  ? "border-b-2 border-primary-500 text-primary-500"
-                  : "text-text-muted hover:text-text-secondary hover:border-b-2 hover:border-primary-200"
+                  ? "border-b-[3px] border-[#b8936a] text-[#b8936a] font-semibold"
+                  : "text-text-muted hover:text-[#b8936a] font-medium"
               }`}
             >
               {t(tab.labelKey)}

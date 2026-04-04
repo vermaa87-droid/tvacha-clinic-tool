@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -12,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
-import { Trash2 } from "lucide-react";
+import { Search, Users, MoreHorizontal } from "lucide-react";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -26,6 +25,7 @@ import {
 interface PatientWithDetails extends Patient {
   patient_display_id: string | null;
   chief_complaint: string | null;
+  current_diagnosis: string | null;
   treatment_status: string | null;
   severity: string | null;
   total_visits: number | null;
@@ -87,6 +87,7 @@ export default function PatientsPage() {
         .from("patients")
         .select("*")
         .eq("linked_doctor_id", user.id)
+        .neq("treatment_status", "pending_diagnosis")
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -274,16 +275,32 @@ export default function PatientsPage() {
     }
   };
 
+  const filterSelectClass =
+    "w-full px-4 py-2.5 text-sm rounded-lg outline-none transition-all text-[#3d2e22] bg-[#faf6f0] border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15 appearance-none cursor-pointer";
+  const filterSelectStyle = {
+    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23b8936a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+    backgroundPosition: "right 0.75rem center",
+    backgroundRepeat: "no-repeat" as const,
+    backgroundSize: "1.25em 1.25em",
+    paddingRight: "2.5rem",
+  };
   const selectClass =
     "w-full px-4 py-2.5 border border-primary-200 rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors";
 
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-primary-200 rounded w-1/3" />
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-10 bg-primary-200 rounded w-48 animate-pulse" />
+            <div className="h-4 bg-primary-100 rounded w-64 animate-pulse" />
+          </div>
+          <div className="h-10 w-32 bg-primary-200 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-32 bg-primary-200 rounded-lg" />
+            <div key={i} className="h-52 bg-primary-200 rounded-xl animate-pulse"
+              style={{ borderLeft: "3px solid rgba(184,147,106,0.25)" }} />
           ))}
         </div>
       </main>
@@ -302,50 +319,44 @@ export default function PatientsPage() {
             {t("patients_subtitle")}
           </p>
         </div>
-        <Button variant="primary" onClick={() => { setFormError(""); setShowModal(true); }}>
+        <Button
+          variant="primary"
+          onClick={() => { setFormError(""); setShowModal(true); }}
+          className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
+        >
           {t("patients_add")}
         </Button>
       </div>
 
       {/* Search + Filter Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Input
-          placeholder={t("patients_search")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        {/* Search with icon */}
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#b8936a" }} />
+          <input
+            type="text"
+            placeholder={t("patients_search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-lg outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0] bg-[#faf6f0] border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
+          />
+        </div>
 
-        <select
-          className={selectClass}
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
+        <select className={filterSelectClass} style={filterSelectStyle} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="">{t("patients_all_statuses")}</option>
           {TREATMENT_STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
 
-        <select
-          className={selectClass}
-          value={filterSeverity}
-          onChange={(e) => setFilterSeverity(e.target.value)}
-        >
+        <select className={filterSelectClass} style={filterSelectStyle} value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
           <option value="">{t("patients_all_severities")}</option>
           {SEVERITY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
 
-        <select
-          className={selectClass}
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as SortKey)}
-        >
+        <select className={filterSelectClass} style={filterSelectStyle} value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)}>
           <option value="created_at">{t("patients_sort_date")}</option>
           <option value="name">{t("patients_sort_name")}</option>
           <option value="last_visit_date">{t("patients_sort_visit")}</option>
@@ -355,120 +366,138 @@ export default function PatientsPage() {
 
       {/* Patient Cards Grid or Empty State */}
       {filteredPatients.length === 0 ? (
-        <div className="text-center py-16 text-text-muted">
-          <p className="text-lg">{t("patients_empty")}</p>
-          <p className="text-sm mt-2">{t("patients_empty_sub")}</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
+            style={{ background: "#f0e8d8" }}>
+            <Users size={28} style={{ color: "#b8936a", opacity: 0.6 }} />
+          </div>
+          <h3 className="text-xl font-serif font-semibold text-text-primary mb-1">{t("patients_empty")}</h3>
+          <p className="text-sm text-text-muted mb-6 max-w-xs">{t("patients_empty_sub")}</p>
           <Button
             variant="primary"
-            className="mt-6"
             onClick={() => { setFormError(""); setShowModal(true); }}
+            className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
           >
             {t("patients_add")}
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPatients.map((patient) => (
-            <Link
-              key={patient.id}
-              href={`/dashboard/patients/${patient.id}`}
-              className="block"
-            >
-              <Card hover>
-                <CardBody>
-                  <div className="space-y-3">
-                    {/* Name + ID */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-bold text-text-primary text-lg truncate" title={patient.name}>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {filteredPatients.map((patient) => {
+            const initials = (() => {
+              const parts = (patient.name || "").trim().split(/\s+/).filter(Boolean);
+              if (parts.length === 0) return "?";
+              if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+              return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            })();
+            return (
+              <Link key={patient.id} href={`/dashboard/patients/${patient.id}`} className="block group">
+                <div
+                  className="relative flex flex-col h-full rounded-xl bg-[#faf8f4] overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
+                  style={{ border: "1px solid rgba(184,147,106,0.2)" }}
+                >
+                  {/* Left accent border */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#b8936a] group-hover:bg-[#2d4a3e] transition-colors duration-200" />
+
+                  {/* Overflow/delete button — hidden until hover */}
+                  <button
+                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1.5 rounded-full hover:bg-red-50 z-10"
+                    style={{ color: "#c0b0a0" }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
+                    title="Remove patient"
+                  >
+                    <MoreHorizontal size={15} />
+                  </button>
+
+                  <div className="flex flex-col flex-1 pl-5 pr-4 pt-4 pb-4 gap-3">
+                    {/* Top: Avatar + Name + ID */}
+                    <div className="flex items-start gap-3 pr-6">
+                      <div
+                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm select-none"
+                        style={{ background: "#b8936a" }}
+                      >
+                        {initials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className="font-serif font-bold text-[#2d1f14] text-xl leading-tight truncate capitalize"
+                          title={patient.name}
+                        >
                           {patient.name}
                         </p>
                         {patient.patient_display_id && (
-                          <p className="text-sm text-text-muted">
+                          <p className="text-xs mt-0.5" style={{ color: "#a09080" }}>
                             {patient.patient_display_id}
                           </p>
                         )}
                       </div>
-                      <button
-                        className="flex-shrink-0 p-1 text-text-muted hover:text-red-500 transition-colors"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
-                        title="Remove patient"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
 
-                    {/* Age, Gender */}
-                    <p className="text-sm text-text-secondary">
-                      {patient.age ? `${patient.age} yrs` : ""}
-                      {patient.age && patient.gender ? " / " : ""}
-                      {patient.gender
-                        ? patient.gender.charAt(0).toUpperCase() +
-                          patient.gender.slice(1)
-                        : ""}
-                    </p>
-
-                    {/* Chief Complaint */}
-                    {patient.chief_complaint && (
-                      <p className="text-sm text-text-secondary">
-                        <span className="font-medium text-text-primary">
-                          {t("patients_chief_complaint")}
-                        </span>{" "}
-                        {patient.chief_complaint}
-                      </p>
-                    )}
-
-                    {/* Badges */}
-                    <div className="flex flex-wrap gap-2">
-                      {patient.treatment_status && (
-                        <Badge
-                          className={
-                            TREATMENT_STATUS_COLORS[
-                              patient.treatment_status
-                            ] || ""
-                          }
-                        >
-                          {TREATMENT_STATUS_OPTIONS.find(
-                            (o) => o.value === patient.treatment_status
-                          )?.label || patient.treatment_status}
-                        </Badge>
+                    {/* Middle: Age/Gender + Chief Complaint */}
+                    <div className="space-y-1.5">
+                      {(patient.age || patient.gender) && (
+                        <p className="text-sm" style={{ color: "#6b5544" }}>
+                          {patient.age ? `${patient.age} yrs` : ""}
+                          {patient.age && patient.gender ? " · " : ""}
+                          {patient.gender
+                            ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)
+                            : ""}
+                        </p>
                       )}
-                      {patient.severity && (
-                        <Badge
-                          className={
-                            SEVERITY_COLORS[patient.severity] || ""
-                          }
-                        >
-                          {SEVERITY_OPTIONS.find(
-                            (o) => o.value === patient.severity
-                          )?.label || patient.severity}
-                        </Badge>
+                      {patient.current_diagnosis && (
+                        <p className="text-sm" style={{ color: "#8a7060" }}>
+                          <span className="font-medium" style={{ color: "#5c4030" }}>
+                            Classification:
+                          </span>{" "}
+                          {patient.current_diagnosis}
+                        </p>
+                      )}
+                      {patient.chief_complaint && (
+                        <p className="text-sm line-clamp-2" style={{ color: "#8a7060" }}>
+                          <span className="font-medium" style={{ color: "#5c4030" }}>
+                            {t("patients_chief_complaint")}
+                          </span>{" "}
+                          {patient.chief_complaint}
+                        </p>
                       )}
                     </div>
 
-                    {/* Last Visit + Total Visits */}
-                    <div className="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-primary-100">
-                      <span>
-                        {t("patients_last_visit")}{" "}
-                        {patient.last_visit_date
-                          ? new Date(
-                              patient.last_visit_date
-                            ).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "N/A"}
-                      </span>
-                      <span>
-                        {t("patients_visits")} {patient.total_visits ?? 0}
-                      </span>
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* Divider */}
+                    <div style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }} />
+
+                    {/* Bottom: Badges + Visit info */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {patient.treatment_status && (
+                          <Badge className={TREATMENT_STATUS_COLORS[patient.treatment_status] || ""}>
+                            {TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label || patient.treatment_status}
+                          </Badge>
+                        )}
+                        {patient.severity && (
+                          <Badge className={SEVERITY_COLORS[patient.severity] || ""}>
+                            {SEVERITY_OPTIONS.find((o) => o.value === patient.severity)?.label || patient.severity}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs" style={{ color: "#a09080" }}>
+                          {patient.last_visit_date
+                            ? new Date(patient.last_visit_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                            : t("patients_last_visit") + " N/A"}
+                        </p>
+                        <p className="text-xs" style={{ color: "#b8a090" }}>
+                          {patient.total_visits ?? 0} {t("patients_visits")}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </CardBody>
-              </Card>
-            </Link>
-          ))}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 

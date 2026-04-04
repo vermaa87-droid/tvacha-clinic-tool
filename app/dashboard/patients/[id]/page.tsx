@@ -43,6 +43,7 @@ import {
   Copy,
   Upload,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
@@ -233,6 +234,9 @@ export default function PatientDetailPage({
   const [wizardRecords, setWizardRecords] = useState<{ id: string; photo_url: string; notes: string | null; created_at: string }[]>([]);
   const [viewingRecord, setViewingRecord] = useState<{ photo_url: string; notes: string | null } | null>(null);
 
+  // Patient fees
+  const [patientFees, setPatientFees] = useState<{ id: string; amount: number; status: string; fee_type: string; created_at: string; visit_id: string | null }[]>([]);
+
   // ─── Fetch patient ───────────────────────────────────────────────────────
 
   const fetchPatient = useCallback(async (silent?: boolean) => {
@@ -311,6 +315,61 @@ export default function PatientDetailPage({
       .order("created_at", { ascending: false })
       .then(({ data }) => { if (data) setWizardRecords(data); });
   }, [user, params.id]);
+
+  const fetchFees = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("patient_fees")
+      .select("id, amount, status, fee_type, created_at, visit_id")
+      .eq("patient_id", params.id)
+      .eq("doctor_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setPatientFees(data as typeof patientFees);
+  }, [user, params.id]);
+
+  useEffect(() => { fetchFees(); }, [fetchFees]);
+
+  const totalFees = patientFees.reduce((sum, f) => sum + Number(f.amount), 0);
+  const outstandingBalance = patientFees
+    .filter((f) => f.status === "unpaid")
+    .reduce((sum, f) => sum + Number(f.amount), 0);
+
+  const updateFeeStatus = async (feeId: string, newStatus: string) => {
+    await supabase.from("patient_fees").update({ status: newStatus }).eq("id", feeId);
+    setPatientFees((prev) => prev.map((f) => f.id === feeId ? { ...f, status: newStatus } : f));
+  };
+
+  const updateFeeAmount = async (feeId: string, newAmount: number) => {
+    await supabase.from("patient_fees").update({ amount: newAmount }).eq("id", feeId);
+    setPatientFees((prev) => prev.map((f) => f.id === feeId ? { ...f, amount: newAmount } : f));
+  };
+
+  const [showAddFeeModal, setShowAddFeeModal] = useState(false);
+  const [newFeeAmount, setNewFeeAmount] = useState("");
+  const [newFeeStatus, setNewFeeStatus] = useState<string>("unpaid");
+  const [addingFee, setAddingFee] = useState(false);
+
+  const handleAddFee = async () => {
+    if (!user || !patient) return;
+    const amt = parseFloat(newFeeAmount);
+    if (!amt || amt <= 0) return;
+    setAddingFee(true);
+    await supabase.from("patient_fees").insert({
+      patient_id: params.id,
+      doctor_id: user.id,
+      amount: amt,
+      status: newFeeStatus,
+      fee_type: "consultation",
+    });
+    setNewFeeAmount("");
+    setNewFeeStatus("unpaid");
+    setShowAddFeeModal(false);
+    setAddingFee(false);
+    fetchFees();
+  };
+
+  const [editingFeeId, setEditingFeeId] = useState<string | null>(null);
+  const [editingFeeValue, setEditingFeeValue] = useState("");
 
   // ─── Effects ─────────────────────────────────────────────────────────────
 
@@ -809,6 +868,20 @@ export default function PatientDetailPage({
             )}
           </div>
 
+          {(patient as PatientWithDetails).current_diagnosis && (
+            <>
+              <hr className="border-primary-200" />
+              <div className="space-y-2 text-sm">
+                <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
+                  Disease Classification
+                </p>
+                <span className="inline-block px-2.5 py-1 rounded-lg text-sm font-medium" style={{ background: "rgba(184,147,106,0.15)", color: "#5c4030" }}>
+                  {(patient as PatientWithDetails).current_diagnosis}
+                </span>
+              </div>
+            </>
+          )}
+
           <hr className="border-primary-200" />
 
           {/* Status section */}
@@ -998,12 +1071,19 @@ export default function PatientDetailPage({
                 </Card>
                 <Card>
                   <CardBody>
-                    <p className="text-text-muted text-sm">
-                      Outstanding Balance
-                    </p>
-                    <p className="text-3xl font-bold text-text-primary mt-1">
-                      ₹0
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("billing")}
+                      className="w-full text-left group"
+                    >
+                      <p className="text-text-muted text-sm flex items-center gap-1.5">
+                        Total Fees
+                        <Pencil size={11} className="opacity-0 group-hover:opacity-60 transition-opacity" />
+                      </p>
+                      <p className="text-3xl font-bold mt-1 text-text-primary">
+                        ₹{totalFees.toLocaleString("en-IN")}
+                      </p>
+                    </button>
                   </CardBody>
                 </Card>
               </div>
@@ -1755,93 +1835,168 @@ export default function PatientDetailPage({
           {/* ── Tab F: BILLING ────────────────────────────────────────────── */}
           {activeTab === "billing" && (
             <div className="space-y-6">
-              <h3 className="text-xl font-serif font-semibold text-text-primary">
-                Billing
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-serif font-semibold text-text-primary">
+                  Billing
+                </h3>
+                <Button variant="primary" size="sm" onClick={() => setShowAddFeeModal(true)}>
+                  <span className="inline-flex items-center gap-1.5"><Plus size={14} /> Add Fee</span>
+                </Button>
+              </div>
 
-              {/* Outstanding balance */}
+              {/* Summary card */}
               <Card>
                 <CardBody>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-text-muted text-sm">
-                        Total Outstanding Balance
-                      </p>
+                      <p className="text-text-muted text-sm">Total Fees</p>
                       <p className="text-3xl font-bold text-text-primary mt-1">
-                        ₹
-                        {visits
-                          .filter((v) => v.visit_fee && !v.fee_paid)
-                          .reduce((sum, v) => sum + (v.visit_fee || 0), 0)}
+                        ₹{totalFees.toLocaleString("en-IN")}
                       </p>
                     </div>
-                    <DollarSign
-                      size={40}
-                      className="text-primary-200 opacity-50"
-                    />
+                    <DollarSign size={40} className="text-primary-200 opacity-50" />
                   </div>
                 </CardBody>
               </Card>
 
-              {/* Visits billing table */}
+              {/* Fees table */}
               <Card>
                 <CardBody>
-                  {visits.filter((v) => v.visit_fee != null).length === 0 ? (
-                    <p className="text-text-muted text-center py-8 text-sm">
-                      No billing records found.
-                    </p>
+                  {patientFees.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-text-muted">
+                      <DollarSign size={36} className="mb-3 opacity-30" />
+                      <p className="text-sm">No billing records found.</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => setShowAddFeeModal(true)}>
+                        Add First Fee
+                      </Button>
+                    </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-primary-200">
-                            <th className="text-left py-2 text-text-muted font-medium">
-                              Date
-                            </th>
-                            <th className="text-left py-2 text-text-muted font-medium">
-                              Description
-                            </th>
-                            <th className="text-right py-2 text-text-muted font-medium">
-                              Fee
-                            </th>
-                            <th className="text-center py-2 text-text-muted font-medium">
-                              Status
-                            </th>
+                            <th className="text-left py-2 text-text-muted font-medium">Date</th>
+                            <th className="text-left py-2 text-text-muted font-medium">Description</th>
+                            <th className="text-right py-2 text-text-muted font-medium">Fee</th>
+                            <th className="text-center py-2 text-text-muted font-medium">Status</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {visits
-                            .filter((v) => v.visit_fee != null)
-                            .map((v) => (
-                              <tr
-                                key={v.id}
-                                className="border-b border-primary-100 last:border-0"
-                              >
+                          {patientFees.map((fee) => {
+                            const visit = visits.find((v) => v.id === fee.visit_id);
+                            const statusColors: Record<string, string> = {
+                              paid: "bg-emerald-50 text-emerald-700",
+                              unpaid: "bg-red-50 text-red-600",
+                              waived: "bg-stone-100 text-stone-600",
+                            };
+                            const isEditing = editingFeeId === fee.id;
+                            return (
+                              <tr key={fee.id} className="border-b border-primary-100 last:border-0">
                                 <td className="py-3 text-text-primary">
-                                  {fmtDate(v.visit_date)}
+                                  {fmtDate(fee.created_at?.split("T")[0])}
                                 </td>
                                 <td className="py-3 text-text-secondary">
-                                  {v.diagnosis || v.chief_complaint || "Visit"}
+                                  {visit?.diagnosis || visit?.chief_complaint || "Consultation"}
                                 </td>
                                 <td className="py-3 text-right text-text-primary font-medium">
-                                  ₹{v.visit_fee}
+                                  {isEditing ? (
+                                    <form
+                                      className="inline-flex items-center gap-1 justify-end"
+                                      onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const val = parseFloat(editingFeeValue);
+                                        if (val >= 0) updateFeeAmount(fee.id, val);
+                                        setEditingFeeId(null);
+                                      }}
+                                    >
+                                      <span className="text-text-muted">₹</span>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        autoFocus
+                                        value={editingFeeValue}
+                                        onChange={(e) => setEditingFeeValue(e.target.value)}
+                                        onBlur={() => {
+                                          const val = parseFloat(editingFeeValue);
+                                          if (val >= 0) updateFeeAmount(fee.id, val);
+                                          setEditingFeeId(null);
+                                        }}
+                                        className="w-20 px-2 py-1 text-right text-sm rounded border outline-none"
+                                        style={{ borderColor: "#b8936a" }}
+                                      />
+                                    </form>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => { setEditingFeeId(fee.id); setEditingFeeValue(String(fee.amount)); }}
+                                      className="inline-flex items-center gap-1.5 group hover:opacity-70 transition-opacity"
+                                    >
+                                      ₹{Number(fee.amount).toLocaleString("en-IN")}
+                                      <Pencil size={11} className="opacity-0 group-hover:opacity-60" />
+                                    </button>
+                                  )}
                                 </td>
                                 <td className="py-3 text-center">
-                                  <Badge
-                                    variant={
-                                      v.fee_paid ? "success" : "error"
-                                    }
+                                  <select
+                                    value={fee.status}
+                                    onChange={(e) => updateFeeStatus(fee.id, e.target.value)}
+                                    className={`appearance-none text-center text-xs font-semibold px-3 py-1 rounded-full cursor-pointer outline-none border-0 ${statusColors[fee.status] ?? statusColors.unpaid}`}
                                   >
-                                    {v.fee_paid ? "Paid" : "Unpaid"}
-                                  </Badge>
+                                    <option value="paid">Paid</option>
+                                    <option value="unpaid">Unpaid</option>
+                                    <option value="waived">Waived</option>
+                                  </select>
                                 </td>
                               </tr>
-                            ))}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
                   )}
                 </CardBody>
               </Card>
+
+              {/* Add Fee Modal */}
+              <Modal isOpen={showAddFeeModal} onClose={() => setShowAddFeeModal(false)} title="Add Fee" size="sm">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-text-muted block mb-1">Amount</label>
+                    <div className="flex items-center rounded-lg overflow-hidden border border-primary-200">
+                      <span className="px-3 py-2.5 text-sm text-text-muted border-r border-primary-200">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 500"
+                        value={newFeeAmount}
+                        onChange={(e) => setNewFeeAmount(e.target.value)}
+                        className="flex-1 px-3 py-2.5 text-sm outline-none bg-transparent text-text-primary"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-text-muted block mb-1">Status</label>
+                    <div className="flex gap-2">
+                      {(["unpaid", "paid", "waived"] as const).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setNewFeeStatus(s)}
+                          className="px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all"
+                          style={newFeeStatus === s
+                            ? { background: "#b8936a", color: "#fff" }
+                            : { background: "#e8ddd0", color: "#7a5c35" }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Button variant="primary" className="w-full" onClick={handleAddFee} disabled={addingFee || !newFeeAmount}>
+                    {addingFee ? "Adding..." : "Add Fee"}
+                  </Button>
+                </div>
+              </Modal>
             </div>
           )}
         </div>

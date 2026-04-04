@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
@@ -20,29 +19,48 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 
+// Premium warm palette — distinct colors for multi-series charts
 const CHART_COLORS = [
-  "#b8936a",
-  "#d4b896",
-  "#c9a584",
-  "#a48155",
-  "#9a7a4f",
-  "#c4a882",
-  "#8b6f47",
-  "#dcc5a0",
+  "#b8936a", // gold
+  "#2d4a3e", // deep green
+  "#a67c52", // amber
+  "#3d6b5e", // medium green
+  "#c4a882", // light gold
+  "#8b6f47", // deep bronze
+  "#d4c4a8", // warm cream
+  "#1a3328", // dark forest
 ];
 
-const TOOLTIP_STYLE = {
-  backgroundColor: "#f2efe9",
-  border: "1px solid #e8e0d0",
+// Severity-specific semantic colors
+const SEVERITY_COLORS: Record<string, string> = {
+  Mild: "#3d6b5e",
+  Moderate: "#b8936a",
+  Severe: "#8b6f47",
+  Critical: "#9b2c2c",
 };
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "#faf6f0",
+  border: "1px solid rgba(184,147,106,0.3)",
+  borderRadius: "8px",
+  color: "#3d2e22",
+  fontSize: "12px",
+};
+
+const AXIS_STYLE = { fill: "#9a8a76", fontSize: 11 };
+const GRID_PROPS = { strokeDasharray: "2 6", stroke: "rgba(184,147,106,0.18)" };
 
 function NoData() {
   const { t } = useLanguage();
   return (
-    <p className="text-text-muted text-center py-12 text-sm">{t("analytics_no_data")}</p>
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="w-10 h-10 rounded-full mb-3 flex items-center justify-center" style={{ background: "#f0e8d8" }}>
+        <span style={{ color: "#b8936a", fontSize: "18px" }}>∅</span>
+      </div>
+      <p className="text-sm" style={{ color: "#a09080" }}>{t("analytics_no_data")}</p>
+    </div>
   );
 }
 
@@ -54,13 +72,65 @@ interface StatCardProps {
 
 function StatCard({ label, value, sub }: StatCardProps) {
   return (
-    <Card>
-      <CardBody className="space-y-1">
-        <p className="text-sm text-text-secondary">{label}</p>
-        <p className="text-3xl font-bold text-primary-500">{value}</p>
-        {sub && <p className="text-xs text-text-muted">{sub}</p>}
-      </CardBody>
-    </Card>
+    <div
+      className="rounded-xl bg-[#faf8f4] px-4 py-4 flex flex-col"
+      style={{
+        border: "1px solid rgba(184,147,106,0.18)",
+        borderLeft: "3px solid #b8936a",
+        boxShadow: "0 1px 4px rgba(90,60,20,0.04)",
+      }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#a09080", letterSpacing: "0.08em" }}>{label}</p>
+      <p className="text-4xl font-bold leading-none" style={{ color: "#2d1f14" }}>{value}</p>
+      {sub && <p className="text-xs mt-2" style={{ color: "#b8a090" }}>{sub}</p>}
+    </div>
+  );
+}
+
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-xl bg-[#faf8f4] overflow-hidden"
+      style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
+    >
+      <div className="px-5 pt-5 pb-3">
+        <h3 className="font-serif font-semibold text-lg" style={{ color: "#2d1f14" }}>{title}</h3>
+        <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
+      </div>
+      <div className="px-5 pb-5">{children}</div>
+    </div>
+  );
+}
+
+function ChartLegend({ items }: { items: { name: string; color: string }[] }) {
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-4">
+      {items.map((item) => (
+        <div key={item.name} className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
+          <span className="text-xs capitalize" style={{ color: "#8a7060" }}>{item.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// For pie charts with only 1 active category — show a styled stat instead of a solid circle
+function SinglePieStat({ name, value, color }: { name: string; value: number; color: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center" style={{ height: 300 }}>
+      <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
+        <svg width="140" height="140" className="absolute inset-0">
+          <circle cx="70" cy="70" r="62" fill="none" stroke={color} strokeWidth="2.5" strokeDasharray="4 5" opacity="0.35" />
+          <circle cx="70" cy="70" r="50" fill="none" stroke={color} strokeWidth="1" opacity="0.15" />
+        </svg>
+        <div className="text-center z-10">
+          <p className="text-4xl font-bold leading-none" style={{ color }}>100%</p>
+          <p className="text-xs mt-1" style={{ color: "#8a7060" }}>{value} total</p>
+        </div>
+      </div>
+      <p className="mt-4 text-sm font-medium capitalize" style={{ color: "#5c4030" }}>{name}</p>
+    </div>
   );
 }
 
@@ -182,7 +252,7 @@ export default function AnalyticsPage() {
           // 7. All patients (for charts)
           supabase
             .from("patients")
-            .select("created_at, treatment_status, severity, age, gender")
+            .select("created_at, treatment_status, severity, age, gender, current_diagnosis")
             .eq("linked_doctor_id", user.id),
           // 8. All prescriptions (for charts)
           supabase
@@ -239,11 +309,17 @@ export default function AnalyticsPage() {
         });
         setPatientGrowth(growthData);
 
-        // --- Disease Distribution (top 8 by diagnosis) ---
+        // --- Disease Distribution (from patient classifications + prescriptions) ---
         const diagCounts: Record<string, number> = {};
+        patients.forEach((p) => {
+          const d = (p.current_diagnosis as string | null)?.trim();
+          if (d) diagCounts[d] = (diagCounts[d] || 0) + 1;
+        });
+        // Also include prescription diagnoses for broader coverage
         prescriptions.forEach((p) => {
           const d = p.diagnosis?.trim();
-          if (d) diagCounts[d] = (diagCounts[d] || 0) + 1;
+          if (d && !diagCounts[d]) diagCounts[d] = 0;
+          if (d) diagCounts[d] += 1;
         });
         const sortedDiag = Object.entries(diagCounts)
           .sort((a, b) => b[1] - a[1])
@@ -370,18 +446,20 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-12 bg-primary-200 rounded w-1/3" />
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-24 bg-primary-200 rounded-lg" />
-            ))}
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-80 bg-primary-200 rounded-lg" />
-            ))}
-          </div>
+        <div className="space-y-2">
+          <div className="h-10 bg-primary-200 rounded w-40 animate-pulse" />
+          <div className="h-4 bg-primary-100 rounded w-60 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-28 bg-primary-200 rounded-xl animate-pulse"
+              style={{ borderLeft: "3px solid rgba(184,147,106,0.3)" }} />
+          ))}
+        </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-80 bg-primary-200 rounded-xl animate-pulse" />
+          ))}
         </div>
       </main>
     );
@@ -391,381 +469,297 @@ export default function AnalyticsPage() {
     <main className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-serif font-bold text-text-primary">
-          {t("analytics_title")}
-        </h1>
-        <p className="text-text-secondary mt-2">
-          {t("analytics_subtitle")}
-        </p>
+        <h1 className="text-4xl font-serif font-bold text-text-primary">{t("analytics_title")}</h1>
+        <p className="text-text-secondary mt-2">{t("analytics_subtitle")}</p>
       </div>
 
       {/* Overview Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard label={t("analytics_total_patients")} value={totalPatients} sub={t("dash_all_time")} />
-        <StatCard
-          label={t("analytics_new_patients")}
-          value={newPatientsMonth}
-          sub={t("analytics_this_month")}
-        />
+        <StatCard label={t("analytics_new_patients")} value={newPatientsMonth} sub={t("analytics_this_month")} />
         <StatCard label={t("analytics_total_visits")} value={visitsMonth} sub={t("analytics_this_month")} />
-        <StatCard
-          label={t("analytics_prescriptions")}
-          value={prescriptionsMonth}
-          sub={t("analytics_this_month")}
-        />
-        <StatCard
-          label={t("analytics_appointments")}
-          value={appointmentsToday}
-          sub={t("dash_today")}
-        />
-        <StatCard
-          label={t("analytics_appointments")}
-          value={appointmentsWeek}
-          sub={t("analytics_this_week")}
-        />
+        <StatCard label={t("analytics_prescriptions")} value={prescriptionsMonth} sub={t("analytics_this_month")} />
+        <StatCard label={t("analytics_appointments")} value={appointmentsToday} sub={t("dash_today")} />
+        <StatCard label={t("analytics_appointments")} value={appointmentsWeek} sub={t("analytics_this_week")} />
       </div>
 
       {/* Charts Grid */}
       <div className="grid md:grid-cols-2 gap-6">
+
         {/* Patient Growth */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_patient_growth")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {patientGrowth.length >= 2 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={patientGrowth}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d0" />
-                  <XAxis dataKey="month" stroke="#9a8a76" />
-                  <YAxis stroke="#9a8a76" />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+        <ChartCard title={t("analytics_patient_growth")}>
+          {patientGrowth.length >= 2 ? (
+            <>
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={patientGrowth} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid {...GRID_PROPS} />
+                  <XAxis dataKey="month" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "rgba(184,147,106,0.2)" }} />
                   <Line
                     type="monotone"
                     dataKey="count"
                     stroke={CHART_COLORS[0]}
-                    strokeWidth={2}
-                    dot={{ fill: CHART_COLORS[0] }}
+                    strokeWidth={2.5}
+                    dot={{ fill: CHART_COLORS[0], r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: CHART_COLORS[0], strokeWidth: 0 }}
                     name={t("analytics_total_patients")}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            ) : (
-              <p className="text-text-muted text-center py-12 text-sm">
-                {patientGrowth.length < 2
-                  ? t("analytics_growth_empty")
-                  : t("analytics_no_data")}
-              </p>
-            )}
-          </CardBody>
-        </Card>
+              <ChartLegend items={[{ name: t("analytics_total_patients"), color: CHART_COLORS[0] }]} />
+            </>
+          ) : (
+            <p className="text-center py-12 text-sm" style={{ color: "#a09080" }}>
+              {t("analytics_growth_empty")}
+            </p>
+          )}
+        </ChartCard>
 
         {/* Disease Distribution */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_disease_dist")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {diseaseDistribution.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={diseaseDistribution}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {diseaseDistribution.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+        <ChartCard title={t("analytics_disease_dist")}>
+          {diseaseDistribution.length > 0 ? (
+            diseaseDistribution.length === 1 ? (
+              <SinglePieStat
+                name={diseaseDistribution[0].name}
+                value={diseaseDistribution[0].value}
+                color={CHART_COLORS[0]}
+              />
             ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={diseaseDistribution}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      innerRadius={38}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {diseaseDistribution.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ChartLegend items={diseaseDistribution.map((d, i) => ({ name: d.name, color: CHART_COLORS[i % CHART_COLORS.length] }))} />
+              </>
+            )
+          ) : <NoData />}
+        </ChartCard>
 
-        {/* Treatment Status Breakdown */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_treatment_status")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {treatmentStatus.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={treatmentStatus}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {treatmentStatus.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+        {/* Treatment Status */}
+        <ChartCard title={t("analytics_treatment_status")}>
+          {treatmentStatus.length > 0 ? (
+            treatmentStatus.filter(d => d.value > 0).length === 1 ? (
+              <SinglePieStat
+                name={treatmentStatus.find(d => d.value > 0)!.name}
+                value={treatmentStatus.find(d => d.value > 0)!.value}
+                color={CHART_COLORS[0]}
+              />
             ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={treatmentStatus}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      innerRadius={38}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {treatmentStatus.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ChartLegend items={treatmentStatus.map((d, i) => ({ name: d.name, color: CHART_COLORS[i % CHART_COLORS.length] }))} />
+              </>
+            )
+          ) : <NoData />}
+        </ChartCard>
 
         {/* Severity Distribution */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_severity_dist")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {severityData.some((d) => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={severityData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d0" />
-                  <XAxis dataKey="name" stroke="#9a8a76" />
-                  <YAxis stroke="#9a8a76" />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Bar dataKey="value" fill={CHART_COLORS[0]}>
-                    {severityData.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
+        <ChartCard title={t("analytics_severity_dist")}>
+          {severityData.some(d => d.value > 0) ? (
+            <>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={severityData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }} barSize={36}>
+                  <CartesianGrid {...GRID_PROPS} vertical={false} />
+                  <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(184,147,106,0.06)" }} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {severityData.map((entry) => (
+                      <Cell key={entry.name} fill={SEVERITY_COLORS[entry.name] ?? CHART_COLORS[0]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <ChartLegend items={severityData.map(d => ({ name: d.name, color: SEVERITY_COLORS[d.name] ?? CHART_COLORS[0] }))} />
+            </>
+          ) : <NoData />}
+        </ChartCard>
 
-        {/* Top Diagnosed Conditions (horizontal) */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_top_conditions")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {topConditions.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topConditions} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d0" />
-                  <XAxis type="number" stroke="#9a8a76" />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    stroke="#9a8a76"
-                    width={120}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Bar dataKey="value" fill={CHART_COLORS[0]}>
-                    {topConditions.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+        {/* Top Diagnosed Conditions */}
+        <ChartCard title={t("analytics_top_conditions")}>
+          {topConditions.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topConditions} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={14}>
+                <CartesianGrid {...GRID_PROPS} horizontal={false} />
+                <XAxis type="number" tick={AXIS_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="name" tick={AXIS_STYLE} axisLine={false} tickLine={false} width={120} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(184,147,106,0.06)" }} />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {topConditions.map((_, i) => (
+                    <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <NoData />}
+        </ChartCard>
 
-        {/* Appointment Completion Rate */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_apt_completion")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {appointmentCompletion.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={appointmentCompletion}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {appointmentCompletion.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+        {/* Appointment Completion */}
+        <ChartCard title={t("analytics_apt_completion")}>
+          {appointmentCompletion.length > 0 ? (
+            appointmentCompletion.filter(d => d.value > 0).length === 1 ? (
+              <SinglePieStat
+                name={appointmentCompletion.find(d => d.value > 0)!.name}
+                value={appointmentCompletion.find(d => d.value > 0)!.value}
+                color={CHART_COLORS[0]}
+              />
             ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={appointmentCompletion}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      innerRadius={38}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {appointmentCompletion.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ChartLegend items={appointmentCompletion.map((d, i) => ({ name: d.name, color: CHART_COLORS[i % CHART_COLORS.length] }))} />
+              </>
+            )
+          ) : <NoData />}
+        </ChartCard>
 
         {/* Age Distribution */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_age_dist")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {ageData.some((d) => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={ageData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d0" />
-                  <XAxis dataKey="name" stroke="#9a8a76" />
-                  <YAxis stroke="#9a8a76" />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Bar dataKey="value" fill={CHART_COLORS[0]}>
+        <ChartCard title={t("analytics_age_dist")}>
+          {ageData.some(d => d.value > 0) ? (
+            <>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={ageData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }} barSize={30}>
+                  <CartesianGrid {...GRID_PROPS} vertical={false} />
+                  <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(184,147,106,0.06)" }} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {ageData.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
+                      <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <ChartLegend items={ageData.filter(d => d.value > 0).map((d, i) => ({ name: d.name, color: CHART_COLORS[i % CHART_COLORS.length] }))} />
+            </>
+          ) : <NoData />}
+        </ChartCard>
 
         {/* Gender Distribution */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("analytics_gender_dist")}
-            </h3>
-          </CardHeader>
-          <CardBody>
-            {genderData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={genderData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {genderData.map((_, i) => (
-                      <Cell
-                        key={`cell-${i}`}
-                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+        <ChartCard title={t("analytics_gender_dist")}>
+          {genderData.length > 0 ? (
+            genderData.filter(d => d.value > 0).length === 1 ? (
+              <SinglePieStat
+                name={genderData.find(d => d.value > 0)!.name}
+                value={genderData.find(d => d.value > 0)!.value}
+                color={CHART_COLORS[0]}
+              />
             ) : (
-              <NoData />
-            )}
-          </CardBody>
-        </Card>
+              <>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      innerRadius={38}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {genderData.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ChartLegend items={genderData.map((d, i) => ({ name: d.name, color: CHART_COLORS[i % CHART_COLORS.length] }))} />
+              </>
+            )
+          ) : <NoData />}
+        </ChartCard>
+
       </div>
 
       {/* Quick Insights */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-text-primary">
-            {t("analytics_quick_insights")}
-          </h3>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="flex justify-between">
-            <span className="text-text-secondary">
-              {t("analytics_top_diagnosis")}
-            </span>
-            <span className="font-semibold text-primary-500">
-              {topDiagnosisMonth || "\u2014"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-secondary">
-              {t("analytics_avg_visits")}
-            </span>
-            <span className="font-semibold text-primary-500">
-              {avgVisits || "\u2014"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-secondary">{t("analytics_recovery_rate")}</span>
-            <span className="font-semibold text-primary-500">
-              {recoveryRate ? `${recoveryRate}%` : "\u2014"}
-            </span>
-          </div>
-        </CardBody>
-      </Card>
+      <div
+        className="rounded-xl bg-[#faf8f4] overflow-hidden"
+        style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
+      >
+        <div className="px-5 pt-5 pb-3">
+          <h3 className="font-serif font-semibold text-lg" style={{ color: "#2d1f14" }}>{t("analytics_quick_insights")}</h3>
+          <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
+        </div>
+        <div className="px-5 pb-4 space-y-0">
+          {[
+            { label: t("analytics_top_diagnosis"), value: topDiagnosisMonth || "—" },
+            { label: t("analytics_avg_visits"), value: avgVisits || "—" },
+            { label: t("analytics_recovery_rate"), value: recoveryRate ? `${recoveryRate}%` : "—" },
+          ].map((item, i, arr) => (
+            <div
+              key={item.label}
+              className="flex items-center justify-between py-3"
+              style={{ borderBottom: i < arr.length - 1 ? "1px solid rgba(184,147,106,0.12)" : "none" }}
+            >
+              <span className="text-sm" style={{ color: "#6b5544" }}>{item.label}</span>
+              <span className="font-semibold text-sm" style={{ color: "#b8936a" }}>{item.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Earnings Coming Soon */}
-      <Card>
-        <CardBody>
-          <div
-            className="rounded-lg p-5 text-center"
-            style={{
-              background: "rgba(184,147,106,0.06)",
-              border: "1px solid rgba(184,147,106,0.15)",
-            }}
-          >
-            <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-2">
-              {t("analytics_earnings_title")}
-            </p>
-            <p className="text-text-muted text-sm">
-              {t("analytics_earnings_desc")}
-            </p>
-          </div>
-        </CardBody>
-      </Card>
+      <div
+        className="rounded-xl p-5 text-center"
+        style={{ background: "rgba(184,147,106,0.06)", border: "1px solid rgba(184,147,106,0.18)" }}
+      >
+        <p className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: "#b8936a", letterSpacing: "0.1em" }}>
+          {t("analytics_earnings_title")}
+        </p>
+        <p className="text-sm" style={{ color: "#a09080" }}>
+          {t("analytics_earnings_desc")}
+        </p>
+      </div>
     </main>
   );
 }

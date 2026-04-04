@@ -13,7 +13,7 @@ import {
   type ColumnFiltersState,
 } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Download, Plus, Check } from "lucide-react";
+import { ArrowUp, ArrowDown, Search, Download, Plus, Check } from "lucide-react";
 
 interface DataTableProps<T> {
   data: T[];
@@ -36,12 +36,16 @@ function EditableCell({
   type = "text",
   options,
   colorMap,
+  displayFormatter,
+  displayClassName,
 }: {
   value: unknown;
   onSave: (val: unknown) => void;
   type?: "text" | "number" | "select" | "date";
   options?: { value: string; label: string }[];
   colorMap?: Record<string, string>;
+  displayFormatter?: (val: unknown) => string;
+  displayClassName?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(initialValue);
@@ -63,7 +67,7 @@ function EditableCell({
     return (
       <span
         onClick={() => setEditing(true)}
-        className={cn("cursor-pointer px-2 py-0.5 rounded text-xs font-medium", color || "hover:bg-primary-100")}
+        className={cn("cursor-pointer inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium", color || "text-text-secondary hover:bg-[#f0e8d8]")}
       >
         {display}
       </span>
@@ -99,8 +103,8 @@ function EditableCell({
   }
 
   return (
-    <span onClick={() => setEditing(true)} className="cursor-pointer hover:bg-primary-100 px-1 py-0.5 rounded block min-h-[20px] text-xs">
-      {value != null && value !== "" ? String(value) : "—"}
+    <span onClick={() => setEditing(true)} className={cn("cursor-pointer hover:bg-[#f0e8d8] px-1 py-0.5 rounded block min-h-[20px] text-xs", displayClassName)}>
+      {displayFormatter ? displayFormatter(value) : (value != null && value !== "" ? String(value) : "—")}
     </span>
   );
 }
@@ -145,6 +149,14 @@ export function DataTable<T extends Record<string, unknown>>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageSize } },
+    defaultColumn: onCellEdit ? {
+      cell: (ctx: any) => (
+        <EditableCell
+          value={ctx.getValue()}
+          onSave={(val: unknown) => (ctx.table.options.meta as any).updateData(ctx.row.index, ctx.column.id, val)}
+        />
+      ),
+    } : {},
     meta: {
       updateData: (rowIndex: number, columnId: string, value: unknown) => {
         onCellEdit?.(rowIndex, columnId, value);
@@ -189,26 +201,26 @@ export function DataTable<T extends Record<string, unknown>>({
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-60" style={{ color: "#b8936a" }} />
           <input
             type="text"
             placeholder={searchPlaceholder}
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-primary-200 rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg outline-none transition-all bg-[#faf6f0] text-[#3d2e22] placeholder-[#c0b0a0] border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={exportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-text-secondary border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#8a7060] border border-[#b8936a]/35 rounded-lg hover:bg-[#f0e8d8] transition-colors"
           >
             <Download size={14} /> Export CSV
           </button>
           {onAddRow && (
             <button
               onClick={onAddRow}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-[#7a5c35] rounded-lg hover:bg-[#5c4527] transition-colors"
             >
               <Plus size={14} /> {addRowLabel}
             </button>
@@ -217,16 +229,16 @@ export function DataTable<T extends Record<string, unknown>>({
       </div>
 
       {/* Table */}
-      <div className="border border-primary-200 rounded-lg overflow-hidden">
+      <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-primary-100 sticky top-0 z-10">
+            <thead className="sticky top-0 z-10" style={{ background: "#e8ddd0" }}>
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
                   {hg.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-3 py-2.5 text-left text-xs font-semibold text-text-primary whitespace-nowrap border-b border-primary-200 select-none"
+                      className="px-3 py-3 text-left whitespace-nowrap select-none border-b border-[#b8936a]/20" style={{ fontSize: "10px", fontWeight: 600, color: "#8a7060", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}
                     >
                       {header.isPlaceholder ? null : (
                         <button
@@ -234,9 +246,9 @@ export function DataTable<T extends Record<string, unknown>>({
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getIsSorted() === "asc" ? <ArrowUp size={12} /> :
-                            header.column.getIsSorted() === "desc" ? <ArrowDown size={12} /> :
-                              <ArrowUpDown size={12} className="opacity-30" />}
+                          {header.column.getIsSorted() === "asc" ? <ArrowUp size={11} style={{ color: "#b8936a" }} /> :
+                            header.column.getIsSorted() === "desc" ? <ArrowDown size={11} style={{ color: "#b8936a" }} /> :
+                              null}
                         </button>
                       )}
                     </th>
@@ -258,9 +270,9 @@ export function DataTable<T extends Record<string, unknown>>({
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row, i) => (
-                  <tr key={row.id} className={cn("group border-b border-primary-100 hover:bg-primary-50 transition-colors", i % 2 === 0 ? "bg-surface" : "bg-primary-50/50")}>
+                  <tr key={row.id} className={cn("group transition-colors", i % 2 === 0 ? "bg-[#faf8f4] hover:bg-[#f0e8d8]" : "bg-[#f4efe6] hover:bg-[#f0e8d8]")} style={{ borderBottom: "1px solid rgba(184,147,106,0.12)" }}>
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-3 py-2 whitespace-nowrap">
+                      <td key={cell.id} className="px-3 py-3 whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -279,9 +291,9 @@ export function DataTable<T extends Record<string, unknown>>({
         </span>
         {table.getPageCount() > 1 && (
           <div className="flex items-center gap-2">
-            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="px-2 py-1 border border-primary-200 rounded hover:bg-primary-100 disabled:opacity-30">Prev</button>
+            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="px-2 py-1 rounded hover:bg-[#f0e8d8] disabled:opacity-30 transition-colors" style={{ border: "1px solid rgba(184,147,106,0.35)" }}>Prev</button>
             <span>Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}</span>
-            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="px-2 py-1 border border-primary-200 rounded hover:bg-primary-100 disabled:opacity-30">Next</button>
+            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="px-2 py-1 rounded hover:bg-[#f0e8d8] disabled:opacity-30 transition-colors" style={{ border: "1px solid rgba(184,147,106,0.35)" }}>Next</button>
           </div>
         )}
       </div>

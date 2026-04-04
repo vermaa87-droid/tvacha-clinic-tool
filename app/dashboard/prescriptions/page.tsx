@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -482,13 +481,19 @@ export default function PrescriptionsPage() {
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-primary-200 rounded w-1/3" />
-          <div className="grid md:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-48 bg-primary-200 rounded-lg" />
-            ))}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-10 bg-primary-200 rounded w-40 animate-pulse" />
+            <div className="h-4 bg-primary-100 rounded w-56 animate-pulse" />
           </div>
+          <div className="h-10 w-44 bg-primary-200 rounded-lg animate-pulse" />
+        </div>
+        <div className="h-48 bg-primary-200 rounded-xl animate-pulse" />
+        <div className="grid md:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-56 bg-primary-200 rounded-xl animate-pulse"
+              style={{ borderLeft: "3px solid rgba(184,147,106,0.25)" }} />
+          ))}
         </div>
       </main>
     );
@@ -503,174 +508,152 @@ export default function PrescriptionsPage() {
       {/* ---------- Header ---------- */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-text-primary">
-            {t("rx_title")}
-          </h1>
-          <p className="text-text-secondary mt-2">
-            {t("rx_subtitle")}
-          </p>
+          <h1 className="text-4xl font-serif font-bold text-text-primary">{t("rx_title")}</h1>
+          <p className="text-text-secondary mt-2">{t("rx_subtitle")}</p>
         </div>
-        <Button
-          className="bg-primary-500 hover:bg-primary-600 text-white"
-          onClick={openCreatePrescription}
-        >
+        <Button className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide" onClick={openCreatePrescription}>
           + {t("rx_create_rx")}
         </Button>
       </div>
 
-      {/* ---------- Recent Prescriptions Table ---------- */}
+      {/* ---------- Recent Prescriptions ---------- */}
       <div>
-        <h2 className="text-2xl font-serif font-semibold text-text-primary mb-4">
-          {t("rx_recent")}
-        </h2>
+        <div className="flex items-center gap-4 mb-5">
+          <h2 className="font-serif font-semibold text-2xl text-text-primary whitespace-nowrap">{t("rx_recent")}</h2>
+          <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+        </div>
+
         {prescriptions.length === 0 ? (
-          <p className="text-text-muted text-center py-8">
-            {t("rx_no_prescriptions")}
-          </p>
+          <p className="text-text-muted text-center py-8">{t("rx_no_prescriptions")}</p>
         ) : (
-          <Card>
-            <CardBody>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-primary-200 text-left text-text-secondary">
-                      <th className="pb-3 pr-4 font-medium">Date</th>
-                      <th className="pb-3 pr-4 font-medium">Patient Name</th>
-                      <th className="pb-3 pr-4 font-medium">Diagnosis</th>
-                      <th className="pb-3 pr-4 font-medium text-center">
-                        # Medicines
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead style={{ background: "#e8ddd0" }}>
+                  <tr>
+                    {["Date", "Patient", "Diagnosis", "Medicines", "Status", ""].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left whitespace-nowrap border-b border-[#b8936a]/20"
+                        style={{ fontSize: "10px", fontWeight: 600, color: "#8a7060", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                        {h}
                       </th>
-                      <th className="pb-3 pr-4 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {prescriptions.map((rx) => (
-                      <tr
-                        key={rx.id}
-                        className="border-b border-primary-100 last:border-0"
-                      >
-                        <td className="py-3 pr-4 text-text-primary whitespace-nowrap">
-                          {format(new Date(rx.created_at), "dd MMM yyyy")}
-                        </td>
-                        <td className="py-3 pr-4 font-medium text-text-primary">
-                          {rx.patients?.name || "Unknown"}
-                        </td>
-                        <td className="py-3 pr-4 text-text-secondary">
-                          {rx.diagnosis}
-                        </td>
-                        <td className="py-3 pr-4 text-center text-text-secondary">
-                          {rx.medicines.length}
-                        </td>
-                        <td className="py-3 pr-4">
-                          <Badge
-                            variant={
-                              rx.status === "active"
-                                ? "success"
-                                : rx.status === "cancelled"
-                                ? "error"
-                                : "default"
-                            }
-                          >
-                            {rx.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3">
-                          <button
-                            onClick={() => setViewRx(rx)}
-                            className="text-primary-500 hover:text-primary-700 font-medium text-sm"
-                          >
-                            View
-                          </button>
-                        </td>
-                      </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardBody>
-          </Card>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prescriptions.map((rx, i) => (
+                    <tr
+                      key={rx.id}
+                      className="group cursor-pointer transition-colors hover:bg-[#f0e8d8]"
+                      style={{ background: i % 2 === 0 ? "#faf8f4" : "#f4efe6", borderBottom: "1px solid rgba(184,147,106,0.12)" }}
+                      onClick={() => setViewRx(rx)}
+                    >
+                      <td className="py-3.5 pr-4 pl-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "#5c4030" }}>
+                        {format(new Date(rx.created_at), "dd MMM yyyy")}
+                      </td>
+                      <td className="py-3.5 pr-4 font-medium capitalize" style={{ color: "#2d1f14" }}>
+                        {rx.patients?.name || "Unknown"}
+                      </td>
+                      <td className="py-3.5 pr-4" style={{ color: "#6b5544" }}>{rx.diagnosis}</td>
+                      <td className="py-3.5 pr-4 text-center" style={{ color: "#8a7060" }}>{rx.medicines.length}</td>
+                      <td className="py-3.5 pr-4">
+                        {rx.status === "active" ? (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Active</span>
+                        ) : rx.status === "cancelled" ? (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 capitalize">{rx.status}</span>
+                        ) : (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 capitalize">{rx.status}</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 pr-4">
+                        <span className="text-[#b8936a] font-medium text-xs inline-flex items-center gap-0.5 group-hover:underline">
+                          View <span aria-hidden="true">→</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
       {/* ---------- Template Library ---------- */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-serif font-semibold text-text-primary">
-            {t("rx_templates")}
-          </h2>
-          <Button variant="ghost" onClick={openTemplateCreate}>
+        <div className="flex items-center gap-4 mb-6">
+          <h2 className="font-serif font-semibold text-2xl text-text-primary whitespace-nowrap">{t("rx_templates")}</h2>
+          <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+          <button
+            onClick={openTemplateCreate}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#b8936a]/50 text-[#b8936a] hover:bg-[#faf0e4] transition-colors whitespace-nowrap"
+          >
             + {t("rx_create_template")}
-          </Button>
+          </button>
         </div>
 
         {templates.length === 0 ? (
-          <p className="text-text-muted text-center py-8">
-            {t("rx_no_templates")}
-          </p>
+          <p className="text-text-muted text-center py-8">{t("rx_no_templates")}</p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {templates.map((template) => (
-              <Card key={template.id} hover>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-text-primary">
-                      {template.name}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      {template.is_system && (
-                        <Badge variant="info">System</Badge>
-                      )}
-                      <button
-                        onClick={() => openTemplateEdit(template)}
-                        className="p-1.5 rounded-md text-text-muted hover:text-primary-500 hover:bg-primary-100 transition-colors"
-                        title="Edit template"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardBody>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary mb-3">
-                        {t("rx_medicine_name")}:
-                      </p>
-                      <ul className="space-y-2">
-                        {template.medicines.map((med, idx) => (
-                          <li key={idx} className="text-sm">
-                            <p className="font-medium text-text-primary">
-                              {med.name}
-                            </p>
-                            <p className="text-xs text-text-secondary">
-                              {med.dosage}{" "}
-                              {med.frequency && `- ${med.frequency}`}{" "}
-                              {med.duration && `- ${med.duration}`}
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {template.special_instructions && (
-                      <div className="border-t border-primary-200 pt-4">
-                        <p className="text-sm text-text-secondary mb-2">
-                          <strong>{t("rx_special_instructions")}:</strong>
-                        </p>
-                        <p className="text-sm text-text-secondary">
-                          {template.special_instructions}
-                        </p>
-                      </div>
+              <div
+                key={template.id}
+                className="relative flex flex-col rounded-xl bg-[#faf8f4] overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:shadow-[0_6px_20px_rgba(90,60,20,0.11)] hover:-translate-y-0.5"
+                style={{ border: "1px solid rgba(184,147,106,0.2)" }}
+              >
+                {/* Left accent border */}
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#b8936a]" />
+
+                {/* Card header */}
+                <div className="pl-5 pr-4 pt-4 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(184,147,106,0.15)" }}>
+                  <h3 className="font-semibold text-[#2d1f14] text-base leading-tight">{template.name}</h3>
+                  <div className="flex items-center gap-2">
+                    {template.is_system ? (
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">System</span>
+                    ) : (
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium text-[#b8936a]" style={{ background: "rgba(184,147,106,0.12)" }}>Custom</span>
                     )}
-                    <div className="flex items-center justify-between pt-2">
-                      <p className="text-xs text-text-muted">
-                        Used {template.usage_count} times
-                      </p>
-                      <Badge variant="default">{template.category}</Badge>
-                    </div>
+                    <button
+                      onClick={() => openTemplateEdit(template)}
+                      className="p-1.5 rounded-md hover:bg-[#f0e8d8] transition-colors"
+                      title="Edit template"
+                      style={{ color: "#b8936a" }}
+                    >
+                      <Pencil size={14} />
+                    </button>
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+
+                {/* Card body — medicines */}
+                <div className="pl-5 pr-4 py-4 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#8a7060", letterSpacing: "0.12em" }}>Medicines</p>
+                  <ul>
+                    {template.medicines.map((med, idx) => (
+                      <li key={idx}>
+                        {idx > 0 && <div className="my-2.5" style={{ borderTop: "1px solid rgba(184,147,106,0.12)" }} />}
+                        <p className="font-semibold text-sm" style={{ color: "#2d1f14" }}>{med.name}</p>
+                        {(med.dosage || med.frequency || med.duration) && (
+                          <p className="text-xs mt-0.5" style={{ color: "#8a7060" }}>
+                            {[med.dosage, med.frequency, med.duration].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {template.special_instructions && (
+                    <div className="pt-3 mt-3" style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: "#2d4a3e" }}>{t("rx_special_instructions")}</p>
+                      <p className="text-xs" style={{ color: "#8a7060" }}>{template.special_instructions}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Card footer */}
+                <div className="pl-5 pr-4 py-3 flex items-center justify-between" style={{ borderTop: "1px solid rgba(184,147,106,0.12)", background: "#f4efe6" }}>
+                  <p className="text-xs" style={{ color: "#a09080" }}>Used {template.usage_count} times</p>
+                  <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35] capitalize">{template.category}</span>
+                </div>
+              </div>
             ))}
           </div>
         )}

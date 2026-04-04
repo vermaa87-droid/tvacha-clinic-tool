@@ -113,6 +113,7 @@ export const translations = {
 
     dash_sidebar_dashboard: "Dashboard",
     dash_sidebar_add_patient: "Add Patient",
+    dash_sidebar_ready_for_diagnosis: "Ready for Diagnosis",
     dash_sidebar_register: "Clinic Register",
     dash_sidebar_patients: "My Patients",
     dash_sidebar_prescriptions: "Prescriptions",
@@ -349,7 +350,7 @@ export const translations = {
     settings_faq: "FAQ",
 
     register_title: "Clinic Register",
-    register_subtitle: "Your complete clinic data in spreadsheet form",
+    register_subtitle: "Complete patient records at a glance",
     register_tab_patients: "Patient Register",
     register_tab_visits: "Visit Log",
     register_tab_treatments: "Treatment Tracker",
@@ -696,6 +697,7 @@ export const translations = {
 
     dash_sidebar_dashboard: "डैशबोर्ड",
     dash_sidebar_add_patient: "मरीज़ जोड़ें",
+    dash_sidebar_ready_for_diagnosis: "निदान के लिए तैयार",
     dash_sidebar_register: "क्लिनिक रजिस्टर",
     dash_sidebar_patients: "मेरे मरीज़",
     dash_sidebar_prescriptions: "प्रिस्क्रिप्शन",
@@ -932,7 +934,7 @@ export const translations = {
     settings_faq: "अक्सर पूछे जाने वाले प्रश्न",
 
     register_title: "क्लिनिक रजिस्टर",
-    register_subtitle: "स्प्रेडशीट रूप में आपका सम्पूर्ण क्लिनिक डेटा",
+    register_subtitle: "एक नज़र में पूर्ण रोगी रिकॉर्ड",
     register_tab_patients: "मरीज़ रजिस्टर",
     register_tab_visits: "विज़िट लॉग",
     register_tab_treatments: "उपचार ट्रैकर",

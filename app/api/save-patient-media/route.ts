@@ -1,6 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
+async function ensureBucket(): Promise<string | null> {
+  const BUCKET = "patient-photos";
+
+  const { error: checkError } = await supabaseAdmin.storage.getBucket(BUCKET);
+  if (!checkError) {
+    // Bucket exists — make sure it's public
+    await supabaseAdmin.storage.updateBucket(BUCKET, { public: true });
+    return null;
+  }
+
+  // Bucket doesn't exist — create it
+  console.log("[save-patient-media] bucket not found, creating...");
+  const { error: createError } = await supabaseAdmin.storage.createBucket(BUCKET, {
+    public: true,
+    fileSizeLimit: 10485760, // 10 MB
+  });
+  if (createError) {
+    console.error("[save-patient-media] failed to create bucket:", createError);
+    return createError.message;
+  }
+
+  console.log("[save-patient-media] bucket created successfully");
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -12,16 +37,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing patient_id or doctor_id" }, { status: 400 });
     }
 
-    // Ensure the bucket exists (create it if not)
-    const { error: bucketCheckError } = await supabaseAdmin.storage.getBucket("patient-photos");
-    if (bucketCheckError) {
-      await supabaseAdmin.storage.createBucket("patient-photos", {
-        public: true,
-        fileSizeLimit: 10485760, // 10 MB
-      });
-    } else {
-      // Ensure it stays public so URLs work
-      await supabaseAdmin.storage.updateBucket("patient-photos", { public: true });
+    // Ensure bucket is ready before any uploads
+    const bucketError = await ensureBucket();
+    if (bucketError) {
+      return NextResponse.json(
+        { error: `Storage bucket setup failed: ${bucketError}`, photoCount: 0, recordCount: 0, failedPhotos: 0 },
+        { status: 500 }
+      );
     }
 
     const photoRows: {
@@ -43,13 +65,21 @@ export async function POST(req: NextRequest) {
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
         const path = `${doctorId}/${patientId}/${Date.now()}_photo_${i + 1}.jpg`;
+        console.log(`[save-patient-media] uploading photo ${i + 1}: ${path} (${buffer.length} bytes)`);
+
         const { error: uploadError } = await supabaseAdmin.storage
           .from("patient-photos")
-          .upload(path, buffer, { contentType: "image/jpeg" });
-        if (uploadError) throw uploadError;
+          .upload(path, buffer, { contentType: "image/jpeg", upsert: true });
+
+        if (uploadError) {
+          console.error(`[save-patient-media] photo ${i + 1} upload error:`, uploadError);
+          throw uploadError;
+        }
+
         const { data: { publicUrl } } = supabaseAdmin.storage
           .from("patient-photos")
           .getPublicUrl(path);
+
         photoRows.push({
           patient_id: patientId,
           doctor_id: doctorId,
@@ -58,6 +88,7 @@ export async function POST(req: NextRequest) {
           body_location: bodyLocation,
           notes: `Intake photo ${i + 1} of ${photoFiles.length}`,
         });
+        console.log(`[save-patient-media] photo ${i + 1} uploaded OK → ${publicUrl}`);
       } catch (err) {
         console.error("[save-patient-media] photo upload failed:", err);
         failedPhotos++;
@@ -70,13 +101,21 @@ export async function POST(req: NextRequest) {
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
         const path = `${doctorId}/${patientId}/records/${Date.now()}_${file.name}`;
+        console.log(`[save-patient-media] uploading record: ${path} (${buffer.length} bytes)`);
+
         const { error: uploadError } = await supabaseAdmin.storage
           .from("patient-photos")
-          .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
-        if (uploadError) throw uploadError;
+          .upload(path, buffer, { contentType: file.type || "application/octet-stream", upsert: true });
+
+        if (uploadError) {
+          console.error(`[save-patient-media] record upload error:`, uploadError);
+          throw uploadError;
+        }
+
         const { data: { publicUrl } } = supabaseAdmin.storage
           .from("patient-photos")
           .getPublicUrl(path);
+
         photoRows.push({
           patient_id: patientId,
           doctor_id: doctorId,
@@ -86,6 +125,7 @@ export async function POST(req: NextRequest) {
           notes: file.name,
         });
         savedRecordCount++;
+        console.log(`[save-patient-media] record uploaded OK → ${publicUrl}`);
       } catch (err) {
         console.error("[save-patient-media] record upload failed:", err);
       }
@@ -115,6 +155,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[save-patient-media] unexpected error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }

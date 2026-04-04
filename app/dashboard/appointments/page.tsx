@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -15,7 +13,6 @@ import type { Appointment, Patient } from "@/lib/types";
 import {
   VISIT_TYPE_OPTIONS,
   APPOINTMENT_STATUS_OPTIONS,
-  APPOINTMENT_STATUS_COLORS,
 } from "@/lib/constants";
 import { Calendar, Plus, ChevronLeft, ChevronRight, List } from "lucide-react";
 import {
@@ -93,6 +90,30 @@ function statusLabel(status: string): string {
 function typeLabel(type: string): string {
   const found = VISIT_TYPE_OPTIONS.find((o) => o.value === type);
   return found ? found.label : type;
+}
+
+function formatDateHuman(dateStr: string): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const label = statusLabel(status);
+  const styles: Record<string, string> = {
+    scheduled: "bg-sky-50 text-sky-700",
+    checked_in: "bg-amber-50 text-amber-700",
+    in_progress: "bg-amber-100 text-amber-800",
+    completed: "bg-emerald-50 text-emerald-700",
+    cancelled: "bg-red-50 text-red-500",
+    no_show: "bg-stone-100 text-stone-600",
+    rescheduled: "bg-violet-50 text-violet-700",
+  };
+  return (
+    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? "bg-stone-100 text-stone-600"}`}>
+      {label}
+    </span>
+  );
 }
 
 function formatTime12(time: string): string {
@@ -371,46 +392,38 @@ export default function AppointmentsPage() {
 
   const renderActions = (apt: Appointment) => {
     const s = apt.status;
-    if (isInactive(s)) return <span className="text-text-muted text-sm">--</span>;
+    if (isInactive(s)) return <span className="text-xs" style={{ color: "#c0b0a0" }}>—</span>;
 
     return (
       <div className="flex flex-wrap gap-1">
         {s === "scheduled" && (
           <>
-            <Button size="sm" variant="outline" onClick={() => handleCheckIn(apt.id)}>
+            <Button size="sm" variant="outline" className="border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]" onClick={() => handleCheckIn(apt.id)}>
               {t("apt_check_in")}
             </Button>
-            <Button
-              size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => setConfirmComplete(apt.id)}
-            >
+            <Button size="sm" className="bg-[#7a5c35] hover:bg-[#5c4527] text-white" onClick={() => setConfirmComplete(apt.id)}>
               {t("apt_complete")}
             </Button>
-            <Button size="sm" variant="ghost" className="text-red-500" onClick={() => setConfirmCancel(apt.id)}>
+            <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-600" onClick={() => setConfirmCancel(apt.id)}>
               {t("apt_cancel_btn")}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => handleRescheduleOpen(apt)}>
+            <Button size="sm" variant="ghost" className="text-[#8a7060]" onClick={() => handleRescheduleOpen(apt)}>
               {t("apt_reschedule_btn")}
             </Button>
           </>
         )}
         {s === "checked_in" && (
           <>
-            <Button size="sm" variant="primary" onClick={() => handleStart(apt.id)}>
+            <Button size="sm" className="bg-[#7a5c35] hover:bg-[#5c4527] text-white" onClick={() => handleStart(apt.id)}>
               {t("apt_start")}
             </Button>
-            <Button size="sm" variant="ghost" className="text-red-500" onClick={() => setConfirmCancel(apt.id)}>
+            <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-600" onClick={() => setConfirmCancel(apt.id)}>
               {t("apt_cancel_btn")}
             </Button>
           </>
         )}
         {s === "in_progress" && (
-          <Button
-            size="sm"
-            className="bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => setConfirmComplete(apt.id)}
-          >
+          <Button size="sm" className="bg-[#7a5c35] hover:bg-[#5c4527] text-white" onClick={() => setConfirmComplete(apt.id)}>
             {t("apt_complete")}
           </Button>
         )}
@@ -428,10 +441,14 @@ export default function AppointmentsPage() {
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-primary-200 rounded w-1/3" />
-          <div className="h-64 bg-primary-200 rounded-lg" />
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-10 bg-primary-200 rounded w-40 animate-pulse" />
+            <div className="h-4 bg-primary-100 rounded w-56 animate-pulse" />
+          </div>
+          <div className="h-10 w-44 bg-primary-200 rounded-lg animate-pulse" />
         </div>
+        <div className="h-72 bg-primary-200 rounded-xl animate-pulse" />
       </main>
     );
   }
@@ -449,101 +466,112 @@ export default function AppointmentsPage() {
           <p className="text-text-secondary mt-2">{t("apt_subtitle")}</p>
         </div>
         <Button
-          className="bg-primary-500 hover:bg-primary-600 text-white flex items-center gap-2"
+          className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide flex items-center gap-2"
           onClick={() => setShowScheduleModal(true)}
         >
-          <Plus size={20} /> {t("apt_schedule_btn")}
+          <Plus size={18} /> {t("apt_schedule_btn")}
         </Button>
       </div>
 
       {/* View Toggle */}
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={viewMode === "list" ? "primary" : "outline"}
-          className="flex items-center gap-2"
+        <button
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            viewMode === "list"
+              ? "bg-[#7a5c35] text-white"
+              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]"
+          }`}
           onClick={() => setViewMode("list")}
         >
-          <List size={16} /> {t("apt_list_view")}
-        </Button>
-        <Button
-          size="sm"
-          variant={viewMode === "calendar" ? "primary" : "outline"}
-          className="flex items-center gap-2"
+          <List size={15} /> {t("apt_list_view")}
+        </button>
+        <button
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            viewMode === "calendar"
+              ? "bg-[#7a5c35] text-white"
+              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]"
+          }`}
           onClick={() => setViewMode("calendar")}
         >
-          <Calendar size={16} /> {t("apt_calendar_view")}
-        </Button>
+          <Calendar size={15} /> {t("apt_calendar_view")}
+        </button>
       </div>
 
       {/* ================================================================ */}
       {/* LIST VIEW                                                        */}
       {/* ================================================================ */}
       {viewMode === "list" && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-text-primary">
-              {t("apt_title")} ({sortedAppointments.length})
-            </h3>
-          </CardHeader>
-          <CardBody className="overflow-x-auto">
-            {sortedAppointments.length === 0 ? (
-              <p className="text-text-muted text-center py-12">{t("apt_none_found")}</p>
-            ) : (
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
+          {/* Section header */}
+          <div className="px-5 py-4 flex items-center gap-3" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
+            <h3 className="font-serif font-semibold text-xl text-text-primary">{t("apt_title")}</h3>
+            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+              {sortedAppointments.length}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
+          </div>
+
+          {sortedAppointments.length === 0 ? (
+            <p className="text-text-muted text-center py-12 bg-[#faf8f4]">{t("apt_none_found")}</p>
+          ) : (
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-primary-200 text-left">
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_date")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_time")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_patient")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_type")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_duration")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_notes")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_status")}</th>
-                    <th className="py-3 px-3 font-medium text-text-secondary">{t("apt_col_actions")}</th>
+                <thead style={{ background: "#e8ddd0" }}>
+                  <tr>
+                    {[t("apt_col_date"), t("apt_col_time"), t("apt_col_patient"), t("apt_col_type"), t("apt_col_duration"), t("apt_col_notes"), t("apt_col_status"), t("apt_col_actions")].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left whitespace-nowrap border-b border-[#b8936a]/20"
+                        style={{ fontSize: "10px", fontWeight: 600, color: "#8a7060", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedAppointments.map((apt) => {
+                  {sortedAppointments.map((apt, i) => {
                     const inactive = isInactive(apt.status);
-                    const statusColor = APPOINTMENT_STATUS_COLORS[apt.status] || "";
-                    const reasonNotes = [apt.reason, apt.notes]
-                      .filter(Boolean)
-                      .join(" - ");
-
+                    const reasonNotes = [apt.reason, apt.notes].filter(Boolean).join(" — ");
                     return (
                       <tr
                         key={apt.id}
-                        className={`border-b border-primary-100 ${inactive ? "opacity-50" : "hover:bg-primary-50"}`}
+                        className="group transition-colors hover:bg-[#f0e8d8]"
+                        style={{
+                          background: i % 2 === 0 ? "#faf8f4" : "#f4efe6",
+                          borderBottom: "1px solid rgba(184,147,106,0.12)",
+                          opacity: inactive ? 0.55 : 1,
+                        }}
                       >
-                        <td className="py-3 px-3 whitespace-nowrap">{apt.appointment_date}</td>
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          {apt.appointment_time ? formatTime12(apt.appointment_time) : "--"}
+                        <td className="py-3.5 px-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "#5c4030" }}>
+                          {formatDateHuman(apt.appointment_date)}
                         </td>
-                        <td className="py-3 px-3 font-medium text-text-primary">
+                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "#6b5544" }}>
+                          {apt.appointment_time ? formatTime12(apt.appointment_time) : "—"}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium capitalize" style={{ color: "#2d1f14" }}>
                           {apt.patients?.name || "Unknown"}
                         </td>
-                        <td className="py-3 px-3">
-                          <Badge variant="info">{typeLabel(apt.type)}</Badge>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                            {typeLabel(apt.type)}
+                          </span>
                         </td>
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          {apt.duration_minutes ? `${apt.duration_minutes} min` : "--"}
+                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "#8a7060" }}>
+                          {apt.duration_minutes ? `${apt.duration_minutes} min` : "—"}
                         </td>
-                        <td className="py-3 px-3 max-w-[200px] truncate" title={reasonNotes}>
-                          {reasonNotes || "--"}
+                        <td className="py-3.5 px-4 max-w-[180px] truncate" style={{ color: "#8a7060" }} title={reasonNotes}>
+                          {reasonNotes || "—"}
                         </td>
-                        <td className="py-3 px-3">
-                          <Badge className={statusColor}>{statusLabel(apt.status)}</Badge>
+                        <td className="py-3.5 px-4">
+                          <StatusBadge status={apt.status} />
                         </td>
-                        <td className="py-3 px-3">{renderActions(apt)}</td>
+                        <td className="py-3.5 px-4">{renderActions(apt)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-            )}
-          </CardBody>
-        </Card>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ================================================================ */}
@@ -551,36 +579,27 @@ export default function AppointmentsPage() {
       {/* ================================================================ */}
       {viewMode === "calendar" && (
         <>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between w-full">
-                <button
-                  onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
-                  className="p-2 rounded-lg hover:bg-primary-100 text-text-secondary transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <h3 className="text-lg font-serif font-semibold text-text-primary">
-                  {format(currentMonth, "MMMM yyyy")}
-                </h3>
-                <button
-                  onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
-                  className="p-2 rounded-lg hover:bg-primary-100 text-text-secondary transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </CardHeader>
-            <CardBody>
-              {/* Day headers */}
+          {/* Calendar grid */}
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
+              <button onClick={() => setCurrentMonth((m) => subMonths(m, 1))} className="p-2 rounded-lg hover:bg-[#f0e8d8] transition-colors" style={{ color: "#8a7060" }}>
+                <ChevronLeft size={20} />
+              </button>
+              <h3 className="font-serif font-semibold text-xl text-text-primary">
+                {format(currentMonth, "MMMM yyyy")}
+              </h3>
+              <button onClick={() => setCurrentMonth((m) => addMonths(m, 1))} className="p-2 rounded-lg hover:bg-[#f0e8d8] transition-colors" style={{ color: "#8a7060" }}>
+                <ChevronRight size={20} />
+              </button>
+            </div>
+            <div className="p-4 bg-[#faf8f4]">
               <div className="grid grid-cols-7 gap-1 mb-1">
                 {DAYS_OF_WEEK.map((d) => (
-                  <div key={d} className="text-center text-xs font-medium text-text-secondary py-2">
+                  <div key={d} className="text-center text-xs font-semibold py-2 uppercase tracking-wider" style={{ color: "#8a7060" }}>
                     {d}
                   </div>
                 ))}
               </div>
-              {/* Day cells */}
               <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day) => {
                   const key = format(day, "yyyy-MM-dd");
@@ -588,32 +607,30 @@ export default function AppointmentsPage() {
                   const isToday = isSameDay(day, new Date());
                   const inMonth = isSameMonth(day, currentMonth);
                   const isSelected = selectedCalendarDate ? isSameDay(day, selectedCalendarDate) : false;
-
                   return (
                     <button
                       key={key}
                       onClick={() => setSelectedCalendarDate(day)}
-                      className={`
-                        relative p-2 min-h-[60px] rounded-lg text-left transition-colors
-                        ${!inMonth ? "text-text-muted opacity-40" : "text-text-primary"}
-                        ${isToday ? "ring-2 ring-primary-500 bg-primary-50" : ""}
-                        ${isSelected ? "bg-primary-100 border border-primary-500" : "hover:bg-primary-50"}
-                      `}
+                      className={`relative p-2 min-h-[60px] rounded-lg text-left transition-colors ${
+                        isToday ? "ring-2 ring-[#b8936a]" : ""
+                      } ${isSelected ? "border border-[#b8936a]" : "hover:bg-[#f0e8d8]"}`}
+                      style={{
+                        background: isSelected ? "#f0e8d8" : isToday ? "#faf0e4" : "transparent",
+                        color: inMonth ? "#3d2e22" : "#c0b0a0",
+                        opacity: inMonth ? 1 : 0.5,
+                      }}
                     >
-                      <span className={`text-sm font-medium ${isToday ? "text-primary-500" : ""}`}>
+                      <span className="text-sm font-medium" style={{ color: isToday ? "#b8936a" : undefined }}>
                         {format(day, "d")}
                       </span>
                       {dayApts.length > 0 && (
                         <div className="flex gap-0.5 mt-1 flex-wrap">
                           {dayApts.length <= 3 ? (
                             dayApts.map((a) => (
-                              <span
-                                key={a.id}
-                                className="w-2 h-2 rounded-full bg-primary-500"
-                              />
+                              <span key={a.id} className="w-2 h-2 rounded-full" style={{ background: "#b8936a" }} />
                             ))
                           ) : (
-                            <span className="text-xs font-medium text-primary-500">
+                            <span className="text-xs font-medium" style={{ color: "#b8936a" }}>
                               {dayApts.length} appts
                             </span>
                           )}
@@ -623,50 +640,55 @@ export default function AppointmentsPage() {
                   );
                 })}
               </div>
-            </CardBody>
-          </Card>
+            </div>
+          </div>
 
-          {/* Selected day's appointments */}
+          {/* Selected day appointments */}
           {selectedCalendarDate && (
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-text-primary">
-                  Appointments for {format(selectedCalendarDate, "EEEE, MMMM d, yyyy")}
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
+              <div className="px-5 py-4" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
+                <h3 className="font-serif font-semibold text-xl text-text-primary">
+                  Appointments for {format(selectedCalendarDate, "EEEE, d MMMM yyyy")}
                 </h3>
-              </CardHeader>
-              <CardBody className="space-y-3">
+              </div>
+              <div className="p-4 space-y-3 bg-[#faf8f4]">
                 {selectedDayAppointments.length === 0 ? (
                   <p className="text-text-muted text-center py-8">{t("apt_none_day")}</p>
                 ) : (
-                  selectedDayAppointments.map((apt) => {
-                    const statusColor = APPOINTMENT_STATUS_COLORS[apt.status] || "";
-                    return (
-                      <div
-                        key={apt.id}
-                        className={`p-4 bg-primary-100 border border-primary-200 rounded-lg ${isInactive(apt.status) ? "opacity-50" : ""}`}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-semibold text-text-primary">
-                              {apt.patients?.name || "Unknown"}
-                            </p>
-                            <p className="text-sm text-text-secondary">
-                              {apt.appointment_time ? formatTime12(apt.appointment_time) : "--"}
-                              {apt.duration_minutes ? ` (${apt.duration_minutes} min)` : ""}
-                            </p>
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <Badge variant="info">{typeLabel(apt.type)}</Badge>
-                            <Badge className={statusColor}>{statusLabel(apt.status)}</Badge>
-                          </div>
+                  selectedDayAppointments.map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="p-4 rounded-xl"
+                      style={{
+                        background: "#f4efe6",
+                        border: "1px solid rgba(184,147,106,0.18)",
+                        borderLeft: "3px solid #b8936a",
+                        opacity: isInactive(apt.status) ? 0.55 : 1,
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold capitalize" style={{ color: "#2d1f14" }}>
+                            {apt.patients?.name || "Unknown"}
+                          </p>
+                          <p className="text-sm" style={{ color: "#8a7060" }}>
+                            {apt.appointment_time ? formatTime12(apt.appointment_time) : "—"}
+                            {apt.duration_minutes ? ` (${apt.duration_minutes} min)` : ""}
+                          </p>
                         </div>
-                        <div className="mt-2">{renderActions(apt)}</div>
+                        <div className="flex gap-2 items-center">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                            {typeLabel(apt.type)}
+                          </span>
+                          <StatusBadge status={apt.status} />
+                        </div>
                       </div>
-                    );
-                  })
+                      <div className="mt-2">{renderActions(apt)}</div>
+                    </div>
+                  ))
                 )}
-              </CardBody>
-            </Card>
+              </div>
+            </div>
           )}
         </>
       )}

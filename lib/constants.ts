@@ -31,12 +31,12 @@ export const TREATMENT_STATUS_OPTIONS = [
 ];
 
 export const TREATMENT_STATUS_COLORS: Record<string, string> = {
-  active: "bg-blue-100 text-blue-700",
-  under_treatment: "bg-amber-100 text-amber-700",
-  follow_up: "bg-indigo-100 text-indigo-700",
-  recovered: "bg-green-100 text-green-700",
-  referred: "bg-purple-100 text-purple-700",
-  discontinued: "bg-gray-100 text-gray-600",
+  active: "bg-emerald-50 text-emerald-700",
+  under_treatment: "bg-amber-50 text-amber-700",
+  follow_up: "bg-sky-50 text-sky-700",
+  recovered: "bg-teal-50 text-teal-700",
+  referred: "bg-violet-50 text-violet-700",
+  discontinued: "bg-stone-100 text-stone-600",
 };
 
 export const SEVERITY_OPTIONS = [
@@ -47,10 +47,10 @@ export const SEVERITY_OPTIONS = [
 ];
 
 export const SEVERITY_COLORS: Record<string, string> = {
-  mild: "bg-green-100 text-green-700",
-  moderate: "bg-yellow-100 text-yellow-700",
-  severe: "bg-orange-100 text-orange-700",
-  critical: "bg-red-100 text-red-700",
+  mild: "bg-amber-50 text-amber-700",
+  moderate: "bg-orange-50 text-orange-600",
+  severe: "bg-red-50 text-red-700",
+  critical: "bg-red-100 text-red-800",
 };
 
 export const GENDER_OPTIONS = [
@@ -106,14 +106,14 @@ export const APPOINTMENT_STATUS_OPTIONS = [
 ];
 
 export const APPOINTMENT_STATUS_COLORS: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  confirmed: "bg-indigo-100 text-indigo-700",
-  checked_in: "bg-cyan-100 text-cyan-700",
-  in_progress: "bg-amber-100 text-amber-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-  no_show: "bg-gray-100 text-gray-600",
-  rescheduled: "bg-purple-100 text-purple-700",
+  scheduled: "bg-blue-50 text-blue-700",
+  confirmed: "bg-indigo-50 text-indigo-700",
+  checked_in: "bg-cyan-50 text-cyan-700",
+  in_progress: "bg-amber-50 text-amber-700",
+  completed: "bg-emerald-50 text-emerald-700",
+  cancelled: "bg-red-50 text-red-600",
+  no_show: "bg-stone-100 text-stone-600",
+  rescheduled: "bg-violet-50 text-violet-700",
 };
 
 export const TREATMENT_RESPONSE_OPTIONS = [

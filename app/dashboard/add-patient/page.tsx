@@ -293,7 +293,7 @@ export default function AddPatientPage() {
           },
           linked_doctor_id: user.id,
           patient_display_id: patientDisplayId,
-          treatment_status: "active",
+          treatment_status: "pending_diagnosis",
           total_visits: 1,
           last_visit_date: new Date().toISOString().split("T")[0],
         })
@@ -501,8 +501,7 @@ export default function AddPatientPage() {
             </h3>
             {savedPatient ? (
               <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
-                The patient record has already been saved. Cancelling will return you to the
-                dashboard. You can find the patient in My Patients.
+                The patient record has already been saved and is in the Ready for Diagnosis queue. Cancelling will return you to the dashboard.
               </p>
             ) : (
               <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>

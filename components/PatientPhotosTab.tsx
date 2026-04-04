@@ -46,18 +46,18 @@ export function PatientPhotosTab({ patientId }: { patientId: string }) {
       // Query the wizard photos table (skin_scan + medical_record)
       const { data: wizardPhotos, error: wizardError } = await supabase
         .from("photos")
-        .select("*")
+        .select("id, photo_url, photo_type, body_location, notes, created_at")
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false });
 
-      if (wizardError && !wizardError.message.includes("does not exist")) {
+      if (wizardError) {
         console.error("[photos] fetch wizard photos error:", wizardError);
       }
 
       // Also query the legacy manual-upload table
       const { data: legacyPhotos, error: legacyError } = await supabase
         .from("patient_photos")
-        .select("*")
+        .select("id, photo_url, photo_type, body_location, notes, created_at")
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false });
 
