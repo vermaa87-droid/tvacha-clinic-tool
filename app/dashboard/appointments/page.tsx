@@ -514,7 +514,9 @@ export default function AppointmentsPage() {
           {sortedAppointments.length === 0 ? (
             <p className="text-text-muted text-center py-12 bg-[#faf8f4]">{t("apt_none_found")}</p>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead style={{ background: "#e8ddd0" }}>
                   <tr>
@@ -570,6 +572,54 @@ export default function AppointmentsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden flex flex-col gap-3 p-3">
+              {sortedAppointments.map((apt) => {
+                const inactive = isInactive(apt.status);
+                return (
+                  <div
+                    key={apt.id}
+                    className="bg-[#faf8f4] rounded-xl border-l-[3px] border-[#b8936a] p-4"
+                    style={{
+                      border: "1px solid #e8ddd0",
+                      borderLeft: "3px solid #b8936a",
+                      opacity: inactive ? 0.55 : 1,
+                    }}
+                  >
+                    {/* Top row: date/time + status */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs" style={{ color: "#5c4030" }}>
+                        {formatDateHuman(apt.appointment_date)}
+                        {apt.appointment_time ? ` \u00B7 ${formatTime12(apt.appointment_time)}` : ""}
+                      </span>
+                      <StatusBadge status={apt.status} />
+                    </div>
+
+                    {/* Patient name */}
+                    <p className="font-serif font-bold capitalize text-base mb-2" style={{ color: "#2d1f14" }}>
+                      {apt.patients?.name || "Unknown"}
+                    </p>
+
+                    {/* Type + Duration */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                        {typeLabel(apt.type)}
+                      </span>
+                      {apt.duration_minutes && (
+                        <span className="text-xs" style={{ color: "#8a7060" }}>
+                          {apt.duration_minutes} min
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div>{renderActions(apt)}</div>
+                  </div>
+                );
+              })}
+            </div>
+            </>
           )}
         </div>
       )}

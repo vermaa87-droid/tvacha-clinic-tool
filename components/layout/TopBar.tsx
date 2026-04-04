@@ -25,7 +25,7 @@ export function TopBar({
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
-            className="p-2 text-text-secondary hover:text-text-primary md:hidden"
+            className="w-11 h-11 flex items-center justify-center text-text-secondary hover:text-text-primary md:hidden"
           >
             <Menu size={24} />
           </button>

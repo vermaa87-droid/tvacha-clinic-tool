@@ -183,7 +183,7 @@ export const translations = {
 
     cases_title: "Case Queue",
     cases_subtitle: "AI-screened cases for your review",
-    cases_coming_title: "AI Case Queue — Coming Soon",
+    cases_coming_title: "AI Case Queue — Phased Rollout",
     cases_coming_desc1: "When Tvacha consumer app users start sending skin photos, AI-screened cases will appear here for your review. You'll be able to",
     cases_approve: "approve",
     cases_correct: "correct",
@@ -767,7 +767,7 @@ export const translations = {
 
     cases_title: "केस क्यू",
     cases_subtitle: "आपकी समीक्षा के लिए AI-स्क्रीन किए गए केस",
-    cases_coming_title: "AI केस क्यू — जल्द आ रहा है",
+    cases_coming_title: "AI केस क्यू — चरणबद्ध रोलआउट",
     cases_coming_desc1: "जब तवचा उपभोक्ता ऐप उपयोगकर्ता तवचा की फ़ोटो भेजना शुरू करेंगे, तो AI-स्क्रीन किए गए केस आपकी समीक्षा के लिए यहाँ दिखाई देंगे। आप",
     cases_approve: "अनुमोदित",
     cases_correct: "सुधार",

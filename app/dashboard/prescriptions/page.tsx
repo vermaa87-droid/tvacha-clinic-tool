@@ -526,7 +526,9 @@ export default function PrescriptionsPage() {
         {prescriptions.length === 0 ? (
           <p className="text-text-muted text-center py-8">{t("rx_no_prescriptions")}</p>
         ) : (
-          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
+          <>
+          {/* Desktop table */}
+          <div className="hidden md:block rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead style={{ background: "#e8ddd0" }}>
@@ -575,6 +577,53 @@ export default function PrescriptionsPage() {
               </table>
             </div>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden flex flex-col gap-3">
+            {prescriptions.map((rx) => (
+              <div
+                key={rx.id}
+                className="bg-[#faf8f4] rounded-xl border-l-[3px] border-[#b8936a] cursor-pointer transition-shadow hover:shadow-md"
+                style={{ border: "1px solid #e8ddd0", borderLeft: "3px solid #b8936a" }}
+                onClick={() => setViewRx(rx)}
+              >
+                <div className="px-4 py-3 flex flex-col gap-2">
+                  {/* Top row: date + status */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs" style={{ color: "#5c4030" }}>
+                      {format(new Date(rx.created_at), "dd MMM yyyy")}
+                    </span>
+                    {rx.status === "active" ? (
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Active</span>
+                    ) : rx.status === "cancelled" ? (
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 capitalize">{rx.status}</span>
+                    ) : (
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 capitalize">{rx.status}</span>
+                    )}
+                  </div>
+
+                  {/* Patient name */}
+                  <p className="font-serif font-bold text-sm capitalize" style={{ color: "#2d1f14" }}>
+                    {rx.patients?.name || "Unknown"}
+                  </p>
+
+                  {/* Diagnosis */}
+                  <p className="text-xs" style={{ color: "#6b5544" }}>{rx.diagnosis}</p>
+
+                  {/* Bottom row: medicines count + view link */}
+                  <div className="flex items-center justify-between pt-1" style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }}>
+                    <span className="text-xs" style={{ color: "#8a7060" }}>
+                      {rx.medicines.length} {rx.medicines.length === 1 ? "medicine" : "medicines"}
+                    </span>
+                    <span className="text-[#b8936a] font-medium text-xs inline-flex items-center gap-0.5">
+                      View <span aria-hidden="true">&rarr;</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

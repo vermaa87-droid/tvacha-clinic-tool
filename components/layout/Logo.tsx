@@ -41,7 +41,7 @@ export function Logo() {
           Tvacha
           <span className="ml-1 text-primary-500">Clinic</span>
         </div>
-        <div className="text-xs font-semibold text-text-secondary tracking-widest">
+        <div className="text-xs font-semibold text-text-secondary tracking-widest hidden sm:block">
           INTELLIGENCE INFRASTRUCTURE
         </div>
       </div>

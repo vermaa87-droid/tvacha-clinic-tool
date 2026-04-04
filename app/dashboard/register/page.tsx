@@ -1080,30 +1080,123 @@ export default function RegisterPage() {
       {/* Tab Content */}
       {activeTab === "patients" && (
         <div>
-          <DataTable<PatientRow>
-            data={patients}
-            columns={patientColumns}
-            onCellEdit={handlePatientCellEdit}
-            onAddRow={() => setShowAddPatient(true)}
-            addRowLabel={t("reg_add_patient")}
-            searchPlaceholder={t("reg_search_patients")}
-            exportFilename="patient-register"
-            loading={loadingPatients}
-            emptyMessage={t("reg_empty_patients")}
-            emptyAction={t("reg_empty_patients_action")}
-            pageSize={patientPageSize}
-          />
-          <div className="flex items-center gap-2 mt-2 text-sm text-text-muted">
-            <span>Rows per page:</span>
-            <select
-              value={patientPageSize}
-              onChange={(e) => setPatientPageSize(Number(e.target.value))}
-              className="px-2 py-1 border border-primary-200 rounded bg-surface text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <DataTable<PatientRow>
+              data={patients}
+              columns={patientColumns}
+              onCellEdit={handlePatientCellEdit}
+              onAddRow={() => setShowAddPatient(true)}
+              addRowLabel={t("reg_add_patient")}
+              searchPlaceholder={t("reg_search_patients")}
+              exportFilename="patient-register"
+              loading={loadingPatients}
+              emptyMessage={t("reg_empty_patients")}
+              emptyAction={t("reg_empty_patients_action")}
+              pageSize={patientPageSize}
+            />
+            <div className="flex items-center gap-2 mt-2 text-sm text-text-muted">
+              <span>Rows per page:</span>
+              <select
+                value={patientPageSize}
+                onChange={(e) => setPatientPageSize(Number(e.target.value))}
+                className="px-2 py-1 border border-primary-200 rounded bg-surface text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Mobile card view */}
+          <div className="md:hidden">
+            {/* Mobile add button */}
+            <button
+              onClick={() => setShowAddPatient(true)}
+              className="w-full mb-4 flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#c9b89c] bg-[#faf8f4] px-4 py-3 text-sm font-medium text-[#b8936a] hover:bg-[#f5f0e8] transition-colors"
             >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+              <Plus className="w-4 h-4" />
+              {t("reg_add_patient")}
+            </button>
+
+            {loadingPatients ? (
+              <div className="flex items-center justify-center py-12 text-sm text-text-muted">Loading patients...</div>
+            ) : patients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-sm text-text-muted">
+                <p>{t("reg_empty_patients")}</p>
+                <p className="mt-1 text-xs">{t("reg_empty_patients_action")}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {patients.map((patient) => {
+                  const age = patient.age ?? "";
+                  const g = patient.gender;
+                  const gShort = g === "Male" ? "M" : g === "Female" ? "F" : g === "Other" ? "O" : g ? g.charAt(0).toUpperCase() : "";
+                  const ageGender = age || gShort ? `${age}/${gShort}` : "—";
+
+                  const severityLabel = SEVERITY_OPTIONS.find((o) => o.value === patient.severity)?.label ?? patient.severity;
+                  const severityColor = patient.severity ? SEVERITY_COLORS[patient.severity] ?? "bg-stone-100 text-stone-600" : null;
+
+                  const statusLabel = TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label ?? patient.treatment_status;
+                  const statusColor = patient.treatment_status ? TREATMENT_STATUS_COLORS[patient.treatment_status] ?? "bg-stone-100 text-stone-600" : null;
+
+                  return (
+                    <Link
+                      key={patient.id}
+                      href={`/dashboard/patients/${patient.id}`}
+                      className="block rounded-xl border border-[#e8ddd0] border-l-[3px] border-l-[#b8936a] bg-[#faf8f4] p-4 active:bg-[#f5f0e8] transition-colors"
+                    >
+                      {/* Name row */}
+                      <div className="flex items-start justify-between gap-2 mb-2.5">
+                        <h3 className="font-serif text-base font-semibold text-[#1a1612] capitalize leading-tight">
+                          {patient.name}
+                        </h3>
+                        <span className="shrink-0 text-xs text-[#9a8a76]">{patient.patient_display_id}</span>
+                      </div>
+
+                      {/* Fields grid */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                        <div>
+                          <span className="text-[#9a8a76] text-xs">Age/Gender</span>
+                          <p className="text-[#1a1612] text-sm">{ageGender}</p>
+                        </div>
+                        <div>
+                          <span className="text-[#9a8a76] text-xs">Disease</span>
+                          <p className="text-[#1a1612] text-sm truncate">{patient.current_diagnosis || "—"}</p>
+                        </div>
+                        <div>
+                          <span className="text-[#9a8a76] text-xs">Last Visit</span>
+                          <p className="text-[#1a1612] text-sm">{formatDate(patient.last_visit_date) || "—"}</p>
+                        </div>
+                        {patient.phone && (
+                          <div>
+                            <span className="text-[#9a8a76] text-xs">Phone</span>
+                            <p className="text-[#1a1612] text-sm">{patient.phone}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Badges */}
+                      {(severityColor || statusColor) && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {severityColor && (
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${severityColor}`}>
+                              {severityLabel}
+                            </span>
+                          )}
+                          {statusColor && (
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor}`}>
+                              {statusLabel}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

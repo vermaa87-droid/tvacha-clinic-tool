@@ -400,7 +400,7 @@ export default function AddPatientPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
+    <div className="max-w-2xl mx-auto py-4 md:py-6">
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-3xl font-serif font-bold" style={{ color: "#1a1612" }}>
@@ -428,7 +428,7 @@ export default function AddPatientPage() {
           <button
             type="button"
             onClick={() => setShowCancelModal(true)}
-            className="absolute top-4 right-4 flex items-center gap-1 text-sm transition-colors hover:text-red-500"
+            className="absolute top-3 right-3 md:top-4 md:right-4 flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition-colors hover:text-red-500 hover:bg-red-50"
             style={{ color: "#9a8a76" }}
           >
             <X size={15} />

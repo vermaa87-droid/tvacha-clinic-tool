@@ -27,7 +27,7 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
             {/* Circle + label */}
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                className="w-11 h-11 md:w-9 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
                 style={
                   isCompleted || isActive
                     ? { background: "#b8936a", border: "2px solid #b8936a" }
@@ -65,7 +65,7 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
                 className="flex-1 h-0.5 mx-1"
                 style={{
                   background: isCompleted ? "#b8936a" : "#e0d5c4",
-                  marginTop: 18,
+                  marginTop: 22,
                 }}
               />
             )}

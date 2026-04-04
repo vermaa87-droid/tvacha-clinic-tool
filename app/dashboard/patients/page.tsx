@@ -322,15 +322,15 @@ export default function PatientsPage() {
         <Button
           variant="primary"
           onClick={() => { setFormError(""); setShowModal(true); }}
-          className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
+          className="w-full md:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
         >
           {t("patients_add")}
         </Button>
       </div>
 
       {/* Search + Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Search with icon */}
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Search — always full width */}
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#b8936a" }} />
           <input
@@ -342,26 +342,29 @@ export default function PatientsPage() {
           />
         </div>
 
-        <select className={filterSelectClass} style={filterSelectStyle} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="">{t("patients_all_statuses")}</option>
-          {TREATMENT_STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        {/* Dropdowns: 2-col on mobile, 3-col row on lg */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+          <select className={filterSelectClass} style={filterSelectStyle} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="">{t("patients_all_statuses")}</option>
+            {TREATMENT_STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
 
-        <select className={filterSelectClass} style={filterSelectStyle} value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
-          <option value="">{t("patients_all_severities")}</option>
-          {SEVERITY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+          <select className={filterSelectClass} style={filterSelectStyle} value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
+            <option value="">{t("patients_all_severities")}</option>
+            {SEVERITY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
 
-        <select className={filterSelectClass} style={filterSelectStyle} value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)}>
-          <option value="created_at">{t("patients_sort_date")}</option>
-          <option value="name">{t("patients_sort_name")}</option>
-          <option value="last_visit_date">{t("patients_sort_visit")}</option>
-          <option value="severity">{t("patients_sort_severity")}</option>
-        </select>
+          <select className={`${filterSelectClass} col-span-2 lg:col-span-1`} style={filterSelectStyle} value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)}>
+            <option value="created_at">{t("patients_sort_date")}</option>
+            <option value="name">{t("patients_sort_name")}</option>
+            <option value="last_visit_date">{t("patients_sort_visit")}</option>
+            <option value="severity">{t("patients_sort_severity")}</option>
+          </select>
+        </div>
       </div>
 
       {/* Patient Cards Grid or Empty State */}

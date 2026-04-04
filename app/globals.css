@@ -75,11 +75,27 @@ p {
   will-change: transform;
 }
 
-/* Disable floating animations on mobile for performance */
+/* Mobile-specific fixes */
 @media (max-width: 767px) {
   .float-element {
     animation: none;
     will-change: auto;
+  }
+
+  /* Ensure minimum tap target size */
+  button, a, select, [role="button"] {
+    min-height: 36px;
+  }
+
+  /* Ensure readable text */
+  body {
+    font-size: 14px;
+  }
+
+  /* Full-width action buttons on mobile */
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    text-align: center;
   }
 }
 

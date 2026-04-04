@@ -330,10 +330,6 @@ export default function PatientDetailPage({
   useEffect(() => { fetchFees(); }, [fetchFees]);
 
   const totalFees = patientFees.reduce((sum, f) => sum + Number(f.amount), 0);
-  const outstandingBalance = patientFees
-    .filter((f) => f.status === "unpaid")
-    .reduce((sum, f) => sum + Number(f.amount), 0);
-
   const updateFeeStatus = async (feeId: string, newStatus: string) => {
     await supabase.from("patient_fees").update({ status: newStatus }).eq("id", feeId);
     setPatientFees((prev) => prev.map((f) => f.id === feeId ? { ...f, status: newStatus } : f));
@@ -759,7 +755,7 @@ export default function PatientDetailPage({
         className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 overflow-y-auto"
         style={{ backgroundColor: "#f5f2ed" }}
       >
-        <div className="p-6 space-y-5">
+        <div className="p-4 space-y-3 md:p-6 md:space-y-5">
           {/* Back link + Delete */}
           <div className="flex items-center justify-between">
             <Link
@@ -806,15 +802,15 @@ export default function PatientDetailPage({
 
           {/* Avatar + Name */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-primary-200 flex items-center justify-center mb-3">
-              <span className="text-2xl font-bold text-primary-700">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-200 flex items-center justify-center mx-auto mb-2 md:mb-3">
+              <span className="text-xl md:text-2xl font-bold text-primary-700">
                 {getInitials(patient.name)}
               </span>
             </div>
-            <h2 className="text-xl font-serif font-bold text-text-primary truncate w-full px-2" title={patient.name}>
+            <h2 className="text-lg md:text-xl font-serif font-bold text-text-primary truncate w-full px-2" title={patient.name}>
               {patient.name}
             </h2>
-            <p className="text-sm text-text-muted mt-0.5">
+            <p className="text-xs md:text-sm text-text-muted mt-0.5">
               {patient.patient_display_id ||
                 `TVP-${patient.id.slice(0, 4).toUpperCase()}`}
             </p>
@@ -823,7 +819,7 @@ export default function PatientDetailPage({
           <hr className="border-primary-200" />
 
           {/* Info rows */}
-          <div className="space-y-3 text-sm">
+          <div className="space-y-2 md:space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-text-muted">Age | Gender</span>
               <span className="text-text-primary font-medium">
@@ -993,7 +989,7 @@ export default function PatientDetailPage({
       </aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto md:min-h-0">
+      <div className="flex-1 min-w-0 overflow-y-auto md:min-h-0">
         {/* Tabs */}
         <div className="border-b border-primary-200 bg-primary-50 sticky top-0 z-10 overflow-x-auto">
           <div className="flex gap-0 overflow-x-auto px-4 md:px-6 whitespace-nowrap">
@@ -1001,7 +997,7 @@ export default function PatientDetailPage({
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2.5 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.key
                     ? "border-primary-600 text-primary-700"
                     : "border-transparent text-text-muted hover:text-text-primary hover:border-primary-300"
@@ -1014,7 +1010,7 @@ export default function PatientDetailPage({
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* ── Tab A: OVERVIEW ────────────────────────────────────────────── */}
           {activeTab === "overview" && (
             <div className="space-y-6">
