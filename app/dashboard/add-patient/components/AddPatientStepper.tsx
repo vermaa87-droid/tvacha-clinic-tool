@@ -1,13 +1,15 @@
 "use client";
 
 import { Camera, ClipboardList, User, Brain, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
+import type { TranslationKey } from "@/lib/translations";
 
-const STEPS = [
-  { num: 1, label: "Photos", icon: Camera },
-  { num: 2, label: "Screening", icon: ClipboardList },
-  { num: 3, label: "Details", icon: User },
-  { num: 4, label: "AI Result", icon: Brain },
-  { num: 5, label: "Summary", icon: CheckCircle },
+const STEPS: { num: number; labelKey: TranslationKey; icon: typeof Camera }[] = [
+  { num: 1, labelKey: "ap_step_photos", icon: Camera },
+  { num: 2, labelKey: "ap_step_screening", icon: ClipboardList },
+  { num: 3, labelKey: "ap_step_details", icon: User },
+  { num: 4, labelKey: "ap_step_ai_result", icon: Brain },
+  { num: 5, labelKey: "ap_step_summary", icon: CheckCircle },
 ];
 
 interface AddPatientStepperProps {
@@ -15,6 +17,8 @@ interface AddPatientStepperProps {
 }
 
 export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex items-start w-full mb-8">
       {STEPS.map((step, idx) => {
@@ -55,7 +59,7 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
                 className="text-xs font-medium hidden sm:block text-center"
                 style={{ color: isActive || isCompleted ? "#b8936a" : "#9a8a76", minWidth: 48 }}
               >
-                {step.label}
+                {t(step.labelKey)}
               </span>
             </div>
 

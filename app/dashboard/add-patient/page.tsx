@@ -19,6 +19,7 @@ import {
   type SavedPatient,
 } from "./wizard-types";
 import { X } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
 
 type WizardStep = 1 | 2 | 3 | 4 | 5;
 
@@ -70,6 +71,7 @@ async function base64ToFile(dataUrl: string, index: number): Promise<File> {
 export default function AddPatientPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { t } = useLanguage();
 
   // ── State — lazily initialised from sessionStorage so first render is correct
 
@@ -342,6 +344,7 @@ export default function AddPatientPage() {
       const photoCount: number = mediaData.photoCount ?? 0;
       const savedRecordCount: number = mediaData.recordCount ?? 0;
       const failedPhotos: number = mediaData.failedPhotos ?? (filledSlots.length - photoCount);
+      const photoUrls: string[] = mediaData.photoUrls ?? [];
 
       // 4. Insert visit row
       await supabase.from("visits").insert({
@@ -362,6 +365,7 @@ export default function AddPatientPage() {
         photoCount: photoCount,
         recordCount: savedRecordCount,
         photoUploadFailed: failedPhotos,
+        photoUrls,
       });
 
       setCurrentStep(4);
@@ -404,10 +408,10 @@ export default function AddPatientPage() {
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-3xl font-serif font-bold" style={{ color: "#1a1612" }}>
-          Add Patient
+          {t("ap_title")}
         </h1>
         <p className="text-sm mt-1" style={{ color: "#9a8a76" }}>
-          Register a new walk-in patient with photos and screening data.
+          {t("ap_subtitle")}
         </p>
       </div>
 
@@ -432,7 +436,7 @@ export default function AddPatientPage() {
             style={{ color: "#9a8a76" }}
           >
             <X size={15} />
-            Cancel
+            {t("ap_cancel")}
           </button>
         )}
 
@@ -497,15 +501,15 @@ export default function AddPatientPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
-              Are you sure you want to cancel?
+              {t("ap_cancel_title")}
             </h3>
             {savedPatient ? (
               <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
-                The patient record has already been saved and is in the Ready for Diagnosis queue. Cancelling will return you to the dashboard.
+                {t("ap_cancel_saved")}
               </p>
             ) : (
               <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
-                All entered data including photos will be lost.
+                {t("ap_cancel_unsaved")}
               </p>
             )}
             <div className="flex gap-3 justify-end">
@@ -515,7 +519,7 @@ export default function AddPatientPage() {
                 className="px-5 py-2.5 rounded-lg font-semibold border text-sm"
                 style={{ borderColor: "#e8e0d0", color: "#9a8a76", background: "transparent" }}
               >
-                Go Back
+                {t("ap_cancel_go_back")}
               </button>
               <button
                 type="button"
@@ -523,7 +527,7 @@ export default function AddPatientPage() {
                 className="px-5 py-2.5 rounded-lg font-semibold text-white text-sm"
                 style={{ background: "#c44a4a" }}
               >
-                Yes, Cancel
+                {t("ap_cancel_yes")}
               </button>
             </div>
           </div>

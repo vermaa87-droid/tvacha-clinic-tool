@@ -10,17 +10,21 @@ import { ArrowLeft, X } from "lucide-react";
 // ─── Diagnosis options ─────────────────────────────────────────────────────────
 
 const DIAGNOSIS_OPTIONS = [
-  { value: "healthy_skin", label: "Healthy Skin" },
+  { value: "healthy", label: "Healthy Skin" },
   { value: "acne", label: "Acne" },
   { value: "fungal_infection", label: "Fungal Infection" },
-  { value: "dermatitis_eczema", label: "Dermatitis / Eczema" },
+  { value: "eczema", label: "Eczema (Atopic Dermatitis)" },
+  { value: "contact_dermatitis", label: "Contact Dermatitis" },
+  { value: "urticaria", label: "Urticaria (Hives)" },
   { value: "psoriasis", label: "Psoriasis" },
+  { value: "scabies", label: "Scabies" },
+  { value: "bullous_disease", label: "Bullous Disease (Blistering Disorder)" },
   { value: "melanoma", label: "Melanoma (Skin Cancer)" },
   { value: "basal_cell_carcinoma", label: "Basal Cell Carcinoma" },
-  { value: "squamous_cell_carcinoma", label: "Squamous Cell Carcinoma / Actinic Keratosis" },
+  { value: "squamous_cell_carcinoma", label: "Squamous Cell Carcinoma" },
   { value: "melanocytic_nevus", label: "Mole (Melanocytic Nevus)" },
   { value: "benign_lesion", label: "Benign Skin Lesion" },
-  { value: "pigmentation_disorder", label: "Pigmentation Disorder" },
+  { value: "pigmentary_disorder", label: "Pigmentation Disorder" },
   { value: "bacterial_infection", label: "Bacterial Skin Infection" },
   { value: "viral_infection", label: "Viral Skin Infection (Warts / Molluscum)" },
   { value: "other", label: "Other (Custom)" },
@@ -121,6 +125,16 @@ export default function ReviewPatientPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // AI case data
+  const [aiCase, setAiCase] = useState<{
+    ai_diagnosis: string;
+    ai_diagnosis_display: string;
+    ai_confidence: number;
+    ai_severity_label: string;
+    ai_top_3: { class: string; confidence: number }[];
+    source: string;
+  } | null>(null);
+
   const fetchPatient = useCallback(async () => {
     if (!user || !patientId) return;
     setLoading(true);
@@ -144,6 +158,36 @@ export default function ReviewPatientPage() {
       const all = (photoData ?? []) as Photo[];
       setPhotos(all.filter((p) => p.photo_type === "skin_scan"));
       setMedicalRecords(all.filter((p) => p.photo_type === "medical_record"));
+
+      // Fetch AI case if exists
+      const { data: caseData } = await supabase
+        .from("cases")
+        .select("ai_diagnosis, ai_diagnosis_display, ai_confidence, ai_severity_label, ai_top_3, status")
+        .eq("patient_id", patientId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (caseData && caseData.ai_diagnosis !== "pending") {
+        setAiCase({
+          ai_diagnosis: caseData.ai_diagnosis,
+          ai_diagnosis_display: caseData.ai_diagnosis_display,
+          ai_confidence: caseData.ai_confidence,
+          ai_severity_label: caseData.ai_severity_label,
+          ai_top_3: (caseData.ai_top_3 as { class: string; confidence: number }[]) ?? [],
+          source: "ai",
+        });
+        // Pre-fill doctor's form from AI suggestion
+        const aiDiag = caseData.ai_diagnosis as string;
+        const matchOpt = DIAGNOSIS_OPTIONS.find((o) => o.value === aiDiag || o.value === aiDiag.replace(/\s/g, "_"));
+        if (matchOpt) {
+          setDiseaseClassification(matchOpt.value);
+        }
+        const sevMap: Record<string, string> = { Mild: "Mild", Moderate: "Moderate", Severe: "Severe", Critical: "Critical", Minimal: "Minimal" };
+        if (sevMap[caseData.ai_severity_label]) {
+          setSelectedSeverity(caseData.ai_severity_label);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -334,6 +378,86 @@ export default function ReviewPatientPage() {
         </SectionCard>
       )}
 
+      {/* AI Screening Result */}
+      {aiCase && (
+        <SectionCard title="AI Screening Result">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#9a8a76" }}>AI Diagnosis</p>
+              <p className="text-lg font-serif font-bold" style={{ color: ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(aiCase.ai_diagnosis) ? "#dc2626" : "#1a1612" }}>
+                {aiCase.ai_diagnosis_display}
+              </p>
+            </div>
+            <span
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+              style={{
+                background: aiCase.ai_severity_label === "Severe" ? "rgba(220,38,38,0.1)" : aiCase.ai_severity_label === "Moderate" ? "rgba(212,165,90,0.15)" : "rgba(74,154,74,0.12)",
+                color: aiCase.ai_severity_label === "Severe" ? "#dc2626" : aiCase.ai_severity_label === "Moderate" ? "#b8860b" : "#4a9a4a",
+              }}
+            >
+              {aiCase.ai_severity_label}
+            </span>
+          </div>
+          {/* Confidence bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>Confidence</span>
+              <span className="text-sm font-bold" style={{ color: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : Math.round(aiCase.ai_confidence * 100) >= 50 ? "#d4a55a" : "#c44a4a" }}>
+                {Math.round(aiCase.ai_confidence * 100)}%
+              </span>
+            </div>
+            <div className="w-full h-2.5 rounded-full" style={{ background: "#e8e0d0" }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.round(aiCase.ai_confidence * 100)}%`,
+                  background: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : Math.round(aiCase.ai_confidence * 100) >= 50 ? "#d4a55a" : "#c44a4a",
+                }}
+              />
+            </div>
+          </div>
+          {/* Top 3 */}
+          {aiCase.ai_top_3.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#9a8a76" }}>Differential Diagnosis</p>
+              <div className="space-y-2">
+                {aiCase.ai_top_3.map((pred, idx) => {
+                  const pct = Math.round(pred.confidence * 100);
+                  const isCancer = ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(pred.class);
+                  const displayName: Record<string, string> = {
+                    healthy: "Healthy Skin", acne: "Acne", fungal_infection: "Fungal Infection",
+                    dermatitis: "Dermatitis / Eczema", psoriasis: "Psoriasis", melanoma: "Melanoma",
+                    basal_cell_carcinoma: "Basal Cell Carcinoma", squamous_cell_carcinoma: "Squamous Cell Carcinoma",
+                    melanocytic_nevus: "Mole (Melanocytic Nevus)", benign_lesion: "Benign Skin Lesion",
+                    pigmentary_disorder: "Pigmentation Disorder", bacterial_infection: "Bacterial Infection",
+                    viral_infection: "Viral Infection",
+                  };
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="text-xs font-mono w-5 text-right" style={{ color: "#9a8a76" }}>{idx + 1}.</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-sm font-medium" style={{ color: isCancer ? "#dc2626" : "#1a1612" }}>
+                            {displayName[pred.class] || pred.class}{isCancer ? " ⚠" : ""}
+                          </span>
+                          <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>{pct}%</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full" style={{ background: "#e8e0d0" }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: isCancer ? "#dc2626" : "#b8936a" }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <p className="text-xs mt-4 pt-3" style={{ color: "#9a8a76", borderTop: "1px solid rgba(184,147,106,0.2)" }}>
+            AI suggestion has been pre-filled below. You can confirm or override the classification.
+          </p>
+        </SectionCard>
+      )}
+
       {/* Screening data */}
       <SectionCard title="Screening Data">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
@@ -436,7 +560,7 @@ export default function ReviewPatientPage() {
       <SectionCard title="Doctor's Assessment">
         <div className="mb-4">
           <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
-            Disease Classification <span style={{ color: "#dc2626" }}>*</span>
+            AI Predicted Classification <span style={{ color: "#dc2626" }}>*</span>
           </label>
           <select
             value={diseaseClassification}

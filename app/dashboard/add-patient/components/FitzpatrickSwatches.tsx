@@ -1,12 +1,15 @@
 "use client";
 
-const SWATCHES = [
-  { type: 1, color: "#FCDCCE", label: "Very Light" },
-  { type: 2, color: "#F5C5A3", label: "Light" },
-  { type: 3, color: "#D4A574", label: "Medium" },
-  { type: 4, color: "#C68642", label: "Olive" },
-  { type: 5, color: "#8D5524", label: "Brown" },
-  { type: 6, color: "#5A3825", label: "Dark Brown" },
+import { useLanguage } from "@/lib/language-context";
+import type { TranslationKey } from "@/lib/translations";
+
+const SWATCHES: { type: number; color: string; labelKey: TranslationKey }[] = [
+  { type: 1, color: "#FCDCCE", labelKey: "ap_s2_fitz_very_light" },
+  { type: 2, color: "#F5C5A3", labelKey: "ap_s2_fitz_light" },
+  { type: 3, color: "#D4A574", labelKey: "ap_s2_fitz_medium" },
+  { type: 4, color: "#C68642", labelKey: "ap_s2_fitz_olive" },
+  { type: 5, color: "#8D5524", labelKey: "ap_s2_fitz_brown" },
+  { type: 6, color: "#5A3825", labelKey: "ap_s2_fitz_dark" },
 ];
 
 interface FitzpatrickSwatchesProps {
@@ -16,6 +19,8 @@ interface FitzpatrickSwatchesProps {
 }
 
 export function FitzpatrickSwatches({ value, onChange, error }: FitzpatrickSwatchesProps) {
+  const { t } = useLanguage();
+
   return (
     <div>
       <div className="flex gap-3 flex-wrap">
@@ -41,7 +46,7 @@ export function FitzpatrickSwatches({ value, onChange, error }: FitzpatrickSwatc
               }}
             />
             <span className="text-xs text-center" style={{ color: "#9a8a76", maxWidth: 52 }}>
-              {swatch.label}
+              {t(swatch.labelKey)}
             </span>
           </button>
         ))}

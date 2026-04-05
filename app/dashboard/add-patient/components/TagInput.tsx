@@ -8,9 +8,10 @@ interface TagInputProps {
   onAdd: (tag: string) => void;
   onRemove: (tag: string) => void;
   placeholder?: string;
+  enterHint?: string;
 }
 
-export function TagInput({ tags, onAdd, onRemove, placeholder }: TagInputProps) {
+export function TagInput({ tags, onAdd, onRemove, placeholder, enterHint }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");
 
   const commit = () => {
@@ -60,7 +61,7 @@ export function TagInput({ tags, onAdd, onRemove, placeholder }: TagInputProps) 
         placeholder={placeholder}
         className="w-full px-4 py-2.5 border border-primary-200 rounded-lg bg-surface text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
       />
-      <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>Press Enter to add</p>
+      <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>{enterHint ?? "Press Enter to add"}</p>
     </div>
   );
 }

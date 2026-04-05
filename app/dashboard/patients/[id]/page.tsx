@@ -198,6 +198,19 @@ export default function PatientDetailPage({
   // Tabs
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
+  // AI case data
+  const [aiCase, setAiCase] = useState<{
+    id: string;
+    ai_diagnosis: string;
+    ai_diagnosis_display: string;
+    ai_confidence: number;
+    ai_severity_label: string;
+    ai_top_3: { class: string; confidence: number }[];
+    status: string;
+    doctor_override_diagnosis: string | null;
+    doctor_reviewed_at: string | null;
+  } | null>(null);
+
   // Visit data & modal
   const [visits, setVisits] = useState<Visit[]>([]);
   const [visitsLoading, setVisitsLoading] = useState(false);
@@ -252,6 +265,21 @@ export default function PatientDetailPage({
 
       if (error) throw error;
       if (data) setPatient(data as PatientWithDetails);
+
+      // Fetch AI case
+      const { data: caseData } = await supabase
+        .from("cases")
+        .select("id, ai_diagnosis, ai_diagnosis_display, ai_confidence, ai_severity_label, ai_top_3, status, doctor_override_diagnosis, doctor_reviewed_at")
+        .eq("patient_id", params.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (caseData) {
+        setAiCase({
+          ...caseData,
+          ai_top_3: (caseData.ai_top_3 as { class: string; confidence: number }[]) ?? [],
+        });
+      }
     } catch (err) {
       console.error("[patient-detail] fetch error:", err);
     } finally {
@@ -1083,6 +1111,83 @@ export default function PatientDetailPage({
                   </CardBody>
                 </Card>
               </div>
+
+              {/* AI Screening Result */}
+              {aiCase && aiCase.ai_diagnosis !== "pending" && (
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-lg font-serif font-semibold text-text-primary">
+                      AI Screening Result
+                    </h3>
+                  </CardHeader>
+                  <CardBody>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-text-muted mb-1">AI Diagnosis</p>
+                        <p className="text-lg font-bold text-text-primary">
+                          {aiCase.ai_diagnosis_display}
+                        </p>
+                      </div>
+                      <span
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+                        style={{
+                          background: aiCase.ai_severity_label === "Severe" ? "rgba(220,38,38,0.1)" : aiCase.ai_severity_label === "Moderate" ? "rgba(212,165,90,0.15)" : "rgba(74,154,74,0.12)",
+                          color: aiCase.ai_severity_label === "Severe" ? "#dc2626" : aiCase.ai_severity_label === "Moderate" ? "#b8860b" : "#4a9a4a",
+                        }}
+                      >
+                        {aiCase.ai_severity_label}
+                      </span>
+                    </div>
+                    {/* Confidence */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-text-muted">Confidence</span>
+                        <span className="text-sm font-bold" style={{ color: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : "#d4a55a" }}>
+                          {Math.round(aiCase.ai_confidence * 100)}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 rounded-full" style={{ background: "#e8e0d0" }}>
+                        <div className="h-full rounded-full" style={{ width: `${Math.round(aiCase.ai_confidence * 100)}%`, background: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : "#d4a55a" }} />
+                      </div>
+                    </div>
+                    {/* Top 3 */}
+                    {aiCase.ai_top_3.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs text-text-muted mb-2">Differential Diagnosis</p>
+                        <div className="space-y-1.5">
+                          {aiCase.ai_top_3.map((pred, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-sm">
+                              <span className="text-text-primary">{idx + 1}. {pred.class.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</span>
+                              <span className="text-text-muted font-semibold">{Math.round(pred.confidence * 100)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Doctor override */}
+                    {aiCase.doctor_override_diagnosis && (
+                      <div className="pt-3" style={{ borderTop: "1px solid rgba(184,147,106,0.2)" }}>
+                        <p className="text-xs text-text-muted mb-1">Doctor&apos;s Final Diagnosis</p>
+                        <p className="text-sm font-semibold text-text-primary">{aiCase.doctor_override_diagnosis}</p>
+                        {aiCase.doctor_reviewed_at && (
+                          <p className="text-xs text-text-muted mt-0.5">
+                            Reviewed {new Date(aiCase.doctor_reviewed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {/* Status badge */}
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{
+                        background: aiCase.status === "confirmed" || aiCase.status === "approved" ? "rgba(74,154,74,0.12)" : "rgba(184,147,106,0.15)",
+                        color: aiCase.status === "confirmed" || aiCase.status === "approved" ? "#4a9a4a" : "#b8936a",
+                      }}>
+                        {aiCase.status === "confirmed" ? "Doctor Confirmed" : aiCase.status === "approved" ? "Approved" : aiCase.status === "pending_review" ? "Pending Review" : aiCase.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </span>
+                    </div>
+                  </CardBody>
+                </Card>
+              )}
 
               {/* Recent Visit Summary */}
               <Card>

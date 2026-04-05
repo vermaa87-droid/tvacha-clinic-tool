@@ -53,6 +53,8 @@ export default function DashboardHome() {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [pendingCases, setPendingCases] = useState(0);
+  const [urgentCases, setUrgentCases] = useState(0);
 
   const fetchData = useCallback(async (silent?: boolean) => {
     if (!user) return;
@@ -73,6 +75,8 @@ export default function DashboardHome() {
         recentPrescriptionsRes,
         recentVisitsRes,
         overdueFollowupsRes,
+        pendingCasesRes,
+        urgentCasesRes,
       ] = await Promise.all([
         // Total Patients
         supabase
@@ -136,6 +140,19 @@ export default function DashboardHome() {
           .not("treatment_status", "eq", "discontinued")
           .order("next_followup_date", { ascending: true })
           .limit(5),
+        // Pending AI cases
+        supabase
+          .from("cases")
+          .select("id")
+          .eq("assigned_doctor_id", user.id)
+          .eq("status", "pending_review"),
+        // Urgent AI cases
+        supabase
+          .from("cases")
+          .select("id")
+          .eq("assigned_doctor_id", user.id)
+          .eq("urgent_flag", true)
+          .eq("status", "pending_review"),
       ]);
 
       setTotalPatients(patientsRes.count || 0);
@@ -143,6 +160,8 @@ export default function DashboardHome() {
       setAppointmentsToday(appointmentsTodayRes.count || 0);
       setFollowupsDueThisWeek(followupsDueRes.count || 0);
       setOverdueFollowups(overdueFollowupsRes.data || []);
+      setPendingCases(pendingCasesRes.data?.length || 0);
+      setUrgentCases(urgentCasesRes.data?.length || 0);
       setTodaySchedule((scheduleRes.data as Appointment[]) || []);
 
       // Merge recent activity
@@ -354,6 +373,32 @@ export default function DashboardHome() {
           </Card>
         </div>
       </div>
+
+      {/* AI Cases Banner */}
+      {(pendingCases > 0 || urgentCases > 0) && (
+        <div className="flex flex-wrap gap-3 mb-2">
+          {urgentCases > 0 && (
+            <a
+              href="/dashboard/ready-for-diagnosis"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90"
+              style={{ background: "rgba(220,38,38,0.08)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.2)" }}
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              {urgentCases} urgent case{urgentCases !== 1 ? "s" : ""} — needs review
+            </a>
+          )}
+          {pendingCases > 0 && (
+            <a
+              href="/dashboard/ready-for-diagnosis"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90"
+              style={{ background: "rgba(184,147,106,0.1)", color: "#7a5c35", border: "1px solid rgba(184,147,106,0.25)" }}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ background: "#b8936a" }} />
+              {pendingCases} case{pendingCases !== 1 ? "s" : ""} pending review
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Today's Schedule & Recent Activity */}
       <div className="grid md:grid-cols-2 gap-6">

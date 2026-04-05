@@ -8,8 +8,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only enable Lenis on desktop, non-dashboard pages
-    if (pathname.startsWith("/dashboard")) return;
+    // Only enable Lenis on desktop, non-dashboard and non-auth pages
+    if (pathname.startsWith("/dashboard") || pathname === "/login" || pathname === "/signup") return;
 
     // Disable on mobile/touch — native scroll is faster and smoother
     const isTouch = window.matchMedia("(hover: none)").matches || window.innerWidth < 768;

@@ -2,8 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Camera, X, Lightbulb } from "lucide-react";
-
-const SLOT_LABELS = ["Close Up", "Medium Distance", "Different Angle"];
+import { useLanguage } from "@/lib/language-context";
 
 interface Step1PhotosProps {
   photoSlots: (File | null)[];
@@ -20,12 +19,14 @@ export function Step1Photos({
   onClearSlot,
   onNext,
 }: Step1PhotosProps) {
+  const { t } = useLanguage();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const SLOT_LABELS = [t("ap_s1_close_up"), t("ap_s1_medium"), t("ap_s1_different")];
+
   const openCamera = (index: number) => {
     setActiveSlot(index);
-    // Small timeout so state update is committed before click
     setTimeout(() => inputRef.current?.click(), 0);
   };
 
@@ -45,10 +46,10 @@ export function Step1Photos({
   return (
     <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
       <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
-        Capture Photos of Affected Area
+        {t("ap_s1_title")}
       </h2>
       <p className="text-sm mb-8" style={{ color: "#9a8a76" }}>
-        3 photos are required for accurate AI classification, but 1 is enough to proceed.
+        {t("ap_s1_subtitle")}
       </p>
 
       {/* Hidden file input */}
@@ -92,7 +93,7 @@ export function Step1Photos({
                 >
                   <Camera size={28} style={{ color: "#b8936a" }} />
                   <span className="text-xs font-medium" style={{ color: "#9a8a76" }}>
-                    Tap to capture
+                    {t("ap_s1_tap")}
                   </span>
                 </button>
               )}
@@ -111,13 +112,13 @@ export function Step1Photos({
       >
         <Lightbulb size={18} style={{ color: "#b8936a", flexShrink: 0, marginTop: 1 }} />
         <p className="text-sm" style={{ color: "#9a8a76" }}>
-          Use natural lighting. Avoid flash. Include some surrounding healthy skin for context.
+          {t("ap_s1_tip")}
         </p>
       </div>
 
       {filledCount > 0 && filledCount < 3 && (
         <p className="text-sm text-center mb-3" style={{ color: "#b8936a" }}>
-          You have {filledCount}/3 photos. Adding more improves accuracy.
+          {t("ap_s1_count").replace("{count}", String(filledCount))}
         </p>
       )}
 
@@ -128,7 +129,7 @@ export function Step1Photos({
           className="px-8 py-3 rounded-lg font-semibold text-white transition-opacity min-h-[44px]"
           style={{ background: "#b8936a", opacity: canProceed ? 1 : 0.45, cursor: canProceed ? "pointer" : "not-allowed" }}
         >
-          Next →
+          {t("ap_s1_next")}
         </button>
       </div>
     </form>

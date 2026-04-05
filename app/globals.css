@@ -40,6 +40,25 @@ p {
   @apply text-base leading-relaxed;
 }
 
+/* Fix browser autofill blue tint on inputs — applies globally */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 9999px #faf8f5 inset !important;
+  box-shadow: 0 0 0 9999px #faf8f5 inset !important;
+  -webkit-text-fill-color: #4a3728 !important;
+  color: #4a3728 !important;
+  caret-color: #4a3728;
+  transition: background-color 86400s ease 0s, color 86400s ease 0s;
+}
+
 .btn-primary {
   @apply px-6 py-3 bg-primary-500 text-white font-sans font-medium rounded-lg hover:bg-primary-600 transition-colors shadow-sm;
 }
@@ -107,6 +126,10 @@ p {
   body:has(.custom-cursor) a,
   body:has(.custom-cursor) button {
     cursor: none;
+  }
+  /* Never suppress cursor on auth-page logo so it remains visibly clickable */
+  body:has(.custom-cursor) [data-logo-link] {
+    cursor: pointer !important;
   }
 }
 

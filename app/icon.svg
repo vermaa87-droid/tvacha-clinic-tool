@@ -1,5 +1,17 @@
-<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M16 18 L16 30" stroke="#b8936a" stroke-width="2.8" stroke-linecap="round"/>
-  <path d="M8 4 L8 16 Q8 20 16 20 Q24 20 24 16 L24 4" stroke="#b8936a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <path d="M4 4 L28 4" stroke="#b8936a" stroke-width="2.8" stroke-linecap="round"/>
+<svg viewBox="14 -4 72 106" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Drop outline -->
+  <path d="M50 0 Q22 44 22 62 Q22 90 50 96 Q78 90 78 62 Q78 44 50 0 Z" stroke="#b8936a" stroke-width="3" fill="none"/>
+  <!-- Back helix strand -->
+  <path d="M63 20 C63 20, 56 24, 50 32 S37 44, 50 50 S63 56, 50 64 S37 72, 50 82" stroke="#b8936a" fill="none" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+  <!-- Key rungs -->
+  <line x1="40" y1="40" x2="60" y2="40" stroke="#b8936a" stroke-width="1.2" opacity="0.55"/>
+  <line x1="38" y1="44" x2="62" y2="44" stroke="#b8936a" stroke-width="1.2" opacity="0.5"/>
+  <line x1="39" y1="57" x2="61" y2="57" stroke="#b8936a" stroke-width="1.2" opacity="0.5"/>
+  <line x1="43" y1="61" x2="57" y2="61" stroke="#b8936a" stroke-width="1.1" opacity="0.45"/>
+  <!-- Front helix strand -->
+  <path d="M37 20 C37 20, 44 24, 50 32 S63 44, 50 50 S37 56, 50 64 S63 72, 50 82" stroke="#b8936a" fill="none" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+  <!-- Crossing dots -->
+  <circle cx="50" cy="32" r="2.2" fill="#b8936a" opacity="0.7"/>
+  <circle cx="50" cy="50" r="2.2" fill="#b8936a" opacity="0.65"/>
+  <circle cx="50" cy="64" r="2" fill="#b8936a" opacity="0.55"/>
 </svg>

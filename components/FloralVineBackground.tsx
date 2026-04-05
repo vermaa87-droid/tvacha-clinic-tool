@@ -633,7 +633,7 @@ export function FloralVineBackground() {
     };
   }, []);
 
-  if (pathname.startsWith("/dashboard") || pathname === "/how-it-works") return null;
+  if (pathname.startsWith("/dashboard") || pathname === "/how-it-works" || pathname === "/login" || pathname === "/signup") return null;
 
   const posStyle: React.CSSProperties = { position: "absolute", top: 0, left: 0, width: "100%", zIndex: 0, pointerEvents: "none", opacity: 0.45 };
 

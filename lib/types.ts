@@ -60,9 +60,13 @@ export interface Case {
   pain_level: string | null;
   photo_urls: string[] | null;
   questionnaire_data: Record<string, unknown> | null;
-  status: "pending" | "approved" | "corrected" | "flagged" | "referred";
+  status: "pending" | "pending_review" | "approved" | "corrected" | "confirmed" | "flagged" | "referred";
   doctor_diagnosis: string | null;
   doctor_notes: string | null;
+  doctor_flagged: boolean;
+  doctor_override_diagnosis: string | null;
+  doctor_override_notes: string | null;
+  doctor_reviewed_at: string | null;
   reviewed_at: string | null;
   earning_amount: number;
   earning_paid: boolean;

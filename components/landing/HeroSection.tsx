@@ -85,16 +85,13 @@ export function HeroSection() {
             />
 
             <motion.p
-              className="text-lg text-text-primary mb-8 font-medium leading-relaxed"
+              className="text-lg mb-8 font-light leading-relaxed"
+              style={{ color: "#c4a46b" }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
             >
-              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">AI pre-screening.</span>{" "}
-              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Patient management.</span>{" "}
-              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Prescription templates.</span>{" "}
-              <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-semibold">Clinic analytics.</span>{" "}
-              All for <span className="text-primary-600 font-bold">₹2,000/month</span>.
+              AI pre-screening. Patient management. Prescription templates. Clinic analytics. All for ₹2,000/month.
             </motion.p>
 
             <motion.div

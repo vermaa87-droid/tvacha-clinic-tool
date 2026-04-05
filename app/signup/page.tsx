@@ -42,43 +42,6 @@ const STATE_MEDICAL_COUNCILS = [
   "Other",
 ];
 
-function BotanicalPattern() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full"
-      style={{ opacity: 0.12, pointerEvents: "none" }}
-      viewBox="0 0 420 900"
-      preserveAspectRatio="xMidYMid slice"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M35 900 C 65 760 18 660 55 540 C 92 420 40 330 78 220 C 116 110 88 50 115 -10" stroke="#7a5420" strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M388 -10 C 358 110 398 210 368 330 C 338 450 392 540 360 660 C 328 780 375 860 345 920" stroke="#7a5420" strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M55 540 C 105 518 140 488 158 455" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M78 220 C 128 198 158 168 168 138" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M35 720 C 88 700 118 668 130 638" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M368 330 C 305 310 272 278 260 248" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M360 660 C 298 640 265 608 252 576" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M388 150 C 330 138 298 112 284 84" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <ellipse cx="160" cy="452" rx="14" ry="5.5" transform="rotate(28 160 452)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="170" cy="135" rx="14" ry="5.5" transform="rotate(-22 170 135)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="132" cy="635" rx="12" ry="4.5" transform="rotate(18 132 635)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="258" cy="245" rx="14" ry="5.5" transform="rotate(-38 258 245)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="250" cy="573" rx="14" ry="5.5" transform="rotate(32 250 573)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="282" cy="82" rx="13" ry="5" transform="rotate(-15 282 82)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <circle cx="163" cy="452" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="173" cy="135" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="135" cy="635" r="2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="261" cy="245" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="253" cy="573" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <path d="M170 400 C 195 375 215 345 210 310 C 205 278 190 262 210 245" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <ellipse cx="212" cy="243" rx="9" ry="3.5" transform="rotate(-48 212 243)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <path d="M385 820 C 355 798 325 792 308 768 C 291 744 295 718 278 702" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <ellipse cx="276" cy="700" rx="10" ry="4" transform="rotate(-25 276 700)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-    </svg>
-  );
-}
-
 export default function SignupPage() {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
@@ -208,6 +171,24 @@ export default function SignupPage() {
             <p className="text-text-muted text-xs">
               {t("signup_success_verify")}
             </p>
+            <div
+              className="rounded-xl px-4 py-3 text-center"
+              style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.25)" }}
+            >
+              <p className="text-sm" style={{ color: "#2a2218" }}>
+                WhatsApp{" "}
+                <a
+                  href="https://wa.me/917881154003?text=Hi%2C%20I%20just%20signed%20up%20on%20Tvacha%20Clinic%20Tool.%20Please%20verify%20my%20account."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                  style={{ color: "#25d366" }}
+                >
+                  +91 7881154003
+                </a>{" "}
+                with your details to get verified in less than an hour.
+              </p>
+            </div>
             <Button
               size="lg"
               className="w-full bg-[#7a5c35] hover:bg-[#5c4527] text-white font-semibold"
@@ -227,62 +208,80 @@ export default function SignupPage() {
         className="md:hidden border-b border-primary-200 px-4 py-4 flex items-center justify-between"
         style={{ background: "rgba(250,248,244,0.95)" }}
       >
-        <Logo />
+        <div
+          onClick={() => { window.location.href = '/'; }}
+          style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+        >
+          <Logo />
+        </div>
         <LanguageToggle />
       </nav>
 
       {/* ── LEFT BRANDED PANEL (desktop only, sticky) ── */}
       <div
-        className="hidden md:flex md:w-[38%] lg:w-[36%] flex-col relative overflow-hidden"
+        className="hidden md:flex md:w-[44%] lg:w-[42%] flex-col relative overflow-hidden"
         style={{
           background: "#dfc49a",
           position: "sticky",
           top: 0,
           height: "100vh",
           flexShrink: 0,
+          alignSelf: "flex-start",
         }}
       >
-        <BotanicalPattern />
-
+        {/* Subtle decorative curves */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(90,55,20,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(90,55,20,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(90,55,20,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(90,55,20,0.08)" strokeWidth="1" strokeLinecap="round"/>
+        </svg>
         <div className="relative z-10 flex flex-col h-full px-10 lg:px-14 py-10 lg:py-14">
 
-          <Logo />
+          {/* Logo */}
+          <div
+            onClick={() => { window.location.href = '/'; }}
+            style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+          >
+            <Logo />
+          </div>
 
-          <div className="flex-1 flex flex-col justify-center mt-12">
+          {/* Tagline block — vertically centered */}
+          <div className="flex-1 flex flex-col justify-center -mt-16">
             <p
-              className="text-xs font-semibold uppercase mb-5"
+              className="text-sm font-semibold uppercase mb-6"
               style={{ color: "#7a5c35", letterSpacing: "0.2em" }}
             >
               Create Your Account
             </p>
             <h2
-              className="font-serif font-bold leading-snug mb-5"
-              style={{ fontSize: "clamp(1.5rem, 2.3vw, 2.1rem)", color: "#1e1510", maxWidth: "280px" }}
+              className="font-serif font-bold leading-snug mb-6"
+              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "#1e1510", maxWidth: "360px" }}
             >
-              Join India&apos;s Clinical Intelligence Platform
+              Intelligence Infrastructure for Modern Dermatology
             </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "#7a6354", maxWidth: "265px" }}>
-              Built exclusively for licensed dermatologists and GPs — verified against the National Medical Commission registry.
+            <p
+              className="text-base leading-relaxed"
+              style={{ color: "#7a6354", maxWidth: "320px" }}
+            >
+              AI pre-screening, patient management, and prescription templates — all in one platform built for Indian clinicians.
             </p>
 
+            {/* Gold accent rule */}
             <div
               className="mt-8 h-px w-14 rounded-full"
               style={{ background: "linear-gradient(90deg, #b8936a 0%, transparent 100%)" }}
             />
           </div>
 
-          {/* Trust signals */}
-          <div className="relative z-10 space-y-3 pb-2">
-            {[
-              "NMC Verified Platform",
-              "24–48 hour verification",
-              "Exclusively for licensed practitioners",
-            ].map((signal) => (
-              <div key={signal} className="flex items-center gap-2.5">
-                <span className="text-xs font-bold" style={{ color: "#b8936a" }}>✓</span>
-                <span className="text-xs" style={{ color: "#7a6354" }}>{signal}</span>
-              </div>
-            ))}
+          {/* Trust signal at bottom */}
+          <div className="relative z-10 pb-2">
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm font-bold" style={{ color: "#b8936a" }}>✓</span>
+              <span className="text-sm" style={{ color: "#7a6354" }}>
+                NMC Verified Doctors Only
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -11,64 +11,6 @@ import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language-context";
 import { supabase } from "@/lib/supabase";
 
-function BotanicalPattern() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full"
-      style={{ opacity: 0.12, pointerEvents: "none" }}
-      viewBox="0 0 420 900"
-      preserveAspectRatio="xMidYMid slice"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Left vine stem */}
-      <path
-        d="M35 900 C 65 760 18 660 55 540 C 92 420 40 330 78 220 C 116 110 88 50 115 -10"
-        stroke="#7a5420" strokeWidth="1.6" strokeLinecap="round"
-      />
-      {/* Right vine stem */}
-      <path
-        d="M388 -10 C 358 110 398 210 368 330 C 338 450 392 540 360 660 C 328 780 375 860 345 920"
-        stroke="#7a5420" strokeWidth="1.6" strokeLinecap="round"
-      />
-      {/* Left branches */}
-      <path d="M55 540 C 105 518 140 488 158 455" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M78 220 C 128 198 158 168 168 138" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M35 720 C 88 700 118 668 130 638" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      {/* Right branches */}
-      <path d="M368 330 C 305 310 272 278 260 248" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M360 660 C 298 640 265 608 252 576" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M388 150 C 330 138 298 112 284 84" stroke="#7a5420" strokeWidth="1" strokeLinecap="round"/>
-      {/* Leaves — left side */}
-      <ellipse cx="160" cy="452" rx="14" ry="5.5" transform="rotate(28 160 452)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="170" cy="135" rx="14" ry="5.5" transform="rotate(-22 170 135)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="132" cy="635" rx="12" ry="4.5" transform="rotate(18 132 635)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      {/* Leaves — right side */}
-      <ellipse cx="258" cy="245" rx="14" ry="5.5" transform="rotate(-38 258 245)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="250" cy="573" rx="14" ry="5.5" transform="rotate(32 250 573)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      <ellipse cx="282" cy="82" rx="13" ry="5" transform="rotate(-15 282 82)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      {/* Berries */}
-      <circle cx="163" cy="452" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="173" cy="135" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="135" cy="635" r="2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="261" cy="245" r="2.2" fill="#7a5420" opacity="0.45"/>
-      <circle cx="253" cy="573" r="2.2" fill="#7a5420" opacity="0.45"/>
-      {/* Central connecting tendril */}
-      <path
-        d="M170 400 C 195 375 215 345 210 310 C 205 278 190 262 210 245"
-        stroke="#7a5420" strokeWidth="1" strokeLinecap="round"
-      />
-      <ellipse cx="212" cy="243" rx="9" ry="3.5" transform="rotate(-48 212 243)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-      {/* Corner flourish bottom-right */}
-      <path
-        d="M385 820 C 355 798 325 792 308 768 C 291 744 295 718 278 702"
-        stroke="#7a5420" strokeWidth="1" strokeLinecap="round"
-      />
-      <ellipse cx="276" cy="700" rx="10" ry="4" transform="rotate(-25 276 700)" stroke="#7a5420" strokeWidth="1" fill="none"/>
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -129,7 +71,7 @@ export default function LoginPage() {
   };
 
   const inputBase =
-    "w-full px-4 py-3 rounded-lg outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0]";
+    "w-full px-5 py-4 rounded-xl outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0] text-base";
   const inputStyle = {
     background: "rgba(250,246,240,0.85)",
     border: "1px solid rgba(184,147,106,0.38)",
@@ -151,39 +93,54 @@ export default function LoginPage() {
         className="md:hidden border-b border-primary-200 px-4 py-4 flex items-center justify-between"
         style={{ background: "rgba(250,248,244,0.95)" }}
       >
-        <Logo />
+        <div
+          onClick={() => { window.location.href = '/'; }}
+          style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+        >
+          <Logo />
+        </div>
         <LanguageToggle />
       </nav>
 
       {/* ── LEFT BRANDED PANEL (desktop only) ── */}
       <div
         className="hidden md:flex md:w-[44%] lg:w-[42%] flex-col relative overflow-hidden"
-        style={{ background: "#dfc49a", minHeight: "100vh" }}
+        style={{ background: "#dfc49a", minHeight: "100vh", flexShrink: 0 }}
       >
-        <BotanicalPattern />
-
+        {/* Subtle decorative curves */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(90,55,20,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(90,55,20,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(90,55,20,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(90,55,20,0.08)" strokeWidth="1" strokeLinecap="round"/>
+        </svg>
         <div className="relative z-10 flex flex-col h-full px-10 lg:px-14 py-10 lg:py-14">
 
           {/* Logo */}
-          <Logo />
+          <div
+            onClick={() => { window.location.href = '/'; }}
+            style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+          >
+            <Logo />
+          </div>
 
           {/* Tagline block — vertically centered */}
-          <div className="flex-1 flex flex-col justify-center mt-12">
+          <div className="flex-1 flex flex-col justify-center -mt-16">
             <p
-              className="text-xs font-semibold uppercase mb-5"
+              className="text-sm font-semibold uppercase mb-6"
               style={{ color: "#7a5c35", letterSpacing: "0.2em" }}
             >
               Sign In to Continue
             </p>
             <h2
-              className="font-serif font-bold leading-snug mb-5"
-              style={{ fontSize: "clamp(1.55rem, 2.5vw, 2.2rem)", color: "#1e1510", maxWidth: "300px" }}
+              className="font-serif font-bold leading-snug mb-6"
+              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "#1e1510", maxWidth: "360px" }}
             >
               Intelligence Infrastructure for Modern Dermatology
             </h2>
             <p
-              className="text-sm leading-relaxed"
-              style={{ color: "#7a6354", maxWidth: "270px" }}
+              className="text-base leading-relaxed"
+              style={{ color: "#7a6354", maxWidth: "320px" }}
             >
               AI pre-screening, patient management, and prescription templates — all in one platform built for Indian clinicians.
             </p>
@@ -198,8 +155,8 @@ export default function LoginPage() {
           {/* Trust signals at bottom */}
           <div className="relative z-10 pb-2">
             <div className="flex items-center gap-2.5">
-              <span className="text-xs font-bold" style={{ color: "#b8936a" }}>✓</span>
-              <span className="text-xs" style={{ color: "#7a6354" }}>
+              <span className="text-sm font-bold" style={{ color: "#b8936a" }}>✓</span>
+              <span className="text-sm" style={{ color: "#7a6354" }}>
                 NMC Verified Doctors Only
               </span>
             </div>
@@ -216,8 +173,8 @@ export default function LoginPage() {
         </div>
 
         {/* Form centered */}
-        <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-10 md:py-6">
-          <div className="w-full max-w-[360px]">
+        <div className="flex-1 flex items-center justify-center px-6 sm:px-12 py-10 md:py-8">
+          <div className="w-full max-w-[520px]">
 
             {showForgot ? (
               /* ── Forgot Password View ── */
@@ -304,19 +261,19 @@ export default function LoginPage() {
             ) : (
               /* ── Login View ── */
               <>
-                <div className="mb-9">
+                <div className="mb-10">
                   <h1
                     className="font-serif font-bold text-text-primary"
-                    style={{ fontSize: "2rem" }}
+                    style={{ fontSize: "2.6rem" }}
                   >
                     {t("login_title")}
                   </h1>
-                  <p className="mt-2 text-sm" style={{ color: "#8a7060" }}>
+                  <p className="mt-2.5 text-base" style={{ color: "#8a7060" }}>
                     {t("login_subtitle")}
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   {error && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                       {error}
@@ -325,7 +282,7 @@ export default function LoginPage() {
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: "#8a7060" }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: "#8a7060" }}>
                       {t("login_email")}
                     </label>
                     <input
@@ -343,7 +300,7 @@ export default function LoginPage() {
 
                   {/* Password */}
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: "#8a7060" }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: "#8a7060" }}>
                       {t("login_password")}
                     </label>
                     <input
@@ -382,14 +339,14 @@ export default function LoginPage() {
                 </form>
 
                 {/* Divider */}
-                <div className="mt-8 flex items-center gap-3">
+                <div className="mt-9 flex items-center gap-3">
                   <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
                   <span className="text-xs" style={{ color: "#b8a898" }}>or</span>
                   <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
                 </div>
 
                 {/* Sign up link */}
-                <p className="text-center text-sm mt-4" style={{ color: "#8a7060" }}>
+                <p className="text-center text-base mt-5" style={{ color: "#8a7060" }}>
                   {t("login_no_account")}{" "}
                   <Link
                     href="/signup"

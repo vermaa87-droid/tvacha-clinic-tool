@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Upload, X, AlertTriangle, FileText } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language-context";
 import { TagInput } from "./TagInput";
 import type { PatientFormData } from "../wizard-types";
 import { BLOOD_GROUP_OPTIONS } from "@/lib/constants";
@@ -57,13 +58,13 @@ export function Step3Details({
   onSave,
 }: Step3DetailsProps) {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const [errors, setErrors] = useState<FormErrors>({});
   const [duplicate, setDuplicate] = useState<DuplicatePatient | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const recordInputRef = useRef<HTMLInputElement>(null);
   const [recordPreviews, setRecordPreviews] = useState<(string | null)[]>([]);
 
-  // Keep preview URLs in sync with medicalRecords files
   useEffect(() => {
     const urls = data.medicalRecords.map((f) =>
       f.type.startsWith("image/") ? URL.createObjectURL(f) : null
@@ -94,7 +95,7 @@ export function Step3Details({
         .limit(1);
       setDuplicate(result && result.length > 0 ? (result[0] as DuplicatePatient) : null);
     } catch {
-      // Duplicate check is best-effort; don't block on failure
+      // best-effort
     } finally {
       setCheckingDuplicate(false);
     }
@@ -127,8 +128,8 @@ export function Step3Details({
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!data.fullName.trim()) e.fullName = "Patient name is required";
-    if (!/^\d{10}$/.test(data.phone)) e.phone = "Enter a valid 10-digit phone number";
+    if (!data.fullName.trim()) e.fullName = t("ap_s3_name_error");
+    if (!/^\d{10}$/.test(data.phone)) e.phone = t("ap_s3_phone_error");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -150,13 +151,12 @@ export function Step3Details({
   return (
     <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
       <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
-        Patient Information
+        {t("ap_s3_title")}
       </h2>
       <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
-        Enter the patient&apos;s details for their medical record.
+        {t("ap_s3_subtitle")}
       </p>
 
-      {/* Save error banner */}
       {saveError && (
         <div
           className="flex items-start gap-3 rounded-xl p-4 mb-6"
@@ -165,7 +165,7 @@ export function Step3Details({
           <AlertTriangle size={18} style={{ color: "#c44a4a", flexShrink: 0, marginTop: 1 }} />
           <div>
             <p className="text-sm font-semibold" style={{ color: "#c44a4a" }}>
-              Something went wrong while saving. Please try again.
+              {t("ap_s3_save_error")}
             </p>
             <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{saveError}</p>
           </div>
@@ -173,19 +173,19 @@ export function Step3Details({
       )}
 
       {/* ── Personal Information ── */}
-      {sectionLabel("Personal Information")}
+      {sectionLabel(t("ap_s3_personal"))}
 
       <div className="space-y-4">
         {/* Full Name */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Full Name <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s3_full_name")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <input
             type="text"
             value={data.fullName}
             onChange={(e) => set("fullName", e.target.value)}
-            placeholder="Patient's full name"
+            placeholder={t("ap_s3_name_placeholder")}
             className={inputClass}
           />
           {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
@@ -194,7 +194,7 @@ export function Step3Details({
         {/* Phone */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Phone Number <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s3_phone")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <div className="flex">
             <span
@@ -215,7 +215,7 @@ export function Step3Details({
           </div>
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           {checkingDuplicate && (
-            <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>Checking for existing patient…</p>
+            <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>{t("ap_s3_checking_dup")}</p>
           )}
           {duplicate && (
             <div
@@ -224,7 +224,7 @@ export function Step3Details({
             >
               <AlertTriangle size={16} style={{ color: "#d97706", flexShrink: 0, marginTop: 1 }} />
               <p className="text-sm" style={{ color: "#92400e" }}>
-                A patient with this number already exists:{" "}
+                {t("ap_s3_dup_exists")}{" "}
                 <strong>{duplicate.name}</strong>{" "}
                 ({duplicate.patient_display_id}).{" "}
                 <a
@@ -233,9 +233,9 @@ export function Step3Details({
                   rel="noopener noreferrer"
                   className="underline font-semibold"
                 >
-                  View Patient
+                  {t("ap_s3_dup_view")}
                 </a>{" "}
-                or continue to save as new.
+                {t("ap_s3_dup_continue")}
               </p>
             </div>
           )}
@@ -244,7 +244,7 @@ export function Step3Details({
         {/* Email */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Email <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_email")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <input
             type="email"
@@ -258,7 +258,7 @@ export function Step3Details({
         {/* DOB */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Date of Birth <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_dob")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <input
             type="date"
@@ -271,13 +271,13 @@ export function Step3Details({
         {/* Address */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Address <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_address")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <textarea
             rows={2}
             value={data.address}
             onChange={(e) => set("address", e.target.value)}
-            placeholder="Street address"
+            placeholder={t("ap_s3_address_placeholder")}
             className={inputClass}
           />
         </div>
@@ -286,22 +286,22 @@ export function Step3Details({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-              City <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+              {t("ap_s3_city")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
             </label>
             <input
               type="text"
               value={data.city}
               onChange={(e) => set("city", e.target.value)}
-              placeholder="City"
+              placeholder={t("ap_s3_city")}
               className={inputClass}
             />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-              State <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+              {t("ap_s3_state")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
             </label>
             <select value={data.state} onChange={(e) => set("state", e.target.value)} className={selectClass}>
-              <option value="">Select state</option>
+              <option value="">{t("ap_s3_state_placeholder")}</option>
               {INDIAN_STATES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -312,10 +312,10 @@ export function Step3Details({
         {/* Blood Group */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Blood Group <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_blood_group")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <select value={data.bloodGroup} onChange={(e) => set("bloodGroup", e.target.value)} className={selectClass} style={{ maxWidth: 200 }}>
-            <option value="">Select</option>
+            <option value="">{t("ap_s3_blood_placeholder")}</option>
             {BLOOD_GROUP_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
@@ -324,26 +324,27 @@ export function Step3Details({
       </div>
 
       {/* ── Medical History ── */}
-      {sectionLabel("Medical History")}
+      {sectionLabel(t("ap_s3_medical_history"))}
 
       <div className="space-y-5">
         {/* Allergies */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Known Allergies <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_allergies")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <TagInput
             tags={data.allergies}
             onAdd={(tag) => set("allergies", [...data.allergies, tag])}
             onRemove={(tag) => set("allergies", data.allergies.filter((a) => a !== tag))}
-            placeholder="Type allergy and press Enter"
+            placeholder={t("ap_s3_allergies_placeholder")}
+            enterHint={t("ap_s3_press_enter")}
           />
         </div>
 
         {/* Chronic Conditions */}
         <div>
           <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
-            Chronic Conditions <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_chronic")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <div className="flex flex-wrap gap-3">
             {CHRONIC_OPTIONS.map((condition) => {
@@ -369,20 +370,20 @@ export function Step3Details({
         {/* Current Medications */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            Current Medications <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>(optional)</span>
+            {t("ap_s3_medications")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
           </label>
           <textarea
             rows={3}
             value={data.currentMedications}
             onChange={(e) => set("currentMedications", e.target.value)}
-            placeholder="List any medicines the patient is currently taking"
+            placeholder={t("ap_s3_medications_placeholder")}
             className={inputClass}
           />
         </div>
       </div>
 
       {/* ── Previous Medical Records ── */}
-      {sectionLabel("Previous Medical Records")}
+      {sectionLabel(t("ap_s3_records"))}
 
       <div>
         <input
@@ -395,7 +396,6 @@ export function Step3Details({
         />
 
         {data.medicalRecords.length === 0 ? (
-          /* Empty state — full upload zone */
           <button
             type="button"
             onClick={() => recordInputRef.current?.click()}
@@ -404,14 +404,13 @@ export function Step3Details({
           >
             <Upload size={22} style={{ color: "#b8936a" }} />
             <span className="text-sm font-medium" style={{ color: "#b8936a" }}>
-              Scan or Upload Medical Records
+              {t("ap_s3_upload_records")}
             </span>
             <span className="text-xs" style={{ color: "#9a8a76" }}>
-              Images or PDFs — multiple allowed
+              {t("ap_s3_upload_hint")}
             </span>
           </button>
         ) : (
-          /* Files uploaded — show previews inside the zone */
           <div
             className="rounded-xl p-3"
             style={{ border: "2px dashed #b8936a", background: "#fef9f4" }}
@@ -455,7 +454,6 @@ export function Step3Details({
                         </span>
                       </div>
                     )}
-                    {/* Remove button */}
                     <button
                       type="button"
                       onClick={() => removeRecord(idx)}
@@ -465,7 +463,6 @@ export function Step3Details({
                     >
                       <X size={12} />
                     </button>
-                    {/* Filename overlay for images */}
                     {isImage && (
                       <div
                         className="absolute bottom-0 left-0 right-0 px-2 py-1 text-xs truncate"
@@ -483,7 +480,6 @@ export function Step3Details({
               })}
             </div>
 
-            {/* Add more button */}
             <button
               type="button"
               onClick={() => recordInputRef.current?.click()}
@@ -491,7 +487,7 @@ export function Step3Details({
               style={{ color: "#b8936a" }}
             >
               <Upload size={14} />
-              Add more files
+              {t("ap_s3_add_more")}
             </button>
           </div>
         )}
@@ -506,7 +502,7 @@ export function Step3Details({
           className="px-6 py-3 rounded-lg font-semibold border transition-colors min-h-[44px]"
           style={{ borderColor: "#b8936a", color: "#b8936a", background: "transparent", opacity: saving ? 0.5 : 1 }}
         >
-          ← Back
+          {t("ap_s3_back")}
         </button>
         <button
           type="submit"
@@ -519,10 +515,10 @@ export function Step3Details({
               <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
               </svg>
-              Saving…
+              {t("ap_s3_saving")}
             </>
           ) : (
-            "Save & Continue →"
+            t("ap_s3_save")
           )}
         </button>
       </div>

@@ -176,3 +176,134 @@ export const COMMON_MEDICINES = [
   "Prednisolone", "Racecadotril", "Diclofenac", "Thiocolchicoside",
   "ORS", "Probiotic", "Ambrodil-S",
 ];
+
+// ── AI Diagnosis Constants ────────────────────────────────────────────────────
+
+export const DIAGNOSIS_CLASSES = [
+  "healthy", "acne", "fungal_infection", "eczema", "contact_dermatitis",
+  "urticaria", "psoriasis", "melanoma", "basal_cell_carcinoma",
+  "squamous_cell_carcinoma", "melanocytic_nevus", "benign_lesion",
+  "pigmentary_disorder", "bacterial_infection", "viral_infection",
+  "bullous_disease", "scabies",
+] as const;
+
+export type DiagnosisClass = typeof DIAGNOSIS_CLASSES[number];
+
+export const CLASS_DISPLAY_NAMES: Record<string, string> = {
+  healthy: "Healthy Skin",
+  acne: "Acne",
+  fungal_infection: "Fungal Infection",
+  eczema: "Eczema (Atopic Dermatitis)",
+  contact_dermatitis: "Contact Dermatitis",
+  urticaria: "Urticaria (Hives)",
+  psoriasis: "Psoriasis",
+  melanoma: "Melanoma (Skin Cancer)",
+  basal_cell_carcinoma: "Basal Cell Carcinoma",
+  squamous_cell_carcinoma: "Squamous Cell Carcinoma",
+  melanocytic_nevus: "Mole (Melanocytic Nevus)",
+  benign_lesion: "Benign Skin Lesion",
+  pigmentary_disorder: "Pigmentation Disorder",
+  bacterial_infection: "Bacterial Infection",
+  viral_infection: "Viral Infection (Warts / Molluscum)",
+  bullous_disease: "Bullous Disease (Blistering Disorder)",
+  scabies: "Scabies",
+  // Legacy alias — kept so mock fallback doesn't break if old model is still running
+  dermatitis: "Dermatitis / Eczema",
+  uncertain: "Uncertain — See a Doctor",
+};
+
+export const CLASS_SEVERITY: Record<string, number> = {
+  healthy: 0, acne: 1, fungal_infection: 2,
+  eczema: 2, contact_dermatitis: 2, urticaria: 2, psoriasis: 3,
+  melanoma: 5, basal_cell_carcinoma: 4, squamous_cell_carcinoma: 4,
+  melanocytic_nevus: 0, benign_lesion: 1, pigmentary_disorder: 1,
+  bacterial_infection: 3, viral_infection: 2, bullous_disease: 3, scabies: 3,
+};
+
+export const CANCER_CLASSES = ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"];
+
+export interface ClassWarning {
+  type: string;
+  color: "amber" | "red";
+  title: string;
+  message: string;
+  treatment_hint?: string;
+}
+
+export const CLASS_WARNINGS: Record<string, ClassWarning> = {
+  scabies: {
+    type: "contagion",
+    color: "amber",
+    title: "Contagious Condition",
+    message: "Scabies is highly contagious. ALL household contacts and close contacts should be treated simultaneously. Do NOT prescribe topical steroids — they mask symptoms but worsen the infestation.",
+    treatment_hint: "Permethrin 5% cream or oral Ivermectin",
+  },
+  bullous_disease: {
+    type: "urgent_referral",
+    color: "red",
+    title: "Blistering Disease — Specialist Required",
+    message: "Autoimmune blistering diseases (pemphigoid, pemphigus, etc.) require specialist diagnosis with skin biopsy. Do NOT pop blisters. If blisters involve mouth, eyes, or genitals — refer urgently.",
+    treatment_hint: "Refer to dermatology for biopsy. May require immunosuppressive therapy.",
+  },
+  urticaria: {
+    type: "emergency_screen",
+    color: "red",
+    title: "Screen for Anaphylaxis",
+    message: "Ask the patient: Do you have difficulty breathing, throat tightness, or swelling of lips/tongue? If YES — this is a medical emergency (possible anaphylaxis). Refer immediately.",
+    treatment_hint: "Antihistamines (cetirizine, fexofenadine). If anaphylaxis suspected: Epinephrine.",
+  },
+  melanoma: {
+    type: "urgent_referral",
+    color: "red",
+    title: "Urgent Dermatology Referral",
+    message: "Suspected melanoma requires urgent biopsy and dermatology referral. Do not delay.",
+    treatment_hint: "Refer to dermatologist/oncologist immediately",
+  },
+  basal_cell_carcinoma: {
+    type: "urgent_referral",
+    color: "red",
+    title: "Dermatology Referral Recommended",
+    message: "Suspected skin cancer. Biopsy and specialist evaluation needed.",
+    treatment_hint: "Refer to dermatologist for biopsy",
+  },
+  squamous_cell_carcinoma: {
+    type: "urgent_referral",
+    color: "red",
+    title: "Dermatology Referral Recommended",
+    message: "Suspected skin cancer. Biopsy and specialist evaluation needed.",
+    treatment_hint: "Refer to dermatologist for biopsy",
+  },
+};
+
+export interface UrgentTrigger {
+  name: string;
+  conditions: Record<string, string | string[]>;
+  message: string;
+}
+
+export const URGENT_REFERRAL_TRIGGERS: UrgentTrigger[] = [
+  {
+    name: "Possible bullous disease",
+    conditions: { blister_size: "Coin-sized or larger (>1cm)", blister_fragility: "Stay intact, hard to break" },
+    message: "Large, intact blisters may indicate an autoimmune blistering disease (e.g., bullous pemphigoid). This requires in-person dermatology evaluation with skin biopsy.",
+  },
+  {
+    name: "Possible Stevens-Johnson Syndrome",
+    conditions: {
+      blister_mucous_membrane: "Yes",
+      new_medication: ["Yes — antibiotics", "Yes — painkillers/NSAIDs", "Yes — blood pressure or heart medication", "Yes — other medication"],
+      fever: "High fever / very unwell",
+    },
+    message: "Blisters with mucous membrane involvement + recent medication + fever may indicate Stevens-Johnson Syndrome (SJS/TEN) — a MEDICAL EMERGENCY. Refer to hospital immediately.",
+  },
+  {
+    name: "Possible pemphigus vulgaris",
+    conditions: { blister_fragility: "Pop easily with light touch", blister_mucous_membrane: "Yes" },
+    message: "Fragile blisters with oral/mucous membrane involvement may indicate pemphigus vulgaris. Requires urgent dermatology referral and skin biopsy.",
+  },
+  {
+    name: "Systemic symptoms — urgent evaluation",
+    conditions: { fever: "High fever / very unwell" },
+    message: "Skin symptoms combined with high fever may indicate a serious systemic condition. Consider urgent medical evaluation.",
+  },
+];

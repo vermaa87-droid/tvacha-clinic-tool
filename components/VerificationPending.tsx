@@ -10,6 +10,7 @@ import { useLanguage } from "@/lib/language-context";
 import type { Doctor } from "@/lib/types";
 import { format } from "date-fns";
 
+
 export function VerificationPending({ doctor }: { doctor: Doctor }) {
   const { signOut } = useAuthStore();
   const { t } = useLanguage();
@@ -93,6 +94,25 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
         <p className="text-sm text-center leading-relaxed" style={{ color: "#6b5e4e" }}>
           {t("verify_time")}
         </p>
+
+        <div
+          className="rounded-xl px-4 py-3 text-center"
+          style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.25)" }}
+        >
+          <p className="text-sm" style={{ color: "#2a2218" }}>
+            WhatsApp{" "}
+            <a
+              href="https://wa.me/917881154003?text=Hi%2C%20I%20just%20signed%20up%20on%20Tvacha%20Clinic%20Tool.%20Please%20verify%20my%20account."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline"
+              style={{ color: "#25d366" }}
+            >
+              +91 7881154003
+            </a>{" "}
+            with your details to get verified in less than an hour.
+          </p>
+        </div>
 
         <p className="text-sm text-center" style={{ color: "#9a8a76" }}>
           {t("verify_issue")}{" "}

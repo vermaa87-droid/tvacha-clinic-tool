@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
-import { Stethoscope, Clock, Image as ImageIcon, CheckCircle2 } from "lucide-react";
+import { Stethoscope, Clock, Image as ImageIcon, CheckCircle2, SkipForward, Trash2 } from "lucide-react";
 
 interface PendingPatient {
   id: string;
@@ -17,6 +17,8 @@ interface PendingPatient {
   created_at: string;
   photo_count?: number;
   photo_urls?: string[];
+  ai_diagnosis?: string | null;
+  ai_diagnosis_display?: string | null;
 }
 
 function getWaitLabel(createdAt: string): { label: string; color: string } {
@@ -44,6 +46,10 @@ export default function ReadyForDiagnosisPage() {
   const { user } = useAuthStore();
   const [patients, setPatients] = useState<PendingPatient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dismissId, setDismissId] = useState<string | null>(null);
+  const [dismissing, setDismissing] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPatients = useCallback(async () => {
     if (!user) return;
@@ -58,25 +64,49 @@ export default function ReadyForDiagnosisPage() {
 
       if (!patientData) { setPatients([]); return; }
 
-      // Fetch photo counts
-      const patientsWithPhotos = await Promise.all(
-        patientData.map(async (p) => {
-          const { data: photos } = await supabase
-            .from("photos")
-            .select("photo_url")
-            .eq("patient_id", p.id)
-            .eq("photo_type", "skin_scan")
-            .order("created_at", { ascending: true })
-            .limit(3);
-          return {
-            ...p,
-            photo_count: photos?.length ?? 0,
-            photo_urls: photos?.map((ph) => ph.photo_url as string) ?? [],
-          };
-        })
-      );
+      const patientIds = patientData.map((p) => p.id);
 
-      setPatients(patientsWithPhotos as PendingPatient[]);
+      // Fetch photo counts and AI cases in parallel
+      const [patientsWithPhotos, casesData] = await Promise.all([
+        Promise.all(
+          patientData.map(async (p) => {
+            const { data: photos } = await supabase
+              .from("photos")
+              .select("photo_url")
+              .eq("patient_id", p.id)
+              .eq("photo_type", "skin_scan")
+              .order("created_at", { ascending: true })
+              .limit(3);
+            return {
+              ...p,
+              photo_count: photos?.length ?? 0,
+              photo_urls: photos?.map((ph) => ph.photo_url as string) ?? [],
+            };
+          })
+        ),
+        supabase
+          .from("cases")
+          .select("patient_id, ai_diagnosis, ai_diagnosis_display")
+          .in("patient_id", patientIds)
+          .order("created_at", { ascending: false })
+          .then(({ data }) => data ?? []),
+      ]);
+
+      // Build patient_id → latest case map
+      const caseMap = new Map<string, { ai_diagnosis: string; ai_diagnosis_display: string }>();
+      for (const c of casesData) {
+        if (!caseMap.has(c.patient_id)) {
+          caseMap.set(c.patient_id, { ai_diagnosis: c.ai_diagnosis, ai_diagnosis_display: c.ai_diagnosis_display });
+        }
+      }
+
+      const merged = patientsWithPhotos.map((p) => ({
+        ...p,
+        ai_diagnosis: caseMap.get(p.id)?.ai_diagnosis ?? null,
+        ai_diagnosis_display: caseMap.get(p.id)?.ai_diagnosis_display ?? null,
+      }));
+
+      setPatients(merged as PendingPatient[]);
     } finally {
       setLoading(false);
     }
@@ -208,18 +238,178 @@ export default function ReadyForDiagnosisPage() {
                   </div>
                 )}
 
-                {/* Action */}
-                <Link
-                  href={`/dashboard/ready-for-diagnosis/${patient.id}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
-                  style={{ background: "#b8936a" }}
-                >
-                  <Stethoscope size={15} />
-                  Review Patient →
-                </Link>
+                {/* AI classification badge */}
+                {patient.ai_diagnosis && patient.ai_diagnosis !== "pending" && patient.ai_diagnosis_display && (
+                  <div className="mb-4">
+                    <span
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
+                      style={{ background: "rgba(184,147,106,0.15)", color: "#7a5c35", border: "1px solid rgba(184,147,106,0.35)" }}
+                    >
+                      AI classified it as:{" "}
+                      <span style={{ color: "#1a1612" }}>{patient.ai_diagnosis_display.toUpperCase()}</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Link
+                    href={`/dashboard/ready-for-diagnosis/${patient.id}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
+                    style={{ background: "#b8936a" }}
+                  >
+                    <Stethoscope size={15} />
+                    Review Patient →
+                  </Link>
+                  <button
+                    onClick={() => setDismissId(patient.id)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      background: "rgba(184,147,106,0.1)",
+                      color: "#7a5c35",
+                      border: "1px solid rgba(184,147,106,0.25)",
+                    }}
+                  >
+                    <SkipForward size={15} />
+                    Skip
+                  </button>
+                  <button
+                    onClick={() => setDeleteId(patient.id)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      background: "rgba(220,38,38,0.08)",
+                      color: "#b91c1c",
+                      border: "1px solid rgba(220,38,38,0.2)",
+                    }}
+                  >
+                    <Trash2 size={15} />
+                    Delete Patient
+                  </button>
+                </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Skip confirmation modal */}
+      {dismissId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+          <div
+            className="w-full max-w-sm mx-4 rounded-2xl p-6"
+            style={{
+              background: "#faf8f4",
+              border: "1px solid #e8ddd0",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+            }}
+          >
+            <div className="flex justify-center mb-4">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(184,147,106,0.12)" }}
+              >
+                <SkipForward size={24} style={{ color: "#7a5c35" }} />
+              </div>
+            </div>
+            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "#1a1612" }}>
+              Skip this patient?
+            </h3>
+            <p className="text-sm text-center mb-6" style={{ color: "#9a8a76" }}>
+              This patient will be moved out of the diagnosis queue. You can still find them in the Patients section.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDismissId(null)}
+                disabled={dismissing}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  background: "rgba(184,147,106,0.12)",
+                  color: "#7a5c35",
+                  border: "1px solid rgba(184,147,106,0.25)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setDismissing(true);
+                  await supabase
+                    .from("patients")
+                    .update({ treatment_status: "active" })
+                    .eq("id", dismissId);
+                  setDismissing(false);
+                  setDismissId(null);
+                  fetchPatients();
+                }}
+                disabled={dismissing}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
+                style={{ background: "#7a5c35" }}
+              >
+                {dismissing ? "Skipping…" : "Yes, skip"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+          <div
+            className="w-full max-w-sm mx-4 rounded-2xl p-6"
+            style={{
+              background: "#faf8f4",
+              border: "1px solid #e8ddd0",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+            }}
+          >
+            <div className="flex justify-center mb-4">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(220,38,38,0.1)" }}
+              >
+                <Trash2 size={24} style={{ color: "#dc2626" }} />
+              </div>
+            </div>
+            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "#1a1612" }}>
+              Delete this patient?
+            </h3>
+            <p className="text-sm text-center mb-6" style={{ color: "#9a8a76" }}>
+              This will permanently delete the patient and all their data including photos, visits, and prescriptions. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  background: "rgba(184,147,106,0.12)",
+                  color: "#7a5c35",
+                  border: "1px solid rgba(184,147,106,0.25)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  await fetch("/api/delete-patient", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ patientId: deleteId, doctorId: user?.id }),
+                  });
+                  setDeleting(false);
+                  setDeleteId(null);
+                  fetchPatients();
+                }}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
+                style={{ background: "#dc2626" }}
+              >
+                {deleting ? "Deleting…" : "Yes, delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

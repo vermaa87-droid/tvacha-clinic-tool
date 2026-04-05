@@ -148,10 +148,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const skinScanUrls = photoRows
+      .filter((r) => r.photo_type === "skin_scan")
+      .map((r) => r.photo_url);
+
     return NextResponse.json({
       photoCount: photoFiles.length - failedPhotos,
       recordCount: savedRecordCount,
       failedPhotos,
+      photoUrls: skinScanUrls,
     });
   } catch (err) {
     console.error("[save-patient-media] unexpected error:", err);
