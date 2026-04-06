@@ -238,18 +238,16 @@ export default function ReadyForDiagnosisPage() {
                   </div>
                 )}
 
-                {/* AI classification badge */}
-                {patient.ai_diagnosis && patient.ai_diagnosis !== "pending" && patient.ai_diagnosis_display && (
-                  <div className="mb-4">
-                    <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
-                      style={{ background: "rgba(184,147,106,0.15)", color: "#7a5c35", border: "1px solid rgba(184,147,106,0.35)" }}
-                    >
-                      AI classified it as:{" "}
-                      <span style={{ color: "#1a1612" }}>{patient.ai_diagnosis_display.toUpperCase()}</span>
-                    </span>
-                  </div>
-                )}
+
+                {/* AI maintenance notice */}
+                <div className="mb-4">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
+                    style={{ background: "rgba(245,158,11,0.08)", color: "#92400e", border: "1px solid rgba(245,158,11,0.25)" }}
+                  >
+                    ⚠️ Our AI faced some technical difficulties — will be back by tomorrow
+                  </span>
+                </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-3 flex-wrap">
@@ -393,11 +391,12 @@ export default function ReadyForDiagnosisPage() {
               <button
                 onClick={async () => {
                   setDeleting(true);
-                  await fetch("/api/delete-patient", {
+                  const res = await fetch("/api/delete-patient", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ patientId: deleteId, doctorId: user?.id }),
                   });
+                  if (!res.ok) console.error("[delete-patient]", await res.text());
                   setDeleting(false);
                   setDeleteId(null);
                   fetchPatients();

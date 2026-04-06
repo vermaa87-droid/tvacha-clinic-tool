@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Bell, Menu, Stethoscope, CheckCircle2 } from "lucide-react";
 import { Logo } from "./Logo";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -34,32 +34,36 @@ export function TopBar({
   const displayName = name.startsWith("Dr.") ? name : `Dr. ${name.split(" ")[0]}`;
 
   // Fetch pending-diagnosis patients as notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("patients")
+      .select("id, name, created_at")
+      .eq("linked_doctor_id", user.id)
+      .eq("treatment_status", "pending_diagnosis")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("[topbar] notifications fetch error:", error);
+      return;
+    }
+    setNotifications(
+      (data ?? []).map((p) => ({
+        id: p.id,
+        patientName: p.name,
+        createdAt: p.created_at,
+      }))
+    );
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
 
-    const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from("patients")
-        .select("id, name, created_at")
-        .eq("linked_doctor_id", user.id)
-        .eq("treatment_status", "pending_diagnosis")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (error) {
-        console.error("[topbar] notifications fetch error:", error);
-        return;
-      }
-      setNotifications(
-        (data ?? []).map((p) => ({
-          id: p.id,
-          patientName: p.name,
-          createdAt: p.created_at,
-        }))
-      );
-    };
-
     fetchNotifications();
+
+    const onFocus = () => fetchNotifications();
+    window.addEventListener("focus", onFocus);
 
     const channel = supabase
       .channel("topbar-notifications")
@@ -77,8 +81,9 @@ export function TopBar({
 
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
     };
-  }, [user]);
+  }, [user, fetchNotifications]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -127,7 +132,7 @@ export function TopBar({
           {/* Notification bell */}
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setOpen((prev) => !prev)}
+              onClick={() => { setOpen((prev) => !prev); fetchNotifications(); }}
               className="text-text-secondary hover:text-text-primary transition-colors relative"
             >
               <Bell size={20} className="md:w-6 md:h-6" />

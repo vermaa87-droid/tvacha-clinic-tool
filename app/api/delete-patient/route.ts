@@ -29,11 +29,15 @@ export async function DELETE(req: NextRequest) {
     // 2. Delete storage files — lab-reports bucket
     await deleteStorageFolder("lab-reports", photoPrefix);
 
-    // 3. Delete database rows (order matters for FK constraints)
+    // 3. Delete all database rows that reference this patient (FK order matters)
     await supabaseAdmin.from("photos").delete().eq("patient_id", patientId);
     await supabaseAdmin.from("patient_photos").delete().eq("patient_id", patientId);
-    await supabaseAdmin.from("visits").delete().eq("patient_id", patientId);
+    await supabaseAdmin.from("cases").delete().eq("patient_id", patientId);
+    await supabaseAdmin.from("patient_fees").delete().eq("patient_id", patientId);
     await supabaseAdmin.from("prescriptions").delete().eq("patient_id", patientId);
+    await supabaseAdmin.from("visits").delete().eq("patient_id", patientId);
+    await supabaseAdmin.from("appointments").delete().eq("patient_id", patientId);
+    await supabaseAdmin.from("treatment_plans").delete().eq("patient_id", patientId);
 
     // 4. Delete the patient row itself
     const { error: patientError } = await supabaseAdmin
