@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -12,6 +12,7 @@ import type { Patient } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import { Search, Users, MoreHorizontal } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -64,6 +65,8 @@ export default function PatientsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
+  const { showToast } = useToast();
+  const pendingDeletions = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [patients, setPatients] = useState<PatientWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -71,7 +74,6 @@ export default function PatientsPage() {
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [patientToDelete, setPatientToDelete] = useState<PatientWithDetails | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Search & filter state
   const [search, setSearch] = useState("");
@@ -258,25 +260,50 @@ export default function PatientsPage() {
     }
   };
 
-  const handleUnlinkPatient = async () => {
-    if (!patientToDelete) return;
-    setDeleteLoading(true);
+  const performBackgroundDeletion = useCallback(async (patientId: string) => {
     try {
-      await supabase
-        .from("patients")
-        .update({ linked_doctor_id: null })
-        .eq("id", patientToDelete.id);
-      setPatientToDelete(null);
-      await fetchPatients();
+      const doctorId = user?.id;
+      if (!doctorId) return;
+      await fetch("/api/delete-patient", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId, doctorId }),
+      });
+      pendingDeletions.current.delete(patientId);
     } catch (err) {
-      console.error("[patients] unlink error:", err);
-    } finally {
-      setDeleteLoading(false);
+      console.error("[patients] background delete failed:", err);
     }
+  }, [user]);
+
+  const handleUnlinkPatient = () => {
+    if (!patientToDelete) return;
+    const { id, name } = patientToDelete;
+    setPatientToDelete(null);
+
+    // Optimistic removal
+    setPatients((prev) => prev.filter((p) => p.id !== id));
+
+    const timeout = setTimeout(() => {
+      performBackgroundDeletion(id);
+    }, 5500);
+    pendingDeletions.current.set(id, timeout);
+
+    showToast({
+      message: `${name} deleted`,
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const t = pendingDeletions.current.get(id);
+          if (t) { clearTimeout(t); pendingDeletions.current.delete(id); }
+          fetchPatients(true);
+        },
+      },
+    });
   };
 
   const filterSelectClass =
-    "w-full px-4 py-2.5 text-sm rounded-lg outline-none transition-all text-[#3d2e22] bg-[#faf6f0] border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15 appearance-none cursor-pointer";
+    "w-full px-4 py-2.5 text-sm rounded-lg outline-none transition-all text-text-primary bg-card border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15 appearance-none cursor-pointer";
   const filterSelectStyle = {
     backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23b8936a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
     backgroundPosition: "right 0.75rem center",
@@ -338,7 +365,7 @@ export default function PatientsPage() {
             placeholder={t("patients_search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-lg outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0] bg-[#faf6f0] border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
+            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-lg outline-none transition-all text-text-primary placeholder-text-muted bg-card border border-[#b8936a]/40 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
           />
         </div>
 
@@ -371,7 +398,7 @@ export default function PatientsPage() {
       {filteredPatients.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
-            style={{ background: "#f0e8d8" }}>
+            style={{ background: "var(--color-primary-200)" }}>
             <Users size={28} style={{ color: "#b8936a", opacity: 0.6 }} />
           </div>
           <h3 className="text-xl font-serif font-semibold text-text-primary mb-1">{t("patients_empty")}</h3>
@@ -396,7 +423,7 @@ export default function PatientsPage() {
             return (
               <Link key={patient.id} href={`/dashboard/patients/${patient.id}`} className="block group">
                 <div
-                  className="relative flex flex-col h-full rounded-xl bg-[#faf8f4] overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
+                  className="relative flex flex-col h-full rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
                   style={{ border: "1px solid rgba(184,147,106,0.2)" }}
                 >
                   {/* Left accent border */}
@@ -405,7 +432,7 @@ export default function PatientsPage() {
                   {/* Overflow/delete button — hidden until hover */}
                   <button
                     className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1.5 rounded-full hover:bg-red-50 z-10"
-                    style={{ color: "#c0b0a0" }}
+                    style={{ color: "var(--color-text-muted)" }}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
                     title="Remove patient"
                   >
@@ -423,13 +450,13 @@ export default function PatientsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p
-                          className="font-serif font-bold text-[#2d1f14] text-xl leading-tight truncate capitalize"
+                          className="font-serif font-bold text-text-primary text-xl leading-tight truncate capitalize"
                           title={patient.name}
                         >
                           {patient.name}
                         </p>
                         {patient.patient_display_id && (
-                          <p className="text-xs mt-0.5" style={{ color: "#a09080" }}>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
                             {patient.patient_display_id}
                           </p>
                         )}
@@ -439,7 +466,7 @@ export default function PatientsPage() {
                     {/* Middle: Age/Gender + Chief Complaint */}
                     <div className="space-y-1.5">
                       {(patient.age || patient.gender) && (
-                        <p className="text-sm" style={{ color: "#6b5544" }}>
+                        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
                           {patient.age ? `${patient.age} yrs` : ""}
                           {patient.age && patient.gender ? " · " : ""}
                           {patient.gender
@@ -448,16 +475,16 @@ export default function PatientsPage() {
                         </p>
                       )}
                       {patient.current_diagnosis && (
-                        <p className="text-sm" style={{ color: "#8a7060" }}>
-                          <span className="font-medium" style={{ color: "#5c4030" }}>
+                        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                          <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
                             Classification:
                           </span>{" "}
                           {patient.current_diagnosis}
                         </p>
                       )}
                       {patient.chief_complaint && (
-                        <p className="text-sm line-clamp-2" style={{ color: "#8a7060" }}>
-                          <span className="font-medium" style={{ color: "#5c4030" }}>
+                        <p className="text-sm line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
+                          <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
                             {t("patients_chief_complaint")}
                           </span>{" "}
                           {patient.chief_complaint}
@@ -486,12 +513,12 @@ export default function PatientsPage() {
                         )}
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-xs" style={{ color: "#a09080" }}>
+                        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                           {patient.last_visit_date
                             ? new Date(patient.last_visit_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
                             : t("patients_last_visit") + " N/A"}
                         </p>
-                        <p className="text-xs" style={{ color: "#b8a090" }}>
+                        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                           {patient.total_visits ?? 0} {t("patients_visits")}
                         </p>
                       </div>
@@ -512,13 +539,12 @@ export default function PatientsPage() {
         size="sm"
         footer={
           <>
-            <Button variant="outline" onClick={() => setPatientToDelete(null)} disabled={deleteLoading}>
+            <Button variant="outline" onClick={() => setPatientToDelete(null)}>
               Cancel
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleUnlinkPatient}
-              loading={deleteLoading}
             >
               Remove
             </Button>

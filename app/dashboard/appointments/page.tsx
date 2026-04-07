@@ -392,13 +392,13 @@ export default function AppointmentsPage() {
 
   const renderActions = (apt: Appointment) => {
     const s = apt.status;
-    if (isInactive(s)) return <span className="text-xs" style={{ color: "#c0b0a0" }}>—</span>;
+    if (isInactive(s)) return <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>—</span>;
 
     return (
       <div className="flex flex-wrap gap-1">
         {s === "scheduled" && (
           <>
-            <Button size="sm" variant="outline" className="border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]" onClick={() => handleCheckIn(apt.id)}>
+            <Button size="sm" variant="outline" className="border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200" onClick={() => handleCheckIn(apt.id)}>
               {t("apt_check_in")}
             </Button>
             <Button size="sm" className="bg-[#7a5c35] hover:bg-[#5c4527] text-white" onClick={() => setConfirmComplete(apt.id)}>
@@ -407,7 +407,7 @@ export default function AppointmentsPage() {
             <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-600" onClick={() => setConfirmCancel(apt.id)}>
               {t("apt_cancel_btn")}
             </Button>
-            <Button size="sm" variant="ghost" className="text-[#8a7060]" onClick={() => handleRescheduleOpen(apt)}>
+            <Button size="sm" variant="ghost" className="text-text-secondary" onClick={() => handleRescheduleOpen(apt)}>
               {t("apt_reschedule_btn")}
             </Button>
           </>
@@ -479,7 +479,7 @@ export default function AppointmentsPage() {
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             viewMode === "list"
               ? "bg-[#7a5c35] text-white"
-              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]"
+              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200"
           }`}
           onClick={() => setViewMode("list")}
         >
@@ -489,7 +489,7 @@ export default function AppointmentsPage() {
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             viewMode === "calendar"
               ? "bg-[#7a5c35] text-white"
-              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-[#faf0e4]"
+              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200"
           }`}
           onClick={() => setViewMode("calendar")}
         >
@@ -503,26 +503,26 @@ export default function AppointmentsPage() {
       {viewMode === "list" && (
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
           {/* Section header */}
-          <div className="px-5 py-4 flex items-center gap-3" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
+          <div className="px-5 py-4 flex items-center gap-3" style={{ background: "var(--color-card)", borderBottom: "1px solid var(--color-separator)" }}>
             <h3 className="font-serif font-semibold text-xl text-text-primary">{t("apt_title")}</h3>
-            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
               {sortedAppointments.length}
             </span>
             <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
           </div>
 
           {sortedAppointments.length === 0 ? (
-            <p className="text-text-muted text-center py-12 bg-[#faf8f4]">{t("apt_none_found")}</p>
+            <p className="text-text-muted text-center py-12 bg-card">{t("apt_none_found")}</p>
           ) : (
             <>
             {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
-                <thead style={{ background: "#e8ddd0" }}>
+                <thead style={{ background: "var(--color-primary-200)" }}>
                   <tr>
                     {[t("apt_col_date"), t("apt_col_time"), t("apt_col_patient"), t("apt_col_type"), t("apt_col_duration"), t("apt_col_notes"), t("apt_col_status"), t("apt_col_actions")].map((h, i) => (
                       <th key={i} className="px-4 py-3 text-left whitespace-nowrap border-b border-[#b8936a]/20"
-                        style={{ fontSize: "10px", fontWeight: 600, color: "#8a7060", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                        style={{ fontSize: "10px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
                         {h}
                       </th>
                     ))}
@@ -535,31 +535,31 @@ export default function AppointmentsPage() {
                     return (
                       <tr
                         key={apt.id}
-                        className="group transition-colors hover:bg-[#f0e8d8]"
+                        className="group transition-colors hover:bg-primary-200"
                         style={{
-                          background: i % 2 === 0 ? "#faf8f4" : "#f4efe6",
-                          borderBottom: "1px solid rgba(184,147,106,0.12)",
+                          background: i % 2 === 0 ? "var(--color-card)" : "var(--color-surface)",
+                          borderBottom: "1px solid var(--color-separator)",
                           opacity: inactive ? 0.55 : 1,
                         }}
                       >
-                        <td className="py-3.5 px-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "#5c4030" }}>
+                        <td className="py-3.5 px-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "var(--color-text-muted)" }}>
                           {formatDateHuman(apt.appointment_date)}
                         </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "#6b5544" }}>
+                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "var(--color-text-muted)" }}>
                           {apt.appointment_time ? formatTime12(apt.appointment_time) : "—"}
                         </td>
-                        <td className="py-3.5 px-4 font-medium capitalize" style={{ color: "#2d1f14" }}>
+                        <td className="py-3.5 px-4 font-medium capitalize" style={{ color: "var(--color-text-primary)" }}>
                           {apt.patients?.name || "Unknown"}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
                             {typeLabel(apt.type)}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "#8a7060" }}>
+                        <td className="py-3.5 px-4 whitespace-nowrap" style={{ color: "var(--color-text-secondary)" }}>
                           {apt.duration_minutes ? `${apt.duration_minutes} min` : "—"}
                         </td>
-                        <td className="py-3.5 px-4 max-w-[180px] truncate" style={{ color: "#8a7060" }} title={reasonNotes}>
+                        <td className="py-3.5 px-4 max-w-[180px] truncate" style={{ color: "var(--color-text-secondary)" }} title={reasonNotes}>
                           {reasonNotes || "—"}
                         </td>
                         <td className="py-3.5 px-4">
@@ -580,16 +580,16 @@ export default function AppointmentsPage() {
                 return (
                   <div
                     key={apt.id}
-                    className="bg-[#faf8f4] rounded-xl border-l-[3px] border-[#b8936a] p-4"
+                    className="bg-card rounded-xl border-l-[3px] border-[#b8936a] p-4"
                     style={{
-                      border: "1px solid #e8ddd0",
+                      border: "1px solid var(--color-primary-200)",
                       borderLeft: "3px solid #b8936a",
                       opacity: inactive ? 0.55 : 1,
                     }}
                   >
                     {/* Top row: date/time + status */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs" style={{ color: "#5c4030" }}>
+                      <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         {formatDateHuman(apt.appointment_date)}
                         {apt.appointment_time ? ` \u00B7 ${formatTime12(apt.appointment_time)}` : ""}
                       </span>
@@ -597,17 +597,17 @@ export default function AppointmentsPage() {
                     </div>
 
                     {/* Patient name */}
-                    <p className="font-serif font-bold capitalize text-base mb-2" style={{ color: "#2d1f14" }}>
+                    <p className="font-serif font-bold capitalize text-base mb-2" style={{ color: "var(--color-text-primary)" }}>
                       {apt.patients?.name || "Unknown"}
                     </p>
 
                     {/* Type + Duration */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
                         {typeLabel(apt.type)}
                       </span>
                       {apt.duration_minutes && (
-                        <span className="text-xs" style={{ color: "#8a7060" }}>
+                        <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
                           {apt.duration_minutes} min
                         </span>
                       )}
@@ -631,21 +631,21 @@ export default function AppointmentsPage() {
         <>
           {/* Calendar grid */}
           <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
-            <div className="px-5 py-4 flex items-center justify-between" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
-              <button onClick={() => setCurrentMonth((m) => subMonths(m, 1))} className="p-2 rounded-lg hover:bg-[#f0e8d8] transition-colors" style={{ color: "#8a7060" }}>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ background: "var(--color-card)", borderBottom: "1px solid var(--color-separator)" }}>
+              <button onClick={() => setCurrentMonth((m) => subMonths(m, 1))} className="p-2 rounded-lg hover:bg-primary-200 transition-colors" style={{ color: "var(--color-text-secondary)" }}>
                 <ChevronLeft size={20} />
               </button>
               <h3 className="font-serif font-semibold text-xl text-text-primary">
                 {format(currentMonth, "MMMM yyyy")}
               </h3>
-              <button onClick={() => setCurrentMonth((m) => addMonths(m, 1))} className="p-2 rounded-lg hover:bg-[#f0e8d8] transition-colors" style={{ color: "#8a7060" }}>
+              <button onClick={() => setCurrentMonth((m) => addMonths(m, 1))} className="p-2 rounded-lg hover:bg-primary-200 transition-colors" style={{ color: "var(--color-text-secondary)" }}>
                 <ChevronRight size={20} />
               </button>
             </div>
-            <div className="p-4 bg-[#faf8f4]">
+            <div className="p-4 bg-card">
               <div className="grid grid-cols-7 gap-1 mb-1">
                 {DAYS_OF_WEEK.map((d) => (
-                  <div key={d} className="text-center text-xs font-semibold py-2 uppercase tracking-wider" style={{ color: "#8a7060" }}>
+                  <div key={d} className="text-center text-xs font-semibold py-2 uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                     {d}
                   </div>
                 ))}
@@ -663,10 +663,10 @@ export default function AppointmentsPage() {
                       onClick={() => setSelectedCalendarDate(day)}
                       className={`relative p-2 min-h-[60px] rounded-lg text-left transition-colors ${
                         isToday ? "ring-2 ring-[#b8936a]" : ""
-                      } ${isSelected ? "border border-[#b8936a]" : "hover:bg-[#f0e8d8]"}`}
+                      } ${isSelected ? "border border-[#b8936a]" : "hover:bg-primary-200"}`}
                       style={{
-                        background: isSelected ? "#f0e8d8" : isToday ? "#faf0e4" : "transparent",
-                        color: inMonth ? "#3d2e22" : "#c0b0a0",
+                        background: isSelected ? "var(--color-primary-200)" : isToday ? "var(--color-surface)" : "transparent",
+                        color: inMonth ? "var(--color-text-primary)" : "var(--color-text-muted)",
                         opacity: inMonth ? 1 : 0.5,
                       }}
                     >
@@ -696,12 +696,12 @@ export default function AppointmentsPage() {
           {/* Selected day appointments */}
           {selectedCalendarDate && (
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
-              <div className="px-5 py-4" style={{ background: "#faf8f4", borderBottom: "1px solid rgba(184,147,106,0.2)" }}>
+              <div className="px-5 py-4" style={{ background: "var(--color-card)", borderBottom: "1px solid var(--color-separator)" }}>
                 <h3 className="font-serif font-semibold text-xl text-text-primary">
                   Appointments for {format(selectedCalendarDate, "EEEE, d MMMM yyyy")}
                 </h3>
               </div>
-              <div className="p-4 space-y-3 bg-[#faf8f4]">
+              <div className="p-4 space-y-3 bg-card">
                 {selectedDayAppointments.length === 0 ? (
                   <p className="text-text-muted text-center py-8">{t("apt_none_day")}</p>
                 ) : (
@@ -710,7 +710,7 @@ export default function AppointmentsPage() {
                       key={apt.id}
                       className="p-4 rounded-xl"
                       style={{
-                        background: "#f4efe6",
+                        background: "var(--color-surface)",
                         border: "1px solid rgba(184,147,106,0.18)",
                         borderLeft: "3px solid #b8936a",
                         opacity: isInactive(apt.status) ? 0.55 : 1,
@@ -718,16 +718,16 @@ export default function AppointmentsPage() {
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-semibold capitalize" style={{ color: "#2d1f14" }}>
+                          <p className="font-semibold capitalize" style={{ color: "var(--color-text-primary)" }}>
                             {apt.patients?.name || "Unknown"}
                           </p>
-                          <p className="text-sm" style={{ color: "#8a7060" }}>
+                          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                             {apt.appointment_time ? formatTime12(apt.appointment_time) : "—"}
                             {apt.duration_minutes ? ` (${apt.duration_minutes} min)` : ""}
                           </p>
                         </div>
                         <div className="flex gap-2 items-center">
-                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
                             {typeLabel(apt.type)}
                           </span>
                           <StatusBadge status={apt.status} />

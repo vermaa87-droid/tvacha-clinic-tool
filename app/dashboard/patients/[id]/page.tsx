@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
+import { useToast } from "@/components/ui/Toast";
 
 // ─── Common diagnoses for autocomplete ──────────────────────────────────────
 
@@ -188,12 +189,13 @@ export default function PatientDetailPage({
   const { user } = useAuthStore();
   const router = useRouter();
   const refreshTick = useRefreshTick();
+  const { showToast } = useToast();
 
   // Patient data
   const [patient, setPatient] = useState<PatientWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteLoading] = useState(false);
 
   // Tabs
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
@@ -594,24 +596,34 @@ export default function PatientDetailPage({
 
   // ─── Delete / Unlink Patient ────────────────────────────────────────────
 
-  const handleUnlinkPatient = async () => {
+  const handleUnlinkPatient = () => {
     if (!patient || !user) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch("/api/delete-patient", {
+    const patientId = patient.id;
+    const patientName = patient.name;
+
+    // Navigate immediately — optimistic
+    router.push("/dashboard/patients");
+
+    // Schedule background deletion with undo
+    const timeout = setTimeout(() => {
+      fetch("/api/delete-patient", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientId: patient.id, doctorId: user.id }),
-      });
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error ?? "Delete failed");
-      }
-      router.push("/dashboard/patients");
-    } catch (err) {
-      console.error("[patient-detail] delete error:", err);
-      setDeleteLoading(false);
-    }
+        body: JSON.stringify({ patientId, doctorId: user.id }),
+      }).catch((err) => console.error("[patient-detail] delete error:", err));
+    }, 5500);
+
+    showToast({
+      message: `${patientName} deleted`,
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          clearTimeout(timeout);
+          router.push(`/dashboard/patients/${patientId}`);
+        },
+      },
+    });
   };
 
   // ─── Lab Reports ────────────────────────────────────────────────────────
@@ -781,7 +793,7 @@ export default function PatientDetailPage({
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
         className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 overflow-y-auto"
-        style={{ backgroundColor: "#f5f2ed" }}
+        style={{ backgroundColor: "var(--color-surface)" }}
       >
         <div className="p-4 space-y-3 md:p-6 md:space-y-5">
           {/* Back link + Delete */}
@@ -899,7 +911,7 @@ export default function PatientDetailPage({
                 <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
                   Disease Classification
                 </p>
-                <span className="inline-block px-2.5 py-1 rounded-lg text-sm font-medium" style={{ background: "rgba(184,147,106,0.15)", color: "#5c4030" }}>
+                <span className="inline-block px-2.5 py-1 rounded-lg text-sm font-medium" style={{ background: "rgba(184,147,106,0.15)", color: "var(--color-text-muted)" }}>
                   {(patient as PatientWithDetails).current_diagnosis}
                 </span>
               </div>
@@ -1146,7 +1158,7 @@ export default function PatientDetailPage({
                           {Math.round(aiCase.ai_confidence * 100)}%
                         </span>
                       </div>
-                      <div className="w-full h-2 rounded-full" style={{ background: "#e8e0d0" }}>
+                      <div className="w-full h-2 rounded-full" style={{ background: "var(--color-primary-200)" }}>
                         <div className="h-full rounded-full" style={{ width: `${Math.round(aiCase.ai_confidence * 100)}%`, background: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : "#d4a55a" }} />
                       </div>
                     </div>
@@ -1166,7 +1178,7 @@ export default function PatientDetailPage({
                     )}
                     {/* Doctor override */}
                     {aiCase.doctor_override_diagnosis && (
-                      <div className="pt-3" style={{ borderTop: "1px solid rgba(184,147,106,0.2)" }}>
+                      <div className="pt-3" style={{ borderTop: "1px solid var(--color-separator)" }}>
                         <p className="text-xs text-text-muted mb-1">Doctor&apos;s Final Diagnosis</p>
                         <p className="text-sm font-semibold text-text-primary">{aiCase.doctor_override_diagnosis}</p>
                         {aiCase.doctor_reviewed_at && (
@@ -1822,7 +1834,7 @@ export default function PatientDetailPage({
                                 <p className="text-xs text-text-muted mt-1">
                                   Uploaded {new Date(record.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                 </p>
-                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full" style={{ background: "#f5f2ed", color: "#9a8a76" }}>
+                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface)", color: "var(--color-text-secondary)" }}>
                                   Added during registration
                                 </span>
                               </div>
@@ -2086,7 +2098,7 @@ export default function PatientDetailPage({
                           className="px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all"
                           style={newFeeStatus === s
                             ? { background: "#b8936a", color: "#fff" }
-                            : { background: "#e8ddd0", color: "#7a5c35" }}
+                            : { background: "var(--color-primary-200)", color: "#7a5c35" }}
                         >
                           {s}
                         </button>

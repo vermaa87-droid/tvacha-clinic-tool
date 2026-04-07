@@ -42,24 +42,24 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 const TOOLTIP_STYLE = {
-  backgroundColor: "#faf6f0",
+  backgroundColor: "var(--color-card)",
   border: "1px solid rgba(184,147,106,0.3)",
   borderRadius: "8px",
-  color: "#3d2e22",
+  color: "var(--color-text-primary)",
   fontSize: "12px",
 };
 
-const AXIS_STYLE = { fill: "#9a8a76", fontSize: 11 };
-const GRID_PROPS = { strokeDasharray: "2 6", stroke: "rgba(184,147,106,0.18)" };
+const AXIS_STYLE = { fill: "var(--color-text-secondary)", fontSize: 11 };
+const GRID_PROPS = { strokeDasharray: "2 6", stroke: "var(--color-separator)" };
 
 function NoData() {
   const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center justify-center py-12">
-      <div className="w-10 h-10 rounded-full mb-3 flex items-center justify-center" style={{ background: "#f0e8d8" }}>
+      <div className="w-10 h-10 rounded-full mb-3 flex items-center justify-center" style={{ background: "var(--color-primary-200)" }}>
         <span style={{ color: "#b8936a", fontSize: "18px" }}>∅</span>
       </div>
-      <p className="text-sm" style={{ color: "#a09080" }}>{t("analytics_no_data")}</p>
+      <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>{t("analytics_no_data")}</p>
     </div>
   );
 }
@@ -73,16 +73,16 @@ interface StatCardProps {
 function StatCard({ label, value, sub }: StatCardProps) {
   return (
     <div
-      className="rounded-xl bg-[#faf8f4] px-4 py-4 flex flex-col"
+      className="rounded-xl bg-card px-4 py-4 flex flex-col"
       style={{
         border: "1px solid rgba(184,147,106,0.18)",
         borderLeft: "3px solid #b8936a",
         boxShadow: "0 1px 4px rgba(90,60,20,0.04)",
       }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#a09080", letterSpacing: "0.08em" }}>{label}</p>
-      <p className="text-4xl font-bold leading-none" style={{ color: "#2d1f14" }}>{value}</p>
-      {sub && <p className="text-xs mt-2" style={{ color: "#b8a090" }}>{sub}</p>}
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>{label}</p>
+      <p className="text-4xl font-bold leading-none" style={{ color: "var(--color-text-primary)" }}>{value}</p>
+      {sub && <p className="text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>{sub}</p>}
     </div>
   );
 }
@@ -90,11 +90,11 @@ function StatCard({ label, value, sub }: StatCardProps) {
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl bg-[#faf8f4] overflow-hidden"
+      className="rounded-xl bg-card overflow-hidden"
       style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
     >
       <div className="px-5 pt-5 pb-3">
-        <h3 className="font-serif font-semibold text-lg" style={{ color: "#2d1f14" }}>{title}</h3>
+        <h3 className="font-serif font-semibold text-lg" style={{ color: "var(--color-text-primary)" }}>{title}</h3>
         <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
       </div>
       <div className="px-5 pb-5">{children}</div>
@@ -108,7 +108,7 @@ function ChartLegend({ items }: { items: { name: string; color: string }[] }) {
       {items.map((item) => (
         <div key={item.name} className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
-          <span className="text-xs capitalize" style={{ color: "#8a7060" }}>{item.name}</span>
+          <span className="text-xs capitalize" style={{ color: "var(--color-text-secondary)" }}>{item.name}</span>
         </div>
       ))}
     </div>
@@ -126,10 +126,10 @@ function SinglePieStat({ name, value, color }: { name: string; value: number; co
         </svg>
         <div className="text-center z-10">
           <p className="text-4xl font-bold leading-none" style={{ color }}>100%</p>
-          <p className="text-xs mt-1" style={{ color: "#8a7060" }}>{value} total</p>
+          <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{value} total</p>
         </div>
       </div>
-      <p className="mt-4 text-sm font-medium capitalize" style={{ color: "#5c4030" }}>{name}</p>
+      <p className="mt-4 text-sm font-medium capitalize" style={{ color: "var(--color-text-muted)" }}>{name}</p>
     </div>
   );
 }
@@ -510,7 +510,7 @@ export default function AnalyticsPage() {
               <ChartLegend items={[{ name: t("analytics_total_patients"), color: CHART_COLORS[0] }]} />
             </>
           ) : (
-            <p className="text-center py-12 text-sm" style={{ color: "#a09080" }}>
+            <p className="text-center py-12 text-sm" style={{ color: "var(--color-text-muted)" }}>
               {t("analytics_growth_empty")}
             </p>
           )}
@@ -723,11 +723,11 @@ export default function AnalyticsPage() {
 
       {/* Quick Insights */}
       <div
-        className="rounded-xl bg-[#faf8f4] overflow-hidden"
+        className="rounded-xl bg-card overflow-hidden"
         style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
       >
         <div className="px-5 pt-5 pb-3">
-          <h3 className="font-serif font-semibold text-lg" style={{ color: "#2d1f14" }}>{t("analytics_quick_insights")}</h3>
+          <h3 className="font-serif font-semibold text-lg" style={{ color: "var(--color-text-primary)" }}>{t("analytics_quick_insights")}</h3>
           <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
         </div>
         <div className="px-5 pb-4 space-y-0">
@@ -741,7 +741,7 @@ export default function AnalyticsPage() {
               className="flex items-center justify-between py-3"
               style={{ borderBottom: i < arr.length - 1 ? "1px solid rgba(184,147,106,0.12)" : "none" }}
             >
-              <span className="text-sm" style={{ color: "#6b5544" }}>{item.label}</span>
+              <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>{item.label}</span>
               <span className="font-semibold text-sm" style={{ color: "#b8936a" }}>{item.value}</span>
             </div>
           ))}
@@ -756,7 +756,7 @@ export default function AnalyticsPage() {
         <p className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: "#b8936a", letterSpacing: "0.1em" }}>
           {t("analytics_earnings_title")}
         </p>
-        <p className="text-sm" style={{ color: "#a09080" }}>
+        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
           {t("analytics_earnings_desc")}
         </p>
       </div>

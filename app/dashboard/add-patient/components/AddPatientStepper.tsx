@@ -35,7 +35,7 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
                 style={
                   isCompleted || isActive
                     ? { background: "#b8936a", border: "2px solid #b8936a" }
-                    : { background: "#f5f2ed", border: "2px solid #e0d5c4" }
+                    : { background: "var(--color-surface)", border: "2px solid var(--color-primary-200)" }
                 }
               >
                 {isCompleted ? (
@@ -52,12 +52,12 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <Icon size={15} color={isActive ? "#fff" : "#9a8a76"} />
+                  <Icon size={15} color={isActive ? "#fff" : "var(--color-text-secondary)"} />
                 )}
               </div>
               <span
                 className="text-xs font-medium hidden sm:block text-center"
-                style={{ color: isActive || isCompleted ? "#b8936a" : "#9a8a76", minWidth: 48 }}
+                style={{ color: isActive || isCompleted ? "#b8936a" : "var(--color-text-secondary)", minWidth: 48 }}
               >
                 {t(step.labelKey)}
               </span>
@@ -68,7 +68,7 @@ export function AddPatientStepper({ currentStep }: AddPatientStepperProps) {
               <div
                 className="flex-1 h-0.5 mx-1"
                 style={{
-                  background: isCompleted ? "#b8936a" : "#e0d5c4",
+                  background: isCompleted ? "#b8936a" : "var(--color-primary-200)",
                   marginTop: 22,
                 }}
               />

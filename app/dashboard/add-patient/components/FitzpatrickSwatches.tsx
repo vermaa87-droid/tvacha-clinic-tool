@@ -40,12 +40,12 @@ export function FitzpatrickSwatches({ value, onChange, error }: FitzpatrickSwatc
                 border:
                   value === swatch.type
                     ? "3px solid #b8936a"
-                    : "2px solid #e0d5c4",
+                    : "2px solid var(--color-primary-200)",
                 transition: "border-color 0.15s",
                 flexShrink: 0,
               }}
             />
-            <span className="text-xs text-center" style={{ color: "#9a8a76", maxWidth: 52 }}>
+            <span className="text-xs text-center" style={{ color: "var(--color-text-secondary)", maxWidth: 52 }}>
               {t(swatch.labelKey)}
             </span>
           </button>

@@ -10,6 +10,7 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Button } from "@/components/ui/Button";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useLanguage } from "@/lib/language-context";
 import Link from "next/link";
 
@@ -48,10 +49,10 @@ export default function Home() {
       <motion.nav
         className="sticky top-0 z-40 transition-all duration-300"
         style={{
-          backgroundColor: scrolled ? "rgba(250,248,244,0.92)" : "transparent",
+          backgroundColor: scrolled ? "var(--nav-bg-scrolled)" : "transparent",
           backdropFilter: scrolled ? "blur(12px)" : "none",
-          borderBottom: scrolled ? "1px solid #e8e0d0" : "1px solid transparent",
-          boxShadow: scrolled ? "0 1px 20px rgba(26,22,18,0.04)" : "none",
+          borderBottom: scrolled ? "1px solid var(--nav-border-scrolled)" : "1px solid transparent",
+          boxShadow: scrolled ? "var(--nav-shadow-scrolled)" : "none",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
@@ -84,6 +85,13 @@ export default function Home() {
               transition={{ duration: 0.4, delay: 0.44 }}
             >
               <LanguageToggle />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.48 }}
+            >
+              <ThemeToggle />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -146,7 +154,8 @@ export default function Home() {
                     {label}
                   </Link>
                 ))}
-                <div className="mt-4 px-4">
+                <div className="mt-4 px-4 flex flex-col gap-3">
+                  <ThemeToggle />
                   <Button className="w-full bg-primary-500 hover:bg-primary-600 text-white">
                     <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>{t("nav_getstarted")}</Link>
                   </Button>

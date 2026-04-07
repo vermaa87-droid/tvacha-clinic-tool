@@ -140,20 +140,20 @@ export function Step3Details({
 
   const sectionLabel = (text: string) => (
     <div className="flex items-center gap-3 mb-4 mt-6 first:mt-0">
-      <div className="flex-1 h-px" style={{ background: "#e8e0d0" }} />
+      <div className="flex-1 h-px" style={{ background: "var(--color-primary-200)" }} />
       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#b8936a" }}>
         {text}
       </span>
-      <div className="flex-1 h-px" style={{ background: "#e8e0d0" }} />
+      <div className="flex-1 h-px" style={{ background: "var(--color-primary-200)" }} />
     </div>
   );
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
         {t("ap_s3_title")}
       </h2>
-      <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
+      <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
         {t("ap_s3_subtitle")}
       </p>
 
@@ -167,7 +167,7 @@ export function Step3Details({
             <p className="text-sm font-semibold" style={{ color: "#c44a4a" }}>
               {t("ap_s3_save_error")}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{saveError}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{saveError}</p>
           </div>
         </div>
       )}
@@ -178,7 +178,7 @@ export function Step3Details({
       <div className="space-y-4">
         {/* Full Name */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s3_full_name")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <input
@@ -193,13 +193,13 @@ export function Step3Details({
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s3_phone")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <div className="flex">
             <span
               className="flex items-center px-3 rounded-l-lg border border-r-0 border-primary-200 text-sm font-medium flex-shrink-0"
-              style={{ background: "#f5f2ed", color: "#5c3d18" }}
+              style={{ background: "var(--color-surface)", color: "#5c3d18" }}
             >
               +91
             </span>
@@ -215,7 +215,7 @@ export function Step3Details({
           </div>
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           {checkingDuplicate && (
-            <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>{t("ap_s3_checking_dup")}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{t("ap_s3_checking_dup")}</p>
           )}
           {duplicate && (
             <div
@@ -243,8 +243,8 @@ export function Step3Details({
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_email")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_email")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <input
             type="email"
@@ -257,8 +257,8 @@ export function Step3Details({
 
         {/* DOB */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_dob")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_dob")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <input
             type="date"
@@ -270,8 +270,8 @@ export function Step3Details({
 
         {/* Address */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_address")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_address")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <textarea
             rows={2}
@@ -285,8 +285,8 @@ export function Step3Details({
         {/* City + State */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-              {t("ap_s3_city")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+              {t("ap_s3_city")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
             </label>
             <input
               type="text"
@@ -297,8 +297,8 @@ export function Step3Details({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-              {t("ap_s3_state")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+              {t("ap_s3_state")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
             </label>
             <select value={data.state} onChange={(e) => set("state", e.target.value)} className={selectClass}>
               <option value="">{t("ap_s3_state_placeholder")}</option>
@@ -311,8 +311,8 @@ export function Step3Details({
 
         {/* Blood Group */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_blood_group")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_blood_group")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <select value={data.bloodGroup} onChange={(e) => set("bloodGroup", e.target.value)} className={selectClass} style={{ maxWidth: 200 }}>
             <option value="">{t("ap_s3_blood_placeholder")}</option>
@@ -329,8 +329,8 @@ export function Step3Details({
       <div className="space-y-5">
         {/* Allergies */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_allergies")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_allergies")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <TagInput
             tags={data.allergies}
@@ -343,8 +343,8 @@ export function Step3Details({
 
         {/* Chronic Conditions */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
-            {t("ap_s3_chronic")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_chronic")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <div className="flex flex-wrap gap-3">
             {CHRONIC_OPTIONS.map((condition) => {
@@ -360,7 +360,7 @@ export function Step3Details({
                     onChange={() => toggleChronic(condition)}
                     className="w-4 h-4 rounded accent-primary-500"
                   />
-                  <span className="text-sm" style={{ color: "#1a1612" }}>{condition}</span>
+                  <span className="text-sm" style={{ color: "var(--color-text-primary)" }}>{condition}</span>
                 </label>
               );
             })}
@@ -369,8 +369,8 @@ export function Step3Details({
 
         {/* Current Medications */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
-            {t("ap_s3_medications")} <span className="text-xs font-normal" style={{ color: "#9a8a76" }}>({t("ap_s3_optional")})</span>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            {t("ap_s3_medications")} <span className="text-xs font-normal" style={{ color: "var(--color-text-secondary)" }}>({t("ap_s3_optional")})</span>
           </label>
           <textarea
             rows={3}
@@ -406,7 +406,7 @@ export function Step3Details({
             <span className="text-sm font-medium" style={{ color: "#b8936a" }}>
               {t("ap_s3_upload_records")}
             </span>
-            <span className="text-xs" style={{ color: "#9a8a76" }}>
+            <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
               {t("ap_s3_upload_hint")}
             </span>
           </button>
@@ -432,8 +432,8 @@ export function Step3Details({
                     key={idx}
                     className="relative rounded-lg overflow-hidden"
                     style={{
-                      background: "#f5f2ed",
-                      border: "1px solid #e0d5c4",
+                      background: "var(--color-surface)",
+                      border: "1px solid var(--color-primary-200)",
                       aspectRatio: isImage ? "1 / 1" : undefined,
                     }}
                   >
@@ -448,7 +448,7 @@ export function Step3Details({
                         <FileText size={22} style={{ color: "#b8936a", flexShrink: 0 }} />
                         <span
                           className="text-xs text-center font-medium leading-tight"
-                          style={{ color: "#1a1612", wordBreak: "break-word" }}
+                          style={{ color: "var(--color-text-primary)", wordBreak: "break-word" }}
                         >
                           {file.name}
                         </span>

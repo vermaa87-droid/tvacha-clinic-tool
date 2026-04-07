@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { DataTable, EditableCell } from "@/components/ui/DataTable";
 import { Modal } from "@/components/ui/Modal";
@@ -13,6 +13,7 @@ import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import Link from "next/link";
 import { Pencil, Plus, Phone, Trash2, CheckSquare } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 import {
   SEVERITY_OPTIONS,
   SEVERITY_COLORS,
@@ -59,6 +60,7 @@ interface PatientRow extends Record<string, unknown> {
 
 interface VisitRow extends Record<string, unknown> {
   id: string;
+  patient_id: string;
   visit_date: string;
   patient_name: string;
   chief_complaint: string | null;
@@ -73,6 +75,7 @@ interface VisitRow extends Record<string, unknown> {
 
 interface TreatmentPlanRow extends Record<string, unknown> {
   id: string;
+  patient_id: string;
   patient_name: string;
   condition: string | null;
   treatment_started: string | null;
@@ -86,6 +89,7 @@ interface TreatmentPlanRow extends Record<string, unknown> {
 
 interface MedicationRow extends Record<string, unknown> {
   prescription_id: string;
+  patient_id: string;
   created_at: string;
   patient_name: string;
   medicine_name: string;
@@ -98,6 +102,7 @@ interface MedicationRow extends Record<string, unknown> {
 
 interface AppointmentRow extends Record<string, unknown> {
   id: string;
+  patient_id: string;
   appointment_date: string;
   appointment_time: string;
   patient_name: string;
@@ -132,6 +137,8 @@ export default function RegisterPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
+  const { showToast } = useToast();
+  const pendingDeletions = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [activeTab, setActiveTab] = useState<TabKey>("patients");
 
   // Loading states
@@ -157,13 +164,11 @@ export default function RegisterPage() {
   // Selection state
   const [selectedPatients, setSelectedPatients] = useState<Set<string>>(new Set());
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
   // Modal states
   const [showAddPatient, setShowAddPatient] = useState(false);
   const [patientFormError, setPatientFormError] = useState("");
   const [patientToDelete, setPatientToDelete] = useState<PatientRow | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
@@ -291,6 +296,7 @@ export default function RegisterPage() {
             for (const med of rx.medicines) {
               rows.push({
                 prescription_id: rx.id,
+                patient_id: rx.patient_id,
                 created_at: rx.created_at?.split("T")[0] || "",
                 patient_name: patientName,
                 medicine_name: med.name || "",
@@ -531,7 +537,7 @@ export default function RegisterPage() {
         header: "Diagnosis",
         cell: ({ row }) => {
           const val = row.original.latest_diagnosis;
-          return <span className="text-xs" style={{ color: val ? "#1a1612" : "#9a8a76" }}>{val || "—"}</span>;
+          return <span className="text-xs" style={{ color: val ? "var(--color-text-primary)" : "var(--color-text-secondary)" }}>{val || "—"}</span>;
         },
       },
       {
@@ -597,7 +603,7 @@ export default function RegisterPage() {
         cell: ({ row }) => {
           const fees = row.original.total_fees;
           return (
-            <span className="text-xs font-medium whitespace-nowrap" style={{ color: fees > 0 ? "#1a1612" : "#9a8a76" }}>
+            <span className="text-xs font-medium whitespace-nowrap" style={{ color: fees > 0 ? "var(--color-text-primary)" : "var(--color-text-secondary)" }}>
               {fees > 0 ? `₹${fees.toLocaleString("en-IN")}` : "—"}
             </span>
           );
@@ -873,43 +879,100 @@ export default function RegisterPage() {
     [t]
   );
 
-  // ─── Unlink Patient ───────────────────────────────────────────────────────
+  // ─── Background deletion ─────────────────────────────────────────────────
 
-  const handleUnlinkPatient = async () => {
-    if (!patientToDelete) return;
-    setDeleteLoading(true);
+  const performBackgroundDeletion = useCallback(async (patientId: string) => {
     try {
-      await supabase
-        .from("patients")
-        .update({ linked_doctor_id: null })
-        .eq("id", patientToDelete.id);
-      setPatientToDelete(null);
-      fetchPatients(true);
+      const doctorId = user?.id;
+      if (!doctorId) return;
+      await fetch("/api/delete-patient", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId, doctorId }),
+      });
+      pendingDeletions.current.delete(patientId);
     } catch (err) {
-      console.error("[register] unlink error:", err);
-    } finally {
-      setDeleteLoading(false);
+      console.error("[register] background delete failed:", err);
     }
+  }, [user]);
+
+  // ─── Optimistic removal from ALL tabs ────────────────────────────────────
+
+  const removeFromAllTabs = useCallback((ids: Set<string>) => {
+    setPatients((prev) => prev.filter((p) => !ids.has(p.id)));
+    setVisits((prev) => prev.filter((v) => !ids.has(v.patient_id)));
+    setTreatmentPlans((prev) => prev.filter((t) => !ids.has(t.patient_id)));
+    setMedications((prev) => prev.filter((m) => !ids.has(m.patient_id)));
+    setAppointments((prev) => prev.filter((a) => !ids.has(a.patient_id)));
+  }, []);
+
+  const refetchAllTabs = useCallback(() => {
+    fetchPatients(true);
+    fetchVisits(true);
+    fetchTreatmentPlans(true);
+    fetchMedications(true);
+    fetchAppointments(true);
+  }, [fetchPatients, fetchVisits, fetchTreatmentPlans, fetchMedications, fetchAppointments]);
+
+  // ─── Optimistic Single Delete ──────────────────────────────────────────────
+
+  const handleUnlinkPatient = () => {
+    if (!patientToDelete) return;
+    const { id, name } = patientToDelete;
+    setPatientToDelete(null);
+
+    removeFromAllTabs(new Set([id]));
+
+    const timeout = setTimeout(() => {
+      performBackgroundDeletion(id);
+    }, 5500);
+    pendingDeletions.current.set(id, timeout);
+
+    showToast({
+      message: `${name} deleted`,
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const t = pendingDeletions.current.get(id);
+          if (t) { clearTimeout(t); pendingDeletions.current.delete(id); }
+          refetchAllTabs();
+        },
+      },
+    });
   };
 
-  // ─── Bulk Unlink Patients ─────────────────────────────────────────────────
+  // ─── Optimistic Bulk Delete ────────────────────────────────────────────────
 
-  const handleBulkUnlink = async () => {
-    if (selectedPatients.size === 0) return;
-    setBulkDeleteLoading(true);
-    try {
-      await supabase
-        .from("patients")
-        .update({ linked_doctor_id: null })
-        .in("id", Array.from(selectedPatients));
-      setSelectedPatients(new Set());
-      setShowBulkDeleteModal(false);
-      fetchPatients(true);
-    } catch (err) {
-      console.error("[register] bulk unlink error:", err);
-    } finally {
-      setBulkDeleteLoading(false);
-    }
+  const handleBulkUnlink = () => {
+    const ids = Array.from(selectedPatients);
+    const count = ids.length;
+    setShowBulkDeleteModal(false);
+
+    removeFromAllTabs(new Set(ids));
+    setSelectedPatients(new Set());
+
+    const bulkTimeout = setTimeout(() => {
+      for (const id of ids) {
+        performBackgroundDeletion(id);
+      }
+    }, 5500);
+
+    const bulkKey = `bulk-${Date.now()}`;
+    pendingDeletions.current.set(bulkKey, bulkTimeout);
+
+    showToast({
+      message: `${count} patient${count > 1 ? "s" : ""} deleted`,
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const t = pendingDeletions.current.get(bulkKey);
+          if (t) { clearTimeout(t); pendingDeletions.current.delete(bulkKey); }
+          refetchAllTabs();
+        },
+      },
+    });
   };
 
   // ─── Add Patient Form ─────────────────────────────────────────────────────
@@ -1198,7 +1261,7 @@ export default function RegisterPage() {
             {/* Mobile add button */}
             <button
               onClick={() => setShowAddPatient(true)}
-              className="w-full mb-4 flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#c9b89c] bg-[#faf8f4] px-4 py-3 text-sm font-medium text-[#b8936a] hover:bg-[#f5f0e8] transition-colors"
+              className="w-full mb-4 flex items-center justify-center gap-2 rounded-xl border border-dashed border-primary-200 bg-card px-4 py-3 text-sm font-medium text-[#b8936a] hover:bg-primary-200 transition-colors"
             >
               <Plus className="w-4 h-4" />
               {t("reg_add_patient")}
@@ -1229,34 +1292,34 @@ export default function RegisterPage() {
                     <Link
                       key={patient.id}
                       href={`/dashboard/patients/${patient.id}`}
-                      className="block rounded-xl border border-[#e8ddd0] border-l-[3px] border-l-[#b8936a] bg-[#faf8f4] p-4 active:bg-[#f5f0e8] transition-colors"
+                      className="block rounded-xl border border-primary-200 border-l-[3px] border-l-[#b8936a] bg-card p-4 active:bg-primary-200 transition-colors"
                     >
                       {/* Name row */}
                       <div className="flex items-start justify-between gap-2 mb-2.5">
-                        <h3 className="font-serif text-base font-semibold text-[#1a1612] capitalize leading-tight">
+                        <h3 className="font-serif text-base font-semibold text-text-primary capitalize leading-tight">
                           {patient.name}
                         </h3>
-                        <span className="shrink-0 text-xs text-[#9a8a76]">{patient.patient_display_id}</span>
+                        <span className="shrink-0 text-xs text-text-secondary">{patient.patient_display_id}</span>
                       </div>
 
                       {/* Fields grid */}
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                         <div>
-                          <span className="text-[#9a8a76] text-xs">Age/Gender</span>
-                          <p className="text-[#1a1612] text-sm">{ageGender}</p>
+                          <span className="text-text-secondary text-xs">Age/Gender</span>
+                          <p className="text-text-primary text-sm">{ageGender}</p>
                         </div>
                         <div>
-                          <span className="text-[#9a8a76] text-xs">Disease</span>
-                          <p className="text-[#1a1612] text-sm truncate">{patient.current_diagnosis || "—"}</p>
+                          <span className="text-text-secondary text-xs">Disease</span>
+                          <p className="text-text-primary text-sm truncate">{patient.current_diagnosis || "—"}</p>
                         </div>
                         <div>
-                          <span className="text-[#9a8a76] text-xs">Last Visit</span>
-                          <p className="text-[#1a1612] text-sm">{formatDate(patient.last_visit_date) || "—"}</p>
+                          <span className="text-text-secondary text-xs">Last Visit</span>
+                          <p className="text-text-primary text-sm">{formatDate(patient.last_visit_date) || "—"}</p>
                         </div>
                         {patient.phone && (
                           <div>
-                            <span className="text-[#9a8a76] text-xs">Phone</span>
-                            <p className="text-[#1a1612] text-sm">{patient.phone}</p>
+                            <span className="text-text-secondary text-xs">Phone</span>
+                            <p className="text-text-primary text-sm">{patient.phone}</p>
                           </div>
                         )}
                       </div>
@@ -1349,13 +1412,12 @@ export default function RegisterPage() {
         size="sm"
         footer={
           <>
-            <Button variant="outline" onClick={() => setPatientToDelete(null)} disabled={deleteLoading}>
+            <Button variant="outline" onClick={() => setPatientToDelete(null)}>
               Cancel
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleUnlinkPatient}
-              loading={deleteLoading}
             >
               Remove
             </Button>
@@ -1375,13 +1437,12 @@ export default function RegisterPage() {
         size="sm"
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowBulkDeleteModal(false)} disabled={bulkDeleteLoading}>
+            <Button variant="outline" onClick={() => setShowBulkDeleteModal(false)}>
               Cancel
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleBulkUnlink}
-              loading={bulkDeleteLoading}
             >
               Remove {selectedPatients.size} patient{selectedPatients.size > 1 ? "s" : ""}
             </Button>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { Stethoscope, Clock, Image as ImageIcon, CheckCircle2, SkipForward, Trash2 } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 interface PendingPatient {
   id: string;
@@ -49,7 +50,8 @@ export default function ReadyForDiagnosisPage() {
   const [dismissId, setDismissId] = useState<string | null>(null);
   const [dismissing, setDismissing] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const { showToast } = useToast();
+  const pendingDeletions = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const fetchPatients = useCallback(async () => {
     if (!user) return;
@@ -130,10 +132,10 @@ export default function ReadyForDiagnosisPage() {
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold" style={{ color: "#1a1612" }}>
+        <h1 className="text-3xl font-serif font-bold" style={{ color: "var(--color-text-primary)" }}>
           Ready for Diagnosis
         </h1>
-        <p className="text-sm mt-1" style={{ color: "#9a8a76" }}>
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
           These patients have been pre-screened and are waiting for your review.
         </p>
       </div>
@@ -141,10 +143,10 @@ export default function ReadyForDiagnosisPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl p-6 animate-pulse" style={{ background: "#faf8f4", border: "1px solid #e8ddd0" }}>
-              <div className="h-5 w-48 rounded mb-3" style={{ background: "#e8ddd0" }} />
-              <div className="h-4 w-64 rounded mb-2" style={{ background: "#e8ddd0" }} />
-              <div className="h-4 w-40 rounded" style={{ background: "#e8ddd0" }} />
+            <div key={i} className="rounded-2xl p-6 animate-pulse" style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)" }}>
+              <div className="h-5 w-48 rounded mb-3" style={{ background: "var(--color-primary-200)" }} />
+              <div className="h-4 w-64 rounded mb-2" style={{ background: "var(--color-primary-200)" }} />
+              <div className="h-4 w-40 rounded" style={{ background: "var(--color-primary-200)" }} />
             </div>
           ))}
         </div>
@@ -156,10 +158,10 @@ export default function ReadyForDiagnosisPage() {
           >
             <CheckCircle2 size={40} style={{ color: "#b8936a" }} />
           </div>
-          <h2 className="text-xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+          <h2 className="text-xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
             All caught up!
           </h2>
-          <p className="text-sm" style={{ color: "#9a8a76" }}>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             No patients waiting for diagnosis.
           </p>
         </div>
@@ -177,30 +179,30 @@ export default function ReadyForDiagnosisPage() {
                 key={patient.id}
                 className="rounded-2xl p-6"
                 style={{
-                  background: "#faf8f4",
-                  border: "1px solid #e8ddd0",
+                  background: "var(--color-card)",
+                  border: "1px solid var(--color-primary-200)",
                   boxShadow: "0 2px 8px rgba(90,60,20,0.06)",
                 }}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h2 className="text-lg font-serif font-bold" style={{ color: "#1a1612" }}>
+                    <h2 className="text-lg font-serif font-bold" style={{ color: "var(--color-text-primary)" }}>
                       {patient.name}
                     </h2>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-sm" style={{ color: "#9a8a76" }}>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
                       {patient.age && <span>Age: {patient.age}</span>}
                       {patient.gender && <span>· {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}</span>}
                       {fitzLabel && <span>· {fitzLabel}</span>}
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-semibold px-2 py-1 rounded-lg" style={{ background: "#e8ddd0", color: "#7a5c35" }}>
+                  <span className="text-xs font-mono font-semibold px-2 py-1 rounded-lg" style={{ background: "var(--color-primary-200)", color: "#7a5c35" }}>
                     {patient.patient_display_id ?? "—"}
                   </span>
                 </div>
 
                 {/* Screening info */}
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-sm" style={{ color: "#6b5040" }}>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-sm" style={{ color: "var(--color-text-secondary)" }}>
                   {bodyLocation !== "—" && <span>Body Location: <strong>{bodyLocation}</strong></span>}
                   {duration !== "—" && <span>· Duration: <strong>{duration}</strong></span>}
                   {itching !== "—" && <span>· Itching: <strong>{itching}</strong></span>}
@@ -208,7 +210,7 @@ export default function ReadyForDiagnosisPage() {
 
                 {/* Status row */}
                 <div className="flex flex-wrap items-center gap-3 mb-4 text-xs">
-                  <span className="flex items-center gap-1.5" style={{ color: "#9a8a76" }}>
+                  <span className="flex items-center gap-1.5" style={{ color: "var(--color-text-secondary)" }}>
                     <ImageIcon size={13} />
                     {patient.photo_count} photo{patient.photo_count !== 1 ? "s" : ""}
                   </span>
@@ -231,7 +233,7 @@ export default function ReadyForDiagnosisPage() {
                           src={url}
                           alt={`Photo ${idx + 1}`}
                           className="w-16 h-16 object-cover rounded-lg"
-                          style={{ border: "1px solid #e8ddd0" }}
+                          style={{ border: "1px solid var(--color-primary-200)" }}
                         />
                       </a>
                     ))}
@@ -247,7 +249,7 @@ export default function ReadyForDiagnosisPage() {
                       style={{ background: "rgba(184,147,106,0.15)", color: "#7a5c35", border: "1px solid rgba(184,147,106,0.35)" }}
                     >
                       AI classified it as:{" "}
-                      <span style={{ color: "#1a1612" }}>{patient.ai_diagnosis_display.toUpperCase()}</span>
+                      <span style={{ color: "var(--color-text-primary)" }}>{patient.ai_diagnosis_display.toUpperCase()}</span>
                     </span>
                   </div>
                 )}
@@ -299,8 +301,8 @@ export default function ReadyForDiagnosisPage() {
           <div
             className="w-full max-w-sm mx-4 rounded-2xl p-6"
             style={{
-              background: "#faf8f4",
-              border: "1px solid #e8ddd0",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-primary-200)",
               boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
             }}
           >
@@ -312,10 +314,10 @@ export default function ReadyForDiagnosisPage() {
                 <SkipForward size={24} style={{ color: "#7a5c35" }} />
               </div>
             </div>
-            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "#1a1612" }}>
+            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "var(--color-text-primary)" }}>
               Skip this patient?
             </h3>
-            <p className="text-sm text-center mb-6" style={{ color: "#9a8a76" }}>
+            <p className="text-sm text-center mb-6" style={{ color: "var(--color-text-secondary)" }}>
               This patient will be moved out of the diagnosis queue. You can still find them in the Patients section.
             </p>
             <div className="flex gap-3">
@@ -359,8 +361,8 @@ export default function ReadyForDiagnosisPage() {
           <div
             className="w-full max-w-sm mx-4 rounded-2xl p-6"
             style={{
-              background: "#faf8f4",
-              border: "1px solid #e8ddd0",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-primary-200)",
               boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
             }}
           >
@@ -372,16 +374,16 @@ export default function ReadyForDiagnosisPage() {
                 <Trash2 size={24} style={{ color: "#dc2626" }} />
               </div>
             </div>
-            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "#1a1612" }}>
+            <h3 className="text-lg font-serif font-bold text-center mb-2" style={{ color: "var(--color-text-primary)" }}>
               Delete this patient?
             </h3>
-            <p className="text-sm text-center mb-6" style={{ color: "#9a8a76" }}>
+            <p className="text-sm text-center mb-6" style={{ color: "var(--color-text-secondary)" }}>
               This will permanently delete the patient and all their data including photos, visits, and prescriptions. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}
-                disabled={deleting}
+                disabled={false}
                 className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 style={{
                   background: "rgba(184,147,106,0.12)",
@@ -392,23 +394,42 @@ export default function ReadyForDiagnosisPage() {
                 Cancel
               </button>
               <button
-                onClick={async () => {
-                  setDeleting(true);
-                  const res = await fetch("/api/delete-patient", {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ patientId: deleteId, doctorId: user?.id }),
-                  });
-                  if (!res.ok) console.error("[delete-patient]", await res.text());
-                  setDeleting(false);
+                onClick={() => {
+                  const patientId = deleteId!;
+                  const patientName = patients.find((p) => p.id === patientId)?.name || "Patient";
                   setDeleteId(null);
-                  fetchPatients();
+
+                  // Optimistic removal
+                  setPatients((prev) => prev.filter((p) => p.id !== patientId));
+
+                  const timeout = setTimeout(() => {
+                    fetch("/api/delete-patient", {
+                      method: "DELETE",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ patientId, doctorId: user?.id }),
+                    }).catch((err) => console.error("[delete-patient]", err));
+                    pendingDeletions.current.delete(patientId);
+                  }, 5500);
+                  pendingDeletions.current.set(patientId, timeout);
+
+                  showToast({
+                    message: `${patientName} deleted`,
+                    duration: 5000,
+                    action: {
+                      label: "Undo",
+                      onClick: () => {
+                        const t = pendingDeletions.current.get(patientId);
+                        if (t) { clearTimeout(t); pendingDeletions.current.delete(patientId); }
+                        fetchPatients();
+                      },
+                    },
+                  });
                 }}
-                disabled={deleting}
+                disabled={false}
                 className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
                 style={{ background: "#dc2626" }}
               >
-                {deleting ? "Deleting…" : "Yes, delete"}
+                Yes, delete
               </button>
             </div>
           </div>

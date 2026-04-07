@@ -71,17 +71,17 @@ export default function LoginPage() {
   };
 
   const inputBase =
-    "w-full px-5 py-4 rounded-xl outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0] text-base";
+    "w-full px-5 py-4 rounded-xl outline-none transition-all text-[var(--auth-input-text)] placeholder-[var(--auth-input-placeholder)] text-base";
   const inputStyle = {
-    background: "rgba(250,246,240,0.85)",
-    border: "1px solid rgba(184,147,106,0.38)",
+    background: "var(--auth-input-bg)",
+    border: "1px solid var(--auth-input-border)",
   };
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = "#b8936a";
     e.target.style.boxShadow = "0 0 0 3px rgba(184,147,106,0.14)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "rgba(184,147,106,0.38)";
+    e.target.style.borderColor = "var(--auth-input-border)";
     e.target.style.boxShadow = "none";
   };
 
@@ -105,14 +105,14 @@ export default function LoginPage() {
       {/* ── LEFT BRANDED PANEL (desktop only) ── */}
       <div
         className="hidden md:flex md:w-[44%] lg:w-[42%] flex-col relative overflow-hidden"
-        style={{ background: "#dfc49a", minHeight: "100vh", flexShrink: 0 }}
+        style={{ background: "var(--auth-panel-bg)", minHeight: "100vh", flexShrink: 0 }}
       >
         {/* Subtle decorative curves */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(90,55,20,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(90,55,20,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
-          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(90,55,20,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
-          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(90,55,20,0.08)" strokeWidth="1" strokeLinecap="round"/>
+          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(184,147,106,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(184,147,106,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(184,147,106,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(184,147,106,0.08)" strokeWidth="1" strokeLinecap="round"/>
         </svg>
         <div className="relative z-10 flex flex-col h-full px-10 lg:px-14 py-10 lg:py-14">
 
@@ -134,13 +134,13 @@ export default function LoginPage() {
             </p>
             <h2
               className="font-serif font-bold leading-snug mb-6"
-              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "#1e1510", maxWidth: "360px" }}
+              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "var(--auth-input-text)", maxWidth: "360px" }}
             >
               Intelligence Infrastructure for Modern Dermatology
             </h2>
             <p
               className="text-base leading-relaxed"
-              style={{ color: "#7a6354", maxWidth: "320px" }}
+              style={{ color: "var(--auth-label-color)", maxWidth: "320px" }}
             >
               AI pre-screening, patient management, and prescription templates — all in one platform built for Indian clinicians.
             </p>
@@ -156,7 +156,7 @@ export default function LoginPage() {
           <div className="relative z-10 pb-2">
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-bold" style={{ color: "#b8936a" }}>✓</span>
-              <span className="text-sm" style={{ color: "#7a6354" }}>
+              <span className="text-sm" style={{ color: "var(--auth-label-color)" }}>
                 NMC Verified Doctors Only
               </span>
             </div>
@@ -165,7 +165,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex flex-col" style={{ background: "#faf8f4" }}>
+      <div className="flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
 
         {/* Language toggle — top-right on desktop */}
         <div className="hidden md:flex justify-end px-8 py-5">
@@ -186,7 +186,7 @@ export default function LoginPage() {
                   >
                     Reset Password
                   </h1>
-                  <p className="mt-2 text-sm" style={{ color: "#8a7060" }}>
+                  <p className="mt-2 text-sm" style={{ color: "var(--auth-label-color)" }}>
                     Enter your email and we&apos;ll send you a reset link.
                   </p>
                 </div>
@@ -218,7 +218,7 @@ export default function LoginPage() {
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: "#8a7060" }}>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--auth-label-color)" }}>
                         Email address
                       </label>
                       <input
@@ -268,7 +268,7 @@ export default function LoginPage() {
                   >
                     {t("login_title")}
                   </h1>
-                  <p className="mt-2.5 text-base" style={{ color: "#8a7060" }}>
+                  <p className="mt-2.5 text-base" style={{ color: "var(--auth-label-color)" }}>
                     {t("login_subtitle")}
                   </p>
                 </div>
@@ -282,7 +282,7 @@ export default function LoginPage() {
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: "#8a7060" }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: "var(--auth-label-color)" }}>
                       {t("login_email")}
                     </label>
                     <input
@@ -300,7 +300,7 @@ export default function LoginPage() {
 
                   {/* Password */}
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: "#8a7060" }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: "var(--auth-label-color)" }}>
                       {t("login_password")}
                     </label>
                     <input
@@ -322,7 +322,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowForgot(true)}
                       className="text-sm transition-colors hover:text-[#b8936a]"
-                      style={{ color: "#a09080" }}
+                      style={{ color: "var(--color-text-secondary)" }}
                     >
                       Forgot password?
                     </button>
@@ -340,13 +340,13 @@ export default function LoginPage() {
 
                 {/* Divider */}
                 <div className="mt-9 flex items-center gap-3">
-                  <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
-                  <span className="text-xs" style={{ color: "#b8a898" }}>or</span>
-                  <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
+                  <div className="flex-1 border-t" style={{ borderColor: "var(--color-separator)" }} />
+                  <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>or</span>
+                  <div className="flex-1 border-t" style={{ borderColor: "var(--color-separator)" }} />
                 </div>
 
                 {/* Sign up link */}
-                <p className="text-center text-base mt-5" style={{ color: "#8a7060" }}>
+                <p className="text-center text-base mt-5" style={{ color: "var(--auth-label-color)" }}>
                   {t("login_no_account")}{" "}
                   <Link
                     href="/signup"

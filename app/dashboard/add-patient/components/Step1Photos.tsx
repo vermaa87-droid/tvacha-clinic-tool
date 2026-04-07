@@ -45,10 +45,10 @@ export function Step1Photos({
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
-      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
         {t("ap_s1_title")}
       </h2>
-      <p className="text-sm mb-8" style={{ color: "#9a8a76" }}>
+      <p className="text-sm mb-8" style={{ color: "var(--color-text-secondary)" }}>
         {t("ap_s1_subtitle")}
       </p>
 
@@ -92,13 +92,13 @@ export function Step1Photos({
                   style={{ border: "2px dashed #b8936a", background: "#fef9f4" }}
                 >
                   <Camera size={28} style={{ color: "#b8936a" }} />
-                  <span className="text-xs font-medium" style={{ color: "#9a8a76" }}>
+                  <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>
                     {t("ap_s1_tap")}
                   </span>
                 </button>
               )}
             </div>
-            <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>
+            <span className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>
               {label}
             </span>
           </div>
@@ -111,7 +111,7 @@ export function Step1Photos({
         style={{ background: "#fef9f0", border: "1px solid #f0e0c0" }}
       >
         <Lightbulb size={18} style={{ color: "#b8936a", flexShrink: 0, marginTop: 1 }} />
-        <p className="text-sm" style={{ color: "#9a8a76" }}>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           {t("ap_s1_tip")}
         </p>
       </div>

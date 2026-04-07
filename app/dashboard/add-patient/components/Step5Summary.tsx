@@ -23,49 +23,49 @@ export function Step5Summary({ savedPatient, onAddAnother }: Step5SummaryProps) 
         <CheckCircle size={32} style={{ color: "#4a9a4a" }} />
       </div>
 
-      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
         {t("ap_s5_title")}
       </h2>
-      <p className="text-sm mb-8" style={{ color: "#9a8a76" }}>
+      <p className="text-sm mb-8" style={{ color: "var(--color-text-secondary)" }}>
         {t("ap_s5_subtitle")}
       </p>
 
       {/* Summary card */}
       <div
         className="rounded-2xl p-6 mb-6 text-left"
-        style={{ background: "#fff", border: "1px solid #e8e0d0", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
+        style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
       >
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle size={18} style={{ color: "#4a9a4a" }} />
-          <span className="font-semibold" style={{ color: "#1a1612" }}>{t("ap_s5_registered")}</span>
+          <span className="font-semibold" style={{ color: "var(--color-text-primary)" }}>{t("ap_s5_registered")}</span>
         </div>
 
         <div className="space-y-1.5 mb-5">
-          <p className="text-sm" style={{ color: "#1a1612" }}>
-            <span style={{ color: "#9a8a76" }}>{t("ap_s5_name")} </span>
+          <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
+            <span style={{ color: "var(--color-text-secondary)" }}>{t("ap_s5_name")} </span>
             <strong>{savedPatient.name}</strong>
           </p>
-          <p className="text-sm" style={{ color: "#1a1612" }}>
-            <span style={{ color: "#9a8a76" }}>{t("ap_s5_id")} </span>
+          <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
+            <span style={{ color: "var(--color-text-secondary)" }}>{t("ap_s5_id")} </span>
             <strong>{savedPatient.patient_display_id}</strong>
           </p>
-          <p className="text-sm" style={{ color: "#1a1612" }}>
-            <span style={{ color: "#9a8a76" }}>{t("ap_s5_phone")} </span>
+          <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
+            <span style={{ color: "var(--color-text-secondary)" }}>{t("ap_s5_phone")} </span>
             <strong>+91 {savedPatient.phone}</strong>
           </p>
         </div>
 
         <div className="space-y-2 mb-5">
-          <div className="flex items-center gap-2 text-sm" style={{ color: "#1a1612" }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-primary)" }}>
             <Camera size={15} style={{ color: "#b8936a" }} />
             <span>{savedPatient.photoCount} {t("ap_s5_photos_uploaded")}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm" style={{ color: "#1a1612" }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-primary)" }}>
             <ClipboardList size={15} style={{ color: "#b8936a" }} />
             <span>{t("ap_s5_screening_done")}</span>
           </div>
           {savedPatient.recordCount > 0 && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#1a1612" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-primary)" }}>
               <FileText size={15} style={{ color: "#b8936a" }} />
               <span>{savedPatient.recordCount} {t("ap_s5_records_uploaded")}</span>
             </div>
@@ -80,7 +80,7 @@ export function Step5Summary({ savedPatient, onAddAnother }: Step5SummaryProps) 
           <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: "#b8936a" }}>
             {t("ap_s5_whats_next")}
           </p>
-          <p className="text-sm" style={{ color: "#9a8a76" }}>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {t("ap_s5_next_desc")}
           </p>
         </div>

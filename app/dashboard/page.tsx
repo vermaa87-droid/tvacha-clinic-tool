@@ -606,7 +606,7 @@ export default function DashboardHome() {
       <div
         className="rounded-xl border p-8"
         style={{
-          background: "linear-gradient(135deg, #faf8f4, #f5efe6)",
+          background: "var(--color-card)",
           borderColor: "rgba(184,147,106,0.25)",
         }}
       >

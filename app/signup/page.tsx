@@ -117,17 +117,17 @@ export default function SignupPage() {
 
   // ── Shared input style helpers ──
   const inputBase =
-    "w-full px-4 py-3 rounded-lg outline-none transition-all text-[#3d2e22] placeholder-[#c0b0a0]";
+    "w-full px-4 py-3 rounded-lg outline-none transition-all text-[var(--auth-input-text)] placeholder-[var(--auth-input-placeholder)]";
   const inputStyle = {
-    background: "rgba(250,246,240,0.85)",
-    border: "1px solid rgba(184,147,106,0.38)",
+    background: "var(--auth-input-bg)",
+    border: "1px solid var(--auth-input-border)",
   };
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = "#b8936a";
     e.target.style.boxShadow = "0 0 0 3px rgba(184,147,106,0.14)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "rgba(184,147,106,0.38)";
+    e.target.style.borderColor = "var(--auth-input-border)";
     e.target.style.boxShadow = "none";
   };
   const onSelectFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
@@ -135,11 +135,11 @@ export default function SignupPage() {
     e.target.style.boxShadow = "0 0 0 3px rgba(184,147,106,0.14)";
   };
   const onSelectBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
-    e.target.style.borderColor = "rgba(184,147,106,0.38)";
+    e.target.style.borderColor = "var(--auth-input-border)";
     e.target.style.boxShadow = "none";
   };
 
-  const labelMuted = { color: "#8a7060" };
+  const labelMuted = { color: "var(--auth-label-color)" };
   const req = <span style={{ color: "#c44a4a" }}>*</span>;
 
   return (
@@ -221,7 +221,7 @@ export default function SignupPage() {
       <div
         className="hidden md:flex md:w-[44%] lg:w-[42%] flex-col relative overflow-hidden"
         style={{
-          background: "#dfc49a",
+          background: "var(--auth-panel-bg)",
           position: "sticky",
           top: 0,
           height: "100vh",
@@ -231,10 +231,10 @@ export default function SignupPage() {
       >
         {/* Subtle decorative curves */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(90,55,20,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(90,55,20,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
-          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(90,55,20,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
-          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(90,55,20,0.08)" strokeWidth="1" strokeLinecap="round"/>
+          <path d="M -40 200 C 80 180 160 260 240 220 C 320 180 380 100 520 130" fill="none" stroke="rgba(184,147,106,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M -20 480 C 100 450 200 520 300 490 C 380 465 430 400 540 420" fill="none" stroke="rgba(184,147,106,0.10)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 60 750 C 160 720 240 780 340 755 C 420 735 460 680 540 700" fill="none" stroke="rgba(184,147,106,0.09)" strokeWidth="1.2" strokeLinecap="round"/>
+          <path d="M 300 -20 C 340 100 280 200 320 340 C 360 480 420 540 400 680" fill="none" stroke="rgba(184,147,106,0.08)" strokeWidth="1" strokeLinecap="round"/>
         </svg>
         <div className="relative z-10 flex flex-col h-full px-10 lg:px-14 py-10 lg:py-14">
 
@@ -256,13 +256,13 @@ export default function SignupPage() {
             </p>
             <h2
               className="font-serif font-bold leading-snug mb-6"
-              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "#1e1510", maxWidth: "360px" }}
+              style={{ fontSize: "clamp(2rem, 3.2vw, 3rem)", color: "var(--auth-input-text)", maxWidth: "360px" }}
             >
               Intelligence Infrastructure for Modern Dermatology
             </h2>
             <p
               className="text-base leading-relaxed"
-              style={{ color: "#7a6354", maxWidth: "320px" }}
+              style={{ color: "var(--auth-label-color)", maxWidth: "320px" }}
             >
               AI pre-screening, patient management, and prescription templates — all in one platform built for Indian clinicians.
             </p>
@@ -278,7 +278,7 @@ export default function SignupPage() {
           <div className="relative z-10 pb-2">
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-bold" style={{ color: "#b8936a" }}>✓</span>
-              <span className="text-sm" style={{ color: "#7a6354" }}>
+              <span className="text-sm" style={{ color: "var(--auth-label-color)" }}>
                 NMC Verified Doctors Only
               </span>
             </div>
@@ -287,7 +287,7 @@ export default function SignupPage() {
       </div>
 
       {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex flex-col" style={{ background: "#faf8f4" }}>
+      <div className="flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
 
         {/* Language toggle — desktop top-right */}
         <div className="hidden md:flex justify-end px-8 py-5">
@@ -306,7 +306,7 @@ export default function SignupPage() {
               >
                 {t("signup_title")}
               </h1>
-              <p className="mt-2 text-sm" style={{ color: "#8a7060" }}>
+              <p className="mt-2 text-sm" style={{ color: "var(--auth-label-color)" }}>
                 {t("signup_subtitle")}
               </p>
             </div>
@@ -462,7 +462,7 @@ export default function SignupPage() {
                       onFocus={onFocus}
                       onBlur={onBlur}
                     />
-                    <p className="text-xs mt-1" style={{ color: "#a09080" }}>
+                    <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>
                       {t("signup_registration_help")}
                     </p>
                   </div>
@@ -478,7 +478,7 @@ export default function SignupPage() {
                       onChange={handleChange}
                       required
                       className={`w-full px-4 py-3 rounded-lg outline-none transition-all ${
-                        !formData.stateMedicalCouncil ? "text-[#c0b0a0]" : "text-[#3d2e22]"
+                        !formData.stateMedicalCouncil ? "text-[var(--auth-input-placeholder)]" : "text-[var(--auth-input-text)]"
                       }`}
                       style={{ ...inputStyle }}
                       onFocus={onSelectFocus}
@@ -486,7 +486,7 @@ export default function SignupPage() {
                     >
                       <option value="" disabled>{t("signup_council_placeholder")}</option>
                       {STATE_MEDICAL_COUNCILS.map((council) => (
-                        <option key={council} value={council} className="text-[#3d2e22]">
+                        <option key={council} value={council} className="text-[var(--auth-input-text)]">
                           {council}
                         </option>
                       ))}
@@ -552,7 +552,7 @@ export default function SignupPage() {
               {/* Terms */}
               <div className="flex items-start gap-2.5">
                 <input type="checkbox" id="terms" className="mt-1 flex-shrink-0" required />
-                <label htmlFor="terms" className="text-sm" style={{ color: "#8a7060" }}>
+                <label htmlFor="terms" className="text-sm" style={{ color: "var(--auth-label-color)" }}>
                   {t("signup_agree")}{" "}
                   <Link
                     href="/terms"
@@ -597,7 +597,7 @@ export default function SignupPage() {
                   <circle cx="12" cy="12" r="10"/>
                   <polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <p className="text-xs leading-relaxed" style={{ color: "#8a7060" }}>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--auth-label-color)" }}>
                   {t("signup_verification_note")}
                 </p>
               </div>
@@ -605,11 +605,11 @@ export default function SignupPage() {
 
             {/* Divider + sign-in link */}
             <div className="mt-8 flex items-center gap-3">
-              <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
-              <span className="text-xs" style={{ color: "#b8a898" }}>or</span>
-              <div className="flex-1 border-t" style={{ borderColor: "rgba(184,147,106,0.22)" }} />
+              <div className="flex-1 border-t" style={{ borderColor: "var(--color-separator)" }} />
+              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>or</span>
+              <div className="flex-1 border-t" style={{ borderColor: "var(--color-separator)" }} />
             </div>
-            <p className="text-center text-sm mt-4 mb-2" style={{ color: "#8a7060" }}>
+            <p className="text-center text-sm mt-4 mb-2" style={{ color: "var(--auth-label-color)" }}>
               {t("signup_have_account")}{" "}
               <Link
                 href="/login"

@@ -7,6 +7,8 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/layout/Footer";
 import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/Button";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
 
 export default function PricingPage() {
@@ -84,7 +86,7 @@ export default function PricingPage() {
         )}
       </AnimatePresence>
 
-      <nav className="border-b border-primary-200 sticky top-0 z-40" style={{ background: "rgba(250,248,244,0.92)", backdropFilter: "blur(12px)" }}>
+      <nav className="border-b border-primary-200 sticky top-0 z-40" style={{ background: "var(--nav-bg-scrolled)", backdropFilter: "blur(12px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-4 md:gap-6">
@@ -93,6 +95,8 @@ export default function PricingPage() {
             <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white hidden md:inline-flex">
               <Link href="/signup">Get Started</Link>
             </Button>
+            <LanguageToggle />
+            <ThemeToggle />
             <button
               className="md:hidden p-2 text-text-secondary hover:text-text-primary"
               onClick={() => setMobileMenuOpen(true)}
@@ -104,7 +108,7 @@ export default function PricingPage() {
         </div>
       </nav>
 
-      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
+      <section className="py-20" style={{ background: "var(--color-primary-50)" }}>
         <div className="text-center mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-text-primary mb-4">
             Pricing
@@ -118,7 +122,7 @@ export default function PricingPage() {
       <PricingSection />
 
       {/* Comparison Section */}
-      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
+      <section className="py-20" style={{ background: "var(--color-primary-50)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Why Choose Tvacha Clinic?
@@ -200,7 +204,7 @@ export default function PricingPage() {
       </section>
 
       {/* What's included */}
-      <section className="py-20" style={{ background: "rgba(245,240,232,0.82)" }}>
+      <section className="py-20" style={{ background: "var(--color-surface)" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary mb-4">
             Everything in One Platform
@@ -224,7 +228,7 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20" style={{ background: "rgba(250,248,244,0.82)" }}>
+      <section className="py-20" style={{ background: "var(--color-primary-50)" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary text-center mb-12">
             Frequently Asked Questions

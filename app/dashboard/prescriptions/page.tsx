@@ -531,11 +531,11 @@ export default function PrescriptionsPage() {
           <div className="hidden md:block rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead style={{ background: "#e8ddd0" }}>
+                <thead style={{ background: "var(--color-primary-200)" }}>
                   <tr>
                     {["Date", "Patient", "Diagnosis", "Medicines", "Status", ""].map((h, i) => (
                       <th key={i} className="px-4 py-3 text-left whitespace-nowrap border-b border-[#b8936a]/20"
-                        style={{ fontSize: "10px", fontWeight: 600, color: "#8a7060", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                        style={{ fontSize: "10px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
                         {h}
                       </th>
                     ))}
@@ -546,17 +546,17 @@ export default function PrescriptionsPage() {
                     <tr
                       key={rx.id}
                       className="group cursor-pointer transition-colors hover:bg-[#f0e8d8]"
-                      style={{ background: i % 2 === 0 ? "#faf8f4" : "#f4efe6", borderBottom: "1px solid rgba(184,147,106,0.12)" }}
+                      style={{ background: i % 2 === 0 ? "var(--color-card)" : "var(--color-surface)", borderBottom: "1px solid rgba(184,147,106,0.12)" }}
                       onClick={() => setViewRx(rx)}
                     >
-                      <td className="py-3.5 pr-4 pl-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "#5c4030" }}>
+                      <td className="py-3.5 pr-4 pl-4 whitespace-nowrap border-l-[3px] border-transparent group-hover:border-[#b8936a] transition-colors" style={{ color: "var(--color-text-muted)" }}>
                         {format(new Date(rx.created_at), "dd MMM yyyy")}
                       </td>
-                      <td className="py-3.5 pr-4 font-medium capitalize" style={{ color: "#2d1f14" }}>
+                      <td className="py-3.5 pr-4 font-medium capitalize" style={{ color: "var(--color-text-primary)" }}>
                         {rx.patients?.name || "Unknown"}
                       </td>
-                      <td className="py-3.5 pr-4" style={{ color: "#6b5544" }}>{rx.diagnosis}</td>
-                      <td className="py-3.5 pr-4 text-center" style={{ color: "#8a7060" }}>{rx.medicines.length}</td>
+                      <td className="py-3.5 pr-4" style={{ color: "var(--color-text-secondary)" }}>{rx.diagnosis}</td>
+                      <td className="py-3.5 pr-4 text-center" style={{ color: "var(--color-text-secondary)" }}>{rx.medicines.length}</td>
                       <td className="py-3.5 pr-4">
                         {rx.status === "active" ? (
                           <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Active</span>
@@ -583,14 +583,14 @@ export default function PrescriptionsPage() {
             {prescriptions.map((rx) => (
               <div
                 key={rx.id}
-                className="bg-[#faf8f4] rounded-xl border-l-[3px] border-[#b8936a] cursor-pointer transition-shadow hover:shadow-md"
-                style={{ border: "1px solid #e8ddd0", borderLeft: "3px solid #b8936a" }}
+                className="bg-card rounded-xl border-l-[3px] border-[#b8936a] cursor-pointer transition-shadow hover:shadow-md"
+                style={{ border: "1px solid var(--color-primary-200)", borderLeft: "3px solid #b8936a" }}
                 onClick={() => setViewRx(rx)}
               >
                 <div className="px-4 py-3 flex flex-col gap-2">
                   {/* Top row: date + status */}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs" style={{ color: "#5c4030" }}>
+                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                       {format(new Date(rx.created_at), "dd MMM yyyy")}
                     </span>
                     {rx.status === "active" ? (
@@ -603,16 +603,16 @@ export default function PrescriptionsPage() {
                   </div>
 
                   {/* Patient name */}
-                  <p className="font-serif font-bold text-sm capitalize" style={{ color: "#2d1f14" }}>
+                  <p className="font-serif font-bold text-sm capitalize" style={{ color: "var(--color-text-primary)" }}>
                     {rx.patients?.name || "Unknown"}
                   </p>
 
                   {/* Diagnosis */}
-                  <p className="text-xs" style={{ color: "#6b5544" }}>{rx.diagnosis}</p>
+                  <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{rx.diagnosis}</p>
 
                   {/* Bottom row: medicines count + view link */}
                   <div className="flex items-center justify-between pt-1" style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }}>
-                    <span className="text-xs" style={{ color: "#8a7060" }}>
+                    <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
                       {rx.medicines.length} {rx.medicines.length === 1 ? "medicine" : "medicines"}
                     </span>
                     <span className="text-[#b8936a] font-medium text-xs inline-flex items-center gap-0.5">
@@ -647,7 +647,7 @@ export default function PrescriptionsPage() {
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="relative flex flex-col rounded-xl bg-[#faf8f4] overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:shadow-[0_6px_20px_rgba(90,60,20,0.11)] hover:-translate-y-0.5"
+                className="relative flex flex-col rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:shadow-[0_6px_20px_rgba(90,60,20,0.11)] hover:-translate-y-0.5"
                 style={{ border: "1px solid rgba(184,147,106,0.2)" }}
               >
                 {/* Left accent border */}
@@ -655,7 +655,7 @@ export default function PrescriptionsPage() {
 
                 {/* Card header */}
                 <div className="pl-5 pr-4 pt-4 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(184,147,106,0.15)" }}>
-                  <h3 className="font-semibold text-[#2d1f14] text-base leading-tight">{template.name}</h3>
+                  <h3 className="font-semibold text-text-primary text-base leading-tight">{template.name}</h3>
                   <div className="flex items-center gap-2">
                     {template.is_system ? (
                       <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35]">System</span>
@@ -675,14 +675,14 @@ export default function PrescriptionsPage() {
 
                 {/* Card body — medicines */}
                 <div className="pl-5 pr-4 py-4 flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#8a7060", letterSpacing: "0.12em" }}>Medicines</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-secondary)", letterSpacing: "0.12em" }}>Medicines</p>
                   <ul>
                     {template.medicines.map((med, idx) => (
                       <li key={idx}>
                         {idx > 0 && <div className="my-2.5" style={{ borderTop: "1px solid rgba(184,147,106,0.12)" }} />}
-                        <p className="font-semibold text-sm" style={{ color: "#2d1f14" }}>{med.name}</p>
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-text-primary)" }}>{med.name}</p>
                         {(med.dosage || med.frequency || med.duration) && (
-                          <p className="text-xs mt-0.5" style={{ color: "#8a7060" }}>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
                             {[med.dosage, med.frequency, med.duration].filter(Boolean).join(" · ")}
                           </p>
                         )}
@@ -692,14 +692,14 @@ export default function PrescriptionsPage() {
                   {template.special_instructions && (
                     <div className="pt-3 mt-3" style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }}>
                       <p className="text-xs font-semibold mb-1" style={{ color: "#2d4a3e" }}>{t("rx_special_instructions")}</p>
-                      <p className="text-xs" style={{ color: "#8a7060" }}>{template.special_instructions}</p>
+                      <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{template.special_instructions}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Card footer */}
-                <div className="pl-5 pr-4 py-3 flex items-center justify-between" style={{ borderTop: "1px solid rgba(184,147,106,0.12)", background: "#f4efe6" }}>
-                  <p className="text-xs" style={{ color: "#a09080" }}>Used {template.usage_count} times</p>
+                <div className="pl-5 pr-4 py-3 flex items-center justify-between" style={{ borderTop: "1px solid rgba(184,147,106,0.12)", background: "var(--color-surface)" }}>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Used {template.usage_count} times</p>
                   <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f0e8d8] text-[#7a5c35] capitalize">{template.category}</span>
                 </div>
               </div>

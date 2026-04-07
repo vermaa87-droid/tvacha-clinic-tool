@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/Badge";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
+import { useTheme } from "@/lib/theme-context";
 import { Copy, Check, Mail, Phone, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function SettingsPage() {
   const { doctor, refreshDoctor } = useAuthStore();
   const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -127,6 +129,31 @@ export default function SettingsPage() {
                 {t("settings_edit_profile")}
               </Button>
             )}
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-text-primary">Appearance</h3>
+        </CardHeader>
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-text-primary">Dark Mode</p>
+              <p className="text-sm text-text-secondary">Switch between light and dark themes</p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300"
+              style={{ background: theme === "dark" ? "#b8936a" : "rgba(184,147,106,0.3)" }}
+            >
+              <span
+                className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300"
+                style={{ transform: theme === "dark" ? "translateX(22px)" : "translateX(4px)" }}
+              />
+            </button>
           </div>
         </CardBody>
       </Card>

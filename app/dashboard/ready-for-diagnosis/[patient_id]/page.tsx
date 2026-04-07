@@ -110,10 +110,10 @@ function SectionCard({ title, children }: { title: string; children: React.React
   return (
     <div
       className="rounded-2xl p-6 mb-5"
-      style={{ background: "#faf8f4", border: "1px solid #e8ddd0" }}
+      style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)" }}
     >
       <div className="flex items-center gap-4 mb-4">
-        <h2 className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#9a8a76" }}>
+        <h2 className="text-sm font-semibold tracking-widest uppercase" style={{ color: "var(--color-text-secondary)" }}>
           {title}
         </h2>
         <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
@@ -357,9 +357,9 @@ export default function ReviewPatientPage() {
     return (
       <div className="max-w-3xl mx-auto py-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded" style={{ background: "#e8ddd0" }} />
-          <div className="h-48 rounded-2xl" style={{ background: "#e8ddd0" }} />
-          <div className="h-48 rounded-2xl" style={{ background: "#e8ddd0" }} />
+          <div className="h-8 w-48 rounded" style={{ background: "var(--color-primary-200)" }} />
+          <div className="h-48 rounded-2xl" style={{ background: "var(--color-primary-200)" }} />
+          <div className="h-48 rounded-2xl" style={{ background: "var(--color-primary-200)" }} />
         </div>
       </div>
     );
@@ -395,7 +395,7 @@ export default function ReviewPatientPage() {
         <Link
           href="/dashboard/ready-for-diagnosis"
           className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-500"
-          style={{ color: "#9a8a76" }}
+          style={{ color: "var(--color-text-secondary)" }}
         >
           <X size={15} />
           Cancel Review
@@ -405,10 +405,10 @@ export default function ReviewPatientPage() {
       {/* Patient name banner */}
       <div className="rounded-2xl px-6 py-4 mb-5" style={{ background: "rgba(184,147,106,0.12)", border: "1px solid rgba(184,147,106,0.3)" }}>
         <div className="flex items-baseline justify-between">
-          <h1 className="text-2xl font-serif font-bold" style={{ color: "#1a1612" }}>
+          <h1 className="text-2xl font-serif font-bold" style={{ color: "var(--color-text-primary)" }}>
             {patient.name}
           </h1>
-          <span className="text-xs font-mono font-semibold px-2 py-1 rounded-lg" style={{ background: "#e8ddd0", color: "#7a5c35" }}>
+          <span className="text-xs font-mono font-semibold px-2 py-1 rounded-lg" style={{ background: "var(--color-primary-200)", color: "#7a5c35" }}>
             {patient.patient_display_id ?? "—"}
           </span>
         </div>
@@ -438,8 +438,8 @@ export default function ReviewPatientPage() {
         <SectionCard title="AI Screening Result">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#9a8a76" }}>AI Diagnosis</p>
-              <p className="text-lg font-serif font-bold" style={{ color: ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(aiCase.ai_diagnosis) ? "#dc2626" : "#1a1612" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--color-text-secondary)" }}>AI Diagnosis</p>
+              <p className="text-lg font-serif font-bold" style={{ color: ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(aiCase.ai_diagnosis) ? "#dc2626" : "var(--color-text-primary)" }}>
                 {aiCase.ai_diagnosis_display}
               </p>
             </div>
@@ -455,12 +455,12 @@ export default function ReviewPatientPage() {
           </div>
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>Confidence</span>
+              <span className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>Confidence</span>
               <span className="text-sm font-bold" style={{ color: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : Math.round(aiCase.ai_confidence * 100) >= 50 ? "#d4a55a" : "#c44a4a" }}>
                 {Math.round(aiCase.ai_confidence * 100)}%
               </span>
             </div>
-            <div className="w-full h-2.5 rounded-full" style={{ background: "#e8e0d0" }}>
+            <div className="w-full h-2.5 rounded-full" style={{ background: "var(--color-primary-200)" }}>
               <div
                 className="h-full rounded-full"
                 style={{
@@ -472,7 +472,7 @@ export default function ReviewPatientPage() {
           </div>
           {aiCase.ai_top_3.length > 0 && (
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#9a8a76" }}>Differential Diagnosis</p>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--color-text-secondary)" }}>Differential Diagnosis</p>
               <div className="space-y-2">
                 {aiCase.ai_top_3.map((pred, idx) => {
                   const pct = Math.round(pred.confidence * 100);
@@ -489,15 +489,15 @@ export default function ReviewPatientPage() {
                   };
                   return (
                     <div key={idx} className="flex items-center gap-3">
-                      <span className="text-xs font-mono w-5 text-right" style={{ color: "#9a8a76" }}>{idx + 1}.</span>
+                      <span className="text-xs font-mono w-5 text-right" style={{ color: "var(--color-text-secondary)" }}>{idx + 1}.</span>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-sm font-medium" style={{ color: isCancer ? "#dc2626" : "#1a1612" }}>
+                          <span className="text-sm font-medium" style={{ color: isCancer ? "#dc2626" : "var(--color-text-primary)" }}>
                             {displayName[pred.class] || pred.class}{isCancer ? " ⚠" : ""}
                           </span>
-                          <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>{pct}%</span>
+                          <span className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>{pct}%</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full" style={{ background: "#e8e0d0" }}>
+                        <div className="w-full h-1.5 rounded-full" style={{ background: "var(--color-primary-200)" }}>
                           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: isCancer ? "#dc2626" : "#b8936a" }} />
                         </div>
                       </div>
@@ -507,7 +507,7 @@ export default function ReviewPatientPage() {
               </div>
             </div>
           )}
-          <p className="text-xs mt-4 pt-3" style={{ color: "#9a8a76", borderTop: "1px solid rgba(184,147,106,0.2)" }}>
+          <p className="text-xs mt-4 pt-3" style={{ color: "var(--color-text-secondary)", borderTop: "1px solid rgba(184,147,106,0.2)" }}>
             AI suggestion has been pre-filled below. You can confirm or override the classification.
           </p>
         </SectionCard>
@@ -520,8 +520,8 @@ export default function ReviewPatientPage() {
           {screeningFields.map(({ label, value }) => (
             value && value !== "—" ? (
               <div key={label}>
-                <div className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#9a8a76" }}>{label}</div>
-                <div className="text-sm font-medium capitalize" style={{ color: "#1a1612" }}>{value}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "var(--color-text-secondary)" }}>{label}</div>
+                <div className="text-sm font-medium capitalize" style={{ color: "var(--color-text-primary)" }}>{value}</div>
               </div>
             ) : null
           ))}
@@ -542,8 +542,8 @@ export default function ReviewPatientPage() {
           ].map(({ label, value }) => (
             value ? (
               <div key={label}>
-                <div className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#9a8a76" }}>{label}</div>
-                <div className="text-sm font-medium" style={{ color: "#1a1612" }}>{value}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "var(--color-text-secondary)" }}>{label}</div>
+                <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{value}</div>
               </div>
             ) : null
           ))}
@@ -573,11 +573,11 @@ export default function ReviewPatientPage() {
       <SectionCard title="Fees">
         <div className="flex flex-wrap gap-6 items-end">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide block mb-1" style={{ color: "#9a8a76" }}>
+            <label className="text-xs font-semibold uppercase tracking-wide block mb-1" style={{ color: "var(--color-text-secondary)" }}>
               Consultation Fee
             </label>
-            <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #e8ddd0", background: "#fff" }}>
-              <span className="px-3 py-2 text-sm font-medium border-r" style={{ color: "#9a8a76", borderColor: "#e8ddd0" }}>₹</span>
+            <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)" }}>
+              <span className="px-3 py-2 text-sm font-medium border-r" style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-primary-200)" }}>₹</span>
               <input
                 type="number"
                 min="0"
@@ -585,12 +585,12 @@ export default function ReviewPatientPage() {
                 value={feeAmount}
                 onChange={(e) => setFeeAmount(e.target.value)}
                 className="px-3 py-2 text-sm outline-none w-32"
-                style={{ color: "#1a1612", background: "transparent" }}
+                style={{ color: "var(--color-text-primary)", background: "transparent" }}
               />
             </div>
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+            <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
               Fee Status
             </label>
             <div className="flex gap-2">
@@ -602,7 +602,7 @@ export default function ReviewPatientPage() {
                   className="px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all"
                   style={feeStatus === status
                     ? { background: "#b8936a", color: "#fff" }
-                    : { background: "#e8ddd0", color: "#7a5c35" }}
+                    : { background: "var(--color-primary-200)", color: "#7a5c35" }}
                 >
                   {status}
                 </button>
@@ -615,7 +615,7 @@ export default function ReviewPatientPage() {
       {/* Recommended Templates */}
       {recommendedTemplates.length > 0 && (
         <SectionCard title="Suggested Prescription Templates">
-          <p className="text-xs mb-4" style={{ color: "#9a8a76" }}>
+          <p className="text-xs mb-4" style={{ color: "var(--color-text-secondary)" }}>
             Based on <strong style={{ color: "#7a5c35" }}>{DIAGNOSIS_OPTIONS.find((o) => o.value === diseaseClassification)?.label ?? diseaseClassification}</strong> — click a template to preview it.
           </p>
           <div className="space-y-2">
@@ -625,44 +625,44 @@ export default function ReviewPatientPage() {
                 <div
                   key={tmpl.id}
                   className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid ${isOpen ? "rgba(184,147,106,0.4)" : "#e8ddd0"}` }}
+                  style={{ border: `1px solid ${isOpen ? "rgba(184,147,106,0.4)" : "var(--color-primary-200)"}` }}
                 >
                   {/* Header row */}
                   <button
                     type="button"
                     onClick={() => setExpandedTemplate(isOpen ? null : tmpl.id)}
                     className="w-full flex items-center justify-between px-4 py-3 text-left"
-                    style={{ background: isOpen ? "rgba(184,147,106,0.08)" : "#faf8f4" }}
+                    style={{ background: isOpen ? "rgba(184,147,106,0.08)" : "var(--color-card)" }}
                   >
                     <div className="flex items-center gap-2.5">
                       <FileText size={14} style={{ color: "#b8936a", flexShrink: 0 }} />
-                      <span className="text-sm font-semibold" style={{ color: "#1a1612" }}>{tmpl.name}</span>
+                      <span className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>{tmpl.name}</span>
                       {tmpl.is_system && (
-                        <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#e8ddd0", color: "#9a8a76" }}>System</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--color-primary-200)", color: "var(--color-text-secondary)" }}>System</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs capitalize px-2 py-0.5 rounded-full" style={{ background: "rgba(184,147,106,0.12)", color: "#7a5c35" }}>
                         {tmpl.category}
                       </span>
-                      {isOpen ? <ChevronUp size={14} style={{ color: "#9a8a76" }} /> : <ChevronDown size={14} style={{ color: "#9a8a76" }} />}
+                      {isOpen ? <ChevronUp size={14} style={{ color: "var(--color-text-secondary)" }} /> : <ChevronDown size={14} style={{ color: "var(--color-text-secondary)" }} />}
                     </div>
                   </button>
 
                   {/* Expanded medicine list */}
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-2" style={{ background: "#faf8f4" }}>
+                    <div className="px-4 pb-4 pt-2" style={{ background: "var(--color-card)" }}>
                       <div className="space-y-2 mb-3">
                         {(tmpl.medicines as Medicine[]).map((med, i) => (
                           <div key={i} className="flex items-start gap-3 text-sm">
-                            <span className="text-xs font-mono w-5 mt-0.5" style={{ color: "#9a8a76" }}>{i + 1}.</span>
+                            <span className="text-xs font-mono w-5 mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{i + 1}.</span>
                             <div>
-                              <span className="font-semibold" style={{ color: "#1a1612" }}>{med.name}</span>
-                              <span className="text-xs ml-2" style={{ color: "#9a8a76" }}>
+                              <span className="font-semibold" style={{ color: "var(--color-text-primary)" }}>{med.name}</span>
+                              <span className="text-xs ml-2" style={{ color: "var(--color-text-secondary)" }}>
                                 {med.dosage} · {med.frequency} · {med.duration}
                               </span>
                               {med.instructions && (
-                                <p className="text-xs mt-0.5" style={{ color: "#9a8a76" }}>{med.instructions}</p>
+                                <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{med.instructions}</p>
                               )}
                             </div>
                           </div>
@@ -674,7 +674,7 @@ export default function ReviewPatientPage() {
                         </p>
                       )}
                       {tmpl.follow_up_days && (
-                        <p className="text-xs mt-2" style={{ color: "#9a8a76" }}>Follow-up in {tmpl.follow_up_days} days</p>
+                        <p className="text-xs mt-2" style={{ color: "var(--color-text-secondary)" }}>Follow-up in {tmpl.follow_up_days} days</p>
                       )}
                     </div>
                   )}
@@ -688,7 +688,7 @@ export default function ReviewPatientPage() {
       {/* Disease Classification & Diagnosis */}
       <SectionCard title="Doctor's Assessment">
         <div className="mb-4">
-          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
             AI Predicted Classification <span style={{ color: "#dc2626" }}>*</span>
           </label>
 
@@ -697,7 +697,7 @@ export default function ReviewPatientPage() {
             <div>
               <div
                 className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold"
-                style={{ border: "1px solid rgba(184,147,106,0.35)", background: "rgba(184,147,106,0.08)", color: "#1a1612" }}
+                style={{ border: "1px solid rgba(184,147,106,0.35)", background: "rgba(184,147,106,0.08)", color: "var(--color-text-primary)" }}
               >
                 {DIAGNOSIS_OPTIONS.find((o) => o.value === diseaseClassification)?.label ?? diseaseClassification}
               </div>
@@ -705,7 +705,7 @@ export default function ReviewPatientPage() {
                 type="button"
                 onClick={() => { setAiOverride(true); setDiseaseClassification(""); }}
                 className="mt-2 text-xs font-medium underline underline-offset-2 transition-colors hover:opacity-70"
-                style={{ color: "#9a8a76" }}
+                style={{ color: "var(--color-text-secondary)" }}
               >
                 AI is incorrect? Click to override classification
               </button>
@@ -715,7 +715,7 @@ export default function ReviewPatientPage() {
               value={diseaseClassification}
               onChange={(e) => setDiseaseClassification(e.target.value)}
               className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-              style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
+              style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
             >
               <option value="">— Select a classification —</option>
               {DIAGNOSIS_OPTIONS.slice(0, -1).map((opt) => (
@@ -729,7 +729,7 @@ export default function ReviewPatientPage() {
 
         {diseaseClassification === "other" && (
           <div className="mb-4">
-            <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+            <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
               Custom Classification <span style={{ color: "#dc2626" }}>*</span>
             </label>
             <input
@@ -738,13 +738,13 @@ export default function ReviewPatientPage() {
               value={customClassification}
               onChange={(e) => setCustomClassification(e.target.value)}
               className="w-full px-4 py-2.5 rounded-lg text-sm outline-none"
-              style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
+              style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
             />
           </div>
         )}
 
         <div className="mb-4">
-          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
             Diagnosis
           </label>
           <input
@@ -753,13 +753,13 @@ export default function ReviewPatientPage() {
             value={diagnosisText}
             onChange={(e) => setDiagnosisText(e.target.value)}
             className="w-full px-4 py-2.5 rounded-lg text-sm outline-none"
-            style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
+            style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
           />
-          <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>Optional. If left empty, the classification label will be used.</p>
+          <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>Optional. If left empty, the classification label will be used.</p>
         </div>
 
         <div className="mb-4">
-          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
             Severity <span style={{ color: "#dc2626" }}>*</span>
           </label>
           <div className="flex flex-wrap gap-2">
@@ -771,7 +771,7 @@ export default function ReviewPatientPage() {
                 className="px-4 py-2 rounded-lg text-xs font-semibold transition-all"
                 style={selectedSeverity === sev
                   ? { background: "#b8936a", color: "#fff" }
-                  : { background: "#e8ddd0", color: "#7a5c35" }}
+                  : { background: "var(--color-primary-200)", color: "#7a5c35" }}
               >
                 {sev}
               </button>
@@ -780,7 +780,7 @@ export default function ReviewPatientPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
+          <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
             Doctor&apos;s Notes
           </label>
           <textarea
@@ -789,7 +789,7 @@ export default function ReviewPatientPage() {
             value={doctorNotes}
             onChange={(e) => setDoctorNotes(e.target.value)}
             className="w-full px-4 py-2.5 rounded-lg text-sm outline-none resize-none"
-            style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
+            style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
           />
         </div>
       </SectionCard>

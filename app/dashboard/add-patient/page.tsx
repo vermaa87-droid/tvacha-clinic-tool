@@ -407,10 +407,10 @@ export default function AddPatientPage() {
     <div className="max-w-2xl mx-auto py-4 md:py-6">
       {/* Page heading */}
       <div className="mb-6">
-        <h1 className="text-3xl font-serif font-bold" style={{ color: "#1a1612" }}>
+        <h1 className="text-3xl font-serif font-bold" style={{ color: "var(--color-text-primary)" }}>
           {t("ap_title")}
         </h1>
-        <p className="text-sm mt-1" style={{ color: "#9a8a76" }}>
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
           {t("ap_subtitle")}
         </p>
       </div>
@@ -422,8 +422,8 @@ export default function AddPatientPage() {
       <div
         className="relative rounded-2xl p-6 md:p-8"
         style={{
-          background: "#fff",
-          border: "1px solid #e8e0d0",
+          background: "var(--color-card)",
+          border: "1px solid var(--color-primary-200)",
           boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
         }}
       >
@@ -433,7 +433,7 @@ export default function AddPatientPage() {
             type="button"
             onClick={() => setShowCancelModal(true)}
             className="absolute top-3 right-3 md:top-4 md:right-4 flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition-colors hover:text-red-500 hover:bg-red-50"
-            style={{ color: "#9a8a76" }}
+            style={{ color: "var(--color-text-secondary)" }}
           >
             <X size={15} />
             {t("ap_cancel")}
@@ -497,18 +497,18 @@ export default function AddPatientPage() {
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6"
-            style={{ background: "#fff", boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
+            style={{ background: "var(--color-card)", boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+            <h3 className="text-lg font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
               {t("ap_cancel_title")}
             </h3>
             {savedPatient ? (
-              <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
+              <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
                 {t("ap_cancel_saved")}
               </p>
             ) : (
-              <p className="text-sm mb-6" style={{ color: "#9a8a76" }}>
+              <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
                 {t("ap_cancel_unsaved")}
               </p>
             )}
@@ -517,7 +517,7 @@ export default function AddPatientPage() {
                 type="button"
                 onClick={() => setShowCancelModal(false)}
                 className="px-5 py-2.5 rounded-lg font-semibold border text-sm"
-                style={{ borderColor: "#e8e0d0", color: "#9a8a76", background: "transparent" }}
+                style={{ borderColor: "var(--color-primary-200)", color: "var(--color-text-secondary)", background: "transparent" }}
               >
                 {t("ap_cancel_go_back")}
               </button>

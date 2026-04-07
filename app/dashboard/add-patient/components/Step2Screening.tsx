@@ -20,7 +20,7 @@ interface Step2ScreeningProps {
 type ScreeningErrors = Partial<Record<keyof ScreeningData, string>>;
 
 function HelpText({ text }: { text: string }) {
-  return <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>{text}</p>;
+  return <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{text}</p>;
 }
 
 export function Step2Screening({ data, onChange, onBack, onNext }: Step2ScreeningProps) {
@@ -208,17 +208,17 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "#1a1612" }}>
+      <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
         {t("ap_s2_title")}
       </h2>
-      <p className="text-sm mb-8" style={{ color: "#9a8a76" }}>
+      <p className="text-sm mb-8" style={{ color: "var(--color-text-secondary)" }}>
         {t("ap_s2_subtitle")}
       </p>
 
       <div className="space-y-7">
         {/* Age */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_age")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <input
@@ -236,7 +236,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Gender */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_gender")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <RadioPills options={GENDER_OPTIONS} value={data.gender} onChange={(v) => set("gender", v)} error={errors.gender} />
@@ -244,7 +244,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Duration */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_duration")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <select value={data.duration} onChange={(e) => set("duration", e.target.value)} className={selectClass}>
@@ -258,7 +258,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Presence / Appearance */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_presence")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <select value={data.presence} onChange={(e) => setPresence(e.target.value)} className={selectClass}>
@@ -277,25 +277,25 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
             style={{ borderLeft: "3px solid #b8936a", background: "#fefcf8" }}
           >
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+              <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 {t("ap_s2_blister_size")}
               </label>
               <RadioPills options={BLISTER_SIZE_OPTIONS} value={data.blister_size} onChange={(v) => set("blister_size", v)} />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+              <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 {t("ap_s2_blister_fragility")}
               </label>
               <RadioPills options={BLISTER_FRAGILITY_OPTIONS} value={data.blister_fragility} onChange={(v) => set("blister_fragility", v)} />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+              <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 {t("ap_s2_blister_how_long")}
               </label>
               <RadioPills options={BLISTER_DURATION_OPTIONS} value={data.blister_duration} onChange={(v) => set("blister_duration", v)} />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+              <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 {t("ap_s2_blister_mucous")}
               </label>
               <RadioPills options={BLISTER_MUCOUS_OPTIONS} value={data.blister_mucous_membrane} onChange={(v) => set("blister_mucous_membrane", v)} />
@@ -305,7 +305,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Itching */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_itching")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <RadioPills options={ITCHING_OPTIONS} value={data.itching} onChange={(v) => set("itching", v)} error={errors.itching} />
@@ -313,7 +313,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Pain */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_pain")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <RadioPills options={PAIN_OPTIONS} value={data.pain} onChange={(v) => set("pain", v)} error={errors.pain} />
@@ -321,7 +321,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Body location */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_body_location")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <select value={data.bodyLocation} onChange={(e) => set("bodyLocation", e.target.value)} className={selectClass}>
@@ -335,7 +335,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Fitzpatrick */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_fitzpatrick")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <FitzpatrickSwatches value={data.fitzpatrick} onChange={(type) => set("fitzpatrick", type)} error={errors.fitzpatrick} />
@@ -343,14 +343,14 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* ── Optional divider ── */}
         <div className="flex items-center gap-3 pt-2">
-          <div className="flex-1 h-px" style={{ background: "#e8e0d0" }} />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#9a8a76" }}>{t("ap_s2_optional")}</span>
-          <div className="flex-1 h-px" style={{ background: "#e8e0d0" }} />
+          <div className="flex-1 h-px" style={{ background: "var(--color-primary-200)" }} />
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-secondary)" }}>{t("ap_s2_optional")}</span>
+          <div className="flex-1 h-px" style={{ background: "var(--color-primary-200)" }} />
         </div>
 
         {/* Sweating */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_sweating")}
           </label>
           <RadioPills options={SWEATING_OPTIONS} value={data.sweating} onChange={(v) => set("sweating", v)} />
@@ -358,7 +358,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Family history */}
         <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_family")}
           </label>
           <select value={data.familyHistory} onChange={(e) => set("familyHistory", e.target.value)} className={selectClass}>
@@ -373,7 +373,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* New Medication */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_medication")}
           </label>
           <RadioPills options={MEDICATION_OPTIONS} value={data.new_medication} onChange={(v) => set("new_medication", v)} />
@@ -382,7 +382,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Recurrence */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_recurrence")}
           </label>
           <RadioPills options={RECURRENCE_OPTIONS} value={data.recurrence} onChange={(v) => set("recurrence", v)} />
@@ -391,7 +391,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Fever */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_fever")}
           </label>
           <RadioPills options={FEVER_OPTIONS} value={data.fever} onChange={(v) => set("fever", v)} />
@@ -412,7 +412,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         {/* Itching timing — conditional */}
         {hasItching && (
           <div>
-            <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+            <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
               {t("ap_s2_itch_timing")}
             </label>
             <RadioPills options={ITCHING_TIMING_OPTIONS} value={data.itching_timing} onChange={(v) => set("itching_timing", v)} />
@@ -422,7 +422,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Household affected */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_household")}
           </label>
           <RadioPills options={HOUSEHOLD_OPTIONS} value={data.household_affected} onChange={(v) => set("household_affected", v)} />
@@ -431,7 +431,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
 
         {/* Lesion migration */}
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: "#1a1612" }}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_migration")}
           </label>
           <RadioPills options={MIGRATION_OPTIONS} value={data.lesion_migration} onChange={(v) => set("lesion_migration", v)} />

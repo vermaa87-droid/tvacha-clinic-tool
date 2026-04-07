@@ -4,6 +4,141 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  LIGHT THEME (default)                                                 */
+/* ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --color-primary-50: #f2efe9;
+  --color-primary-100: #ede9e1;
+  --color-primary-200: #e8e0d0;
+  --color-primary-300: #ddd4c0;
+  --color-surface: #edeae5;
+  --color-card: #faf8f4;
+  --color-text-primary: #1a1612;
+  --color-text-secondary: #9a8a76;
+  --color-text-muted: #6b5d4f;
+  --color-success-bg: #e8f5e8;
+  --color-separator: rgba(180,150,100,0.15);
+  --shadow-default: 0 8px 40px rgba(0,0,0,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  --bg-grain: url('data:image/svg+xml,%3Csvg viewBox=%270 0 1200 1200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noise%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27 /%3E%3C/filter%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%23F2EFE9%27 /%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%23000%27 opacity=%270.02%27 filter=%27url(%23noise)%27 /%3E%3C/svg%3E');
+  --color-autofill-bg: #faf8f5;
+  --color-autofill-text: #4a3728;
+
+  /* Sidebar */
+  --sidebar-gradient: linear-gradient(180deg, #e8d9b8 0%, #dfd0a8 50%, #d9c89a 100%);
+  --sidebar-border: rgba(184, 147, 106, 0.40);
+  --sidebar-inset-shadow: rgba(184, 147, 106, 0.12);
+  --sidebar-link-color: #5c3d18;
+  --sidebar-active-bg: rgba(184, 147, 106, 0.25);
+  --sidebar-active-color: #6b4a1e;
+
+  /* Auth pages */
+  --auth-panel-bg: #dfc49a;
+  --auth-form-bg: #faf8f4;
+  --auth-input-bg: rgba(250,246,240,0.85);
+  --auth-input-border: rgba(184,147,106,0.38);
+  --auth-label-color: #8a7060;
+  --auth-input-text: #3d2e22;
+  --auth-input-placeholder: #c0b0a0;
+
+  /* Navbar */
+  --nav-bg-scrolled: rgba(250,248,244,0.92);
+  --nav-border-scrolled: #e8e0d0;
+  --nav-shadow-scrolled: 0 1px 20px rgba(26,22,18,0.04);
+
+  /* Footer */
+  --footer-bg: rgba(250,248,244,0.88);
+
+  /* Notification dropdown */
+  --dropdown-bg: #faf8f4;
+  --dropdown-border: rgba(184,147,106,0.3);
+  --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.12);
+
+  /* Misc */
+  --overlay-bg: rgba(0,0,0,0.5);
+  --support-bg: #faf8f4;
+  --support-border: #e8ddd0;
+  --support-text: #5c4030;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  DARK THEME                                                            */
+/* ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --color-primary-50: #1a1612;
+  --color-primary-100: #221e18;
+  --color-primary-200: #3d3530;
+  --color-primary-300: #4a403a;
+  --color-surface: #252019;
+  --color-card: #2a2420;
+  --color-text-primary: #f5efe6;
+  --color-text-secondary: #a09585;
+  --color-text-muted: #8a7e70;
+  --color-success-bg: #1a2e1a;
+  --color-separator: rgba(184,147,106,0.12);
+  --shadow-default: 0 8px 40px rgba(0,0,0,0.3);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.4);
+  --bg-grain: url('data:image/svg+xml,%3Csvg viewBox=%270 0 1200 1200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noise%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27 /%3E%3C/filter%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%231a1612%27 /%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%23fff%27 opacity=%270.01%27 filter=%27url(%23noise)%27 /%3E%3C/svg%3E');
+  --color-autofill-bg: #252019;
+  --color-autofill-text: #f5efe6;
+
+  /* Sidebar */
+  --sidebar-gradient: linear-gradient(180deg, #1e1a14 0%, #1a1612 50%, #181410 100%);
+  --sidebar-border: rgba(184, 147, 106, 0.20);
+  --sidebar-inset-shadow: rgba(0, 0, 0, 0.15);
+  --sidebar-link-color: #c9b89c;
+  --sidebar-active-bg: rgba(184, 147, 106, 0.18);
+  --sidebar-active-color: #d4b896;
+
+  /* Auth pages */
+  --auth-panel-bg: #1e1a14;
+  --auth-form-bg: #1a1612;
+  --auth-input-bg: rgba(37,32,25,0.85);
+  --auth-input-border: rgba(184,147,106,0.25);
+  --auth-label-color: #a09585;
+  --auth-input-text: #f5efe6;
+  --auth-input-placeholder: #6b5d4f;
+
+  /* Navbar */
+  --nav-bg-scrolled: rgba(26,22,18,0.92);
+  --nav-border-scrolled: #3d3530;
+  --nav-shadow-scrolled: 0 1px 20px rgba(0,0,0,0.2);
+
+  /* Footer */
+  --footer-bg: rgba(30,26,20,0.88);
+
+  /* Notification dropdown */
+  --dropdown-bg: #2a2420;
+  --dropdown-border: rgba(184,147,106,0.2);
+  --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.4);
+
+  /* Misc */
+  --overlay-bg: rgba(0,0,0,0.65);
+  --support-bg: #252019;
+  --support-border: #3d3530;
+  --support-text: #c9b89c;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  THEME TRANSITION                                                      */
+/* ═══════════════════════════════════════════════════════════════════════ */
+html,
+html body,
+html .card,
+html [class*="bg-primary-"],
+html [class*="bg-surface"],
+html [class*="border-primary-"],
+html [class*="text-text-"] {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  BASE STYLES                                                           */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
 * {
   @apply border-primary-200;
 }
@@ -15,7 +150,7 @@ html {
 
 body {
   @apply bg-primary-50 text-text-primary font-sans;
-  background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 1200 1200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noise%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%274%27 /%3E%3C/filter%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%23F2EFE9%27 /%3E%3Crect width=%271200%27 height=%271200%27 fill=%27%23000%27 opacity=%270.02%27 filter=%27url(%23noise)%27 /%3E%3C/svg%3E');
+  background-image: var(--bg-grain);
   background-attachment: fixed;
   position: relative;
 }
@@ -40,7 +175,7 @@ p {
   @apply text-base leading-relaxed;
 }
 
-/* Fix browser autofill blue tint on inputs — applies globally */
+/* Fix browser autofill blue tint on inputs */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -51,11 +186,11 @@ textarea:-webkit-autofill:focus,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 9999px #faf8f5 inset !important;
-  box-shadow: 0 0 0 9999px #faf8f5 inset !important;
-  -webkit-text-fill-color: #4a3728 !important;
-  color: #4a3728 !important;
-  caret-color: #4a3728;
+  -webkit-box-shadow: 0 0 0 9999px var(--color-autofill-bg) inset !important;
+  box-shadow: 0 0 0 9999px var(--color-autofill-bg) inset !important;
+  -webkit-text-fill-color: var(--color-autofill-text) !important;
+  color: var(--color-autofill-text) !important;
+  caret-color: var(--color-autofill-text);
   transition: background-color 86400s ease 0s, color 86400s ease 0s;
 }
 
@@ -83,6 +218,17 @@ select:-webkit-autofill:focus {
   @apply border-b border-primary-200;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  DARK MODE OVERRIDES for inline-styled elements                        */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+/* Modal/dialog backgrounds */
+[data-theme="dark"] .bg-primary-50,
+[data-theme="dark"] [class*="bg-\\[\\#faf8f4\\]"],
+[data-theme="dark"] [class*="bg-\\[\\#f5f2ed\\]"] {
+  background-color: var(--color-primary-50) !important;
+}
+
 /* Floating decorative elements */
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -101,24 +247,21 @@ select:-webkit-autofill:focus {
     will-change: auto;
   }
 
-  /* Ensure minimum tap target size */
   button, a, select, [role="button"] {
     min-height: 36px;
   }
 
-  /* Ensure readable text */
   body {
     font-size: 14px;
   }
 
-  /* Full-width action buttons on mobile */
   .btn-primary, .btn-secondary {
     width: 100%;
     text-align: center;
   }
 }
 
-/* Custom cursor — hide default on desktop when cursor component is active */
+/* Custom cursor */
 @media (min-width: 768px) {
   body:has(.custom-cursor) {
     cursor: none;
@@ -127,7 +270,6 @@ select:-webkit-autofill:focus {
   body:has(.custom-cursor) button {
     cursor: none;
   }
-  /* Never suppress cursor on auth-page logo so it remains visibly clickable */
   body:has(.custom-cursor) [data-logo-link] {
     cursor: pointer !important;
   }
