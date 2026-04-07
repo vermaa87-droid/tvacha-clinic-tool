@@ -145,11 +145,22 @@ export default function ReviewPatientPage() {
   const [doctorNotes, setDoctorNotes] = useState("");
   const [feeAmount, setFeeAmount] = useState("");
   const [feeStatus, setFeeStatus] = useState<FeeStatus>("unpaid");
+  const [aiOverride, setAiOverride] = useState(false);
   const [recommendedTemplates, setRecommendedTemplates] = useState<PrescriptionTemplate[]>([]);
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // AI case data
+  const [aiCase, setAiCase] = useState<{
+    ai_diagnosis: string;
+    ai_diagnosis_display: string;
+    ai_confidence: number;
+    ai_severity_label: string;
+    ai_top_3: { class: string; confidence: number }[];
+    source: string;
+  } | null>(null);
 
   const fetchPatient = useCallback(async () => {
     if (!user || !patientId) return;
@@ -185,7 +196,15 @@ export default function ReviewPatientPage() {
         .maybeSingle();
 
       if (caseData && caseData.ai_diagnosis !== "pending") {
-        // Pre-fill doctor's form from case data
+        setAiCase({
+          ai_diagnosis: caseData.ai_diagnosis,
+          ai_diagnosis_display: caseData.ai_diagnosis_display,
+          ai_confidence: caseData.ai_confidence,
+          ai_severity_label: caseData.ai_severity_label,
+          ai_top_3: (caseData.ai_top_3 as { class: string; confidence: number }[]) ?? [],
+          source: "ai",
+        });
+        // Pre-fill doctor's form from AI suggestion
         const aiDiag = caseData.ai_diagnosis as string;
         const matchOpt = DIAGNOSIS_OPTIONS.find((o) => o.value === aiDiag || o.value === aiDiag.replace(/\s/g, "_"));
         if (matchOpt) {
@@ -414,20 +433,85 @@ export default function ReviewPatientPage() {
         </SectionCard>
       )}
 
-      {/* AI Screening Result — maintenance notice */}
-      <SectionCard title="AI Screening Result">
-        <div className="flex items-start gap-3 px-1 py-2">
-          <span className="text-xl">⚠️</span>
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "#92400e" }}>
-              Our AI faced some technical difficulties
-            </p>
-            <p className="text-xs mt-1" style={{ color: "#9a8a76" }}>
-              It will be back by tomorrow. Please proceed with manual classification below.
-            </p>
+      {/* AI Screening Result */}
+      {aiCase && (
+        <SectionCard title="AI Screening Result">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#9a8a76" }}>AI Diagnosis</p>
+              <p className="text-lg font-serif font-bold" style={{ color: ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(aiCase.ai_diagnosis) ? "#dc2626" : "#1a1612" }}>
+                {aiCase.ai_diagnosis_display}
+              </p>
+            </div>
+            <span
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+              style={{
+                background: aiCase.ai_severity_label === "Severe" ? "rgba(220,38,38,0.1)" : aiCase.ai_severity_label === "Moderate" ? "rgba(212,165,90,0.15)" : "rgba(74,154,74,0.12)",
+                color: aiCase.ai_severity_label === "Severe" ? "#dc2626" : aiCase.ai_severity_label === "Moderate" ? "#b8860b" : "#4a9a4a",
+              }}
+            >
+              {aiCase.ai_severity_label}
+            </span>
           </div>
-        </div>
-      </SectionCard>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>Confidence</span>
+              <span className="text-sm font-bold" style={{ color: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : Math.round(aiCase.ai_confidence * 100) >= 50 ? "#d4a55a" : "#c44a4a" }}>
+                {Math.round(aiCase.ai_confidence * 100)}%
+              </span>
+            </div>
+            <div className="w-full h-2.5 rounded-full" style={{ background: "#e8e0d0" }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.round(aiCase.ai_confidence * 100)}%`,
+                  background: Math.round(aiCase.ai_confidence * 100) >= 75 ? "#4a9a4a" : Math.round(aiCase.ai_confidence * 100) >= 50 ? "#d4a55a" : "#c44a4a",
+                }}
+              />
+            </div>
+          </div>
+          {aiCase.ai_top_3.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#9a8a76" }}>Differential Diagnosis</p>
+              <div className="space-y-2">
+                {aiCase.ai_top_3.map((pred, idx) => {
+                  const pct = Math.round(pred.confidence * 100);
+                  const isCancer = ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"].includes(pred.class);
+                  const displayName: Record<string, string> = {
+                    healthy: "Healthy Skin", acne: "Acne", fungal_infection: "Fungal Infection",
+                    eczema: "Eczema (Atopic Dermatitis)", contact_dermatitis: "Contact Dermatitis",
+                    urticaria: "Urticaria (Hives)", psoriasis: "Psoriasis", scabies: "Scabies",
+                    bullous_disease: "Bullous Disease", bacterial_infection: "Bacterial Infection",
+                    viral_infection: "Viral Infection", pigmentary_disorder: "Pigmentation Disorder",
+                    melanoma: "Melanoma", basal_cell_carcinoma: "Basal Cell Carcinoma",
+                    squamous_cell_carcinoma: "Squamous Cell Carcinoma",
+                    melanocytic_nevus: "Mole (Melanocytic Nevus)", benign_lesion: "Benign Skin Lesion",
+                  };
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="text-xs font-mono w-5 text-right" style={{ color: "#9a8a76" }}>{idx + 1}.</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-sm font-medium" style={{ color: isCancer ? "#dc2626" : "#1a1612" }}>
+                            {displayName[pred.class] || pred.class}{isCancer ? " ⚠" : ""}
+                          </span>
+                          <span className="text-xs font-semibold" style={{ color: "#9a8a76" }}>{pct}%</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full" style={{ background: "#e8e0d0" }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: isCancer ? "#dc2626" : "#b8936a" }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <p className="text-xs mt-4 pt-3" style={{ color: "#9a8a76", borderTop: "1px solid rgba(184,147,106,0.2)" }}>
+            AI suggestion has been pre-filled below. You can confirm or override the classification.
+          </p>
+        </SectionCard>
+      )}
 
 
       {/* Screening data */}
@@ -605,22 +689,42 @@ export default function ReviewPatientPage() {
       <SectionCard title="Doctor's Assessment">
         <div className="mb-4">
           <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "#9a8a76" }}>
-            Disease Classification <span style={{ color: "#dc2626" }}>*</span>
+            AI Predicted Classification <span style={{ color: "#dc2626" }}>*</span>
           </label>
 
-          <select
-            value={diseaseClassification}
-            onChange={(e) => setDiseaseClassification(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-            style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
-          >
-            <option value="">— Select a classification —</option>
-            {DIAGNOSIS_OPTIONS.slice(0, -1).map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-            <option disabled>──────────────</option>
-            <option value="other">Other (Custom)</option>
-          </select>
+          {/* Locked AI prediction (when AI has pre-filled and doctor hasn't overridden) */}
+          {aiCase && diseaseClassification && !aiOverride ? (
+            <div>
+              <div
+                className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold"
+                style={{ border: "1px solid rgba(184,147,106,0.35)", background: "rgba(184,147,106,0.08)", color: "#1a1612" }}
+              >
+                {DIAGNOSIS_OPTIONS.find((o) => o.value === diseaseClassification)?.label ?? diseaseClassification}
+              </div>
+              <button
+                type="button"
+                onClick={() => { setAiOverride(true); setDiseaseClassification(""); }}
+                className="mt-2 text-xs font-medium underline underline-offset-2 transition-colors hover:opacity-70"
+                style={{ color: "#9a8a76" }}
+              >
+                AI is incorrect? Click to override classification
+              </button>
+            </div>
+          ) : (
+            <select
+              value={diseaseClassification}
+              onChange={(e) => setDiseaseClassification(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
+              style={{ border: "1px solid #e8ddd0", background: "#fff", color: "#1a1612" }}
+            >
+              <option value="">— Select a classification —</option>
+              {DIAGNOSIS_OPTIONS.slice(0, -1).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+              <option disabled>──────────────</option>
+              <option value="other">Other (Custom)</option>
+            </select>
+          )}
         </div>
 
         {diseaseClassification === "other" && (

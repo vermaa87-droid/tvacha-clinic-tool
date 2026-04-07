@@ -12,7 +12,7 @@ import type { Prescription } from "@/lib/types";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import Link from "next/link";
-import { Pencil, Plus, Phone, Trash2 } from "lucide-react";
+import { Pencil, Plus, Phone, Trash2, CheckSquare } from "lucide-react";
 import {
   SEVERITY_OPTIONS,
   SEVERITY_COLORS,
@@ -153,6 +153,11 @@ export default function RegisterPage() {
 
   // Pagination
   const [patientPageSize, setPatientPageSize] = useState(25);
+
+  // Selection state
+  const [selectedPatients, setSelectedPatients] = useState<Set<string>>(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
   // Modal states
   const [showAddPatient, setShowAddPatient] = useState(false);
@@ -451,6 +456,44 @@ export default function RegisterPage() {
   const patientColumns = useMemo<ColumnDef<PatientRow, unknown>[]>(
     () => [
       {
+        id: "select",
+        size: 40,
+        header: () => {
+          const allSelected = patients.length > 0 && patients.every((p) => selectedPatients.has(p.id));
+          const someSelected = !allSelected && patients.some((p) => selectedPatients.has(p.id));
+          return (
+            <input
+              type="checkbox"
+              checked={allSelected}
+              ref={(el) => { if (el) el.indeterminate = someSelected; }}
+              onChange={() => {
+                if (allSelected) {
+                  setSelectedPatients(new Set());
+                } else {
+                  setSelectedPatients(new Set(patients.map((p) => p.id)));
+                }
+              }}
+              className="w-4 h-4 rounded accent-[#b8936a] cursor-pointer"
+            />
+          );
+        },
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={selectedPatients.has(row.original.id)}
+            onChange={() => {
+              setSelectedPatients((prev) => {
+                const next = new Set(prev);
+                next.has(row.original.id) ? next.delete(row.original.id) : next.add(row.original.id);
+                return next;
+              });
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 rounded accent-[#b8936a] cursor-pointer"
+          />
+        ),
+      },
+      {
         id: "sno",
         header: "S.No",
         size: 48,
@@ -652,7 +695,7 @@ export default function RegisterPage() {
         ),
       },
     ],
-    [t]
+    [t, patients, selectedPatients]
   );
 
   const visitColumns = useMemo<ColumnDef<VisitRow, unknown>[]>(
@@ -846,6 +889,26 @@ export default function RegisterPage() {
       console.error("[register] unlink error:", err);
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  // ─── Bulk Unlink Patients ─────────────────────────────────────────────────
+
+  const handleBulkUnlink = async () => {
+    if (selectedPatients.size === 0) return;
+    setBulkDeleteLoading(true);
+    try {
+      await supabase
+        .from("patients")
+        .update({ linked_doctor_id: null })
+        .in("id", Array.from(selectedPatients));
+      setSelectedPatients(new Set());
+      setShowBulkDeleteModal(false);
+      fetchPatients(true);
+    } catch (err) {
+      console.error("[register] bulk unlink error:", err);
+    } finally {
+      setBulkDeleteLoading(false);
     }
   };
 
@@ -1082,6 +1145,27 @@ export default function RegisterPage() {
         <div>
           {/* Desktop table */}
           <div className="hidden md:block">
+            {selectedPatients.size > 0 && (
+              <div className="flex items-center gap-3 px-4 py-2.5 mb-2 rounded-lg bg-red-50 border border-red-200">
+                <CheckSquare className="w-4 h-4 text-red-500 shrink-0" />
+                <span className="text-sm font-medium text-red-700">
+                  {selectedPatients.size} patient{selectedPatients.size > 1 ? "s" : ""} selected
+                </span>
+                <button
+                  onClick={() => setShowBulkDeleteModal(true)}
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Remove selected
+                </button>
+                <button
+                  onClick={() => setSelectedPatients(new Set())}
+                  className="text-sm text-red-400 hover:text-red-600 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
             <DataTable<PatientRow>
               data={patients}
               columns={patientColumns}
@@ -1280,6 +1364,32 @@ export default function RegisterPage() {
       >
         <p className="text-text-secondary">
           Remove <span className="font-semibold text-text-primary">{patientToDelete?.name}</span>? This will unlink them from your clinic.
+        </p>
+      </Modal>
+
+      {/* ─── Bulk Remove Modal ────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Remove Patients"
+        size="sm"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setShowBulkDeleteModal(false)} disabled={bulkDeleteLoading}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleBulkUnlink}
+              loading={bulkDeleteLoading}
+            >
+              Remove {selectedPatients.size} patient{selectedPatients.size > 1 ? "s" : ""}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-text-secondary">
+          Remove <span className="font-semibold text-text-primary">{selectedPatients.size} patient{selectedPatients.size > 1 ? "s" : ""}</span> from your clinic? This will unlink them from your account.
         </p>
       </Modal>
 
