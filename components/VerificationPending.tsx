@@ -28,7 +28,7 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
-      style={{ background: "#faf8f4" }}
+      style={{ background: "var(--color-card)" }}
     >
       <div className="mb-4 flex items-center justify-between w-full max-w-[500px]">
         <Logo />
@@ -38,8 +38,8 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
       <div
         className="w-full max-w-[500px] rounded-2xl p-8 space-y-6"
         style={{
-          background: "#f5f2ed",
-          border: "1px solid rgba(184,147,106,0.35)",
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-separator)",
           boxShadow: "0 4px 32px rgba(26,22,18,0.06)",
         }}
       >
@@ -74,7 +74,7 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
           <DetailRow label={t("verify_council")} value={doctor.state_medical_council || "—"} />
           <DetailRow label={t("verify_submitted")} value={signupDate} />
           <div className="flex items-center justify-between pt-1 border-t border-primary-200">
-            <span className="text-xs font-medium" style={{ color: "#9a8a76" }}>
+            <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Status
             </span>
             <span className="flex items-center gap-2 text-xs font-semibold" style={{ color: "#b8936a" }}>
@@ -114,7 +114,7 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
           </p>
         </div>
 
-        <p className="text-sm text-center" style={{ color: "#9a8a76" }}>
+        <p className="text-sm text-center" style={{ color: "var(--color-text-secondary)" }}>
           {t("verify_issue")}{" "}
           <a
             href="mailto:support@tvacha-clinic.com"
@@ -145,7 +145,7 @@ export function VerificationPending({ doctor }: { doctor: Doctor }) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-xs font-medium flex-shrink-0" style={{ color: "#9a8a76" }}>
+      <span className="text-xs font-medium flex-shrink-0" style={{ color: "var(--color-text-secondary)" }}>
         {label}
       </span>
       <span className="text-xs font-semibold text-right" style={{ color: "#2a2218" }}>

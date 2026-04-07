@@ -16,17 +16,17 @@ function CaseQueueMockup() {
     <div className="rounded-xl border border-primary-200 overflow-hidden">
       <div
         className="px-4 py-2.5 border-b border-primary-200 flex items-center justify-between"
-        style={{ background: "#ede8e0" }}
+        style={{ background: "var(--color-primary-200)" }}
       >
         <span className="text-xs font-semibold text-text-primary">Today&apos;s Queue</span>
         <span className="text-xs font-bold text-primary-500">16 patients</span>
       </div>
-      <div className="p-3 space-y-1.5" style={{ background: "#f4f0ea" }}>
+      <div className="p-3 space-y-1.5" style={{ background: "var(--color-surface)" }}>
         {cases.map((c, i) => (
           <div
             key={i}
             className="flex items-center justify-between py-2 px-3 rounded-lg"
-            style={{ background: "rgba(255,255,255,0.55)" }}
+            style={{ background: "var(--color-card)" }}
           >
             <div className="flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
@@ -48,14 +48,14 @@ function PrescriptionMockup() {
     <div className="rounded-lg border border-primary-200 overflow-hidden">
       <div
         className="px-3 py-2 border-b border-primary-200 flex items-center justify-between"
-        style={{ background: "#ede8e0" }}
+        style={{ background: "var(--color-primary-200)" }}
       >
         <span className="text-[10px] font-semibold text-text-primary">Rx — Tinea Versicolor</span>
         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-600 font-medium">
           Template
         </span>
       </div>
-      <div className="p-3" style={{ background: "#f4f0ea" }}>
+      <div className="p-3" style={{ background: "var(--color-surface)" }}>
         <div className="space-y-1.5 mb-3">
           {["Tab. Fluconazole 150mg · 1×wk × 4wks", "Oint. Clotrimazole 1% · BD × 3wks"].map((drug, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -87,17 +87,17 @@ function PatientListMockup() {
     <div className="rounded-lg border border-primary-200 overflow-hidden">
       <div
         className="px-3 py-2 border-b border-primary-200 flex items-center justify-between"
-        style={{ background: "#ede8e0" }}
+        style={{ background: "var(--color-primary-200)" }}
       >
         <span className="text-[10px] font-semibold text-text-primary">My Patients</span>
         <span className="text-[10px] text-primary-500 font-medium">24 total</span>
       </div>
-      <div className="p-2.5 space-y-1.5" style={{ background: "#f4f0ea" }}>
+      <div className="p-2.5 space-y-1.5" style={{ background: "var(--color-surface)" }}>
         {patients.map((p, i) => (
           <div
             key={i}
             className="flex items-center gap-2.5 py-1.5 px-2 rounded-md"
-            style={{ background: "rgba(255,255,255,0.55)" }}
+            style={{ background: "var(--color-card)" }}
           >
             <div
               className="w-6 h-6 rounded-full bg-primary-300 flex items-center justify-center text-white font-bold flex-shrink-0"
@@ -128,12 +128,12 @@ function AnalyticsMockup() {
     <div className="rounded-lg border border-primary-200 overflow-hidden">
       <div
         className="px-3 py-2 border-b border-primary-200 flex items-center justify-between"
-        style={{ background: "#ede8e0" }}
+        style={{ background: "var(--color-primary-200)" }}
       >
         <span className="text-[10px] font-semibold text-text-primary">Monthly Visits</span>
         <span className="text-[10px] text-primary-500 font-medium">2024–25</span>
       </div>
-      <div className="p-3" style={{ background: "#f4f0ea" }}>
+      <div className="p-3" style={{ background: "var(--color-surface)" }}>
         <div className="flex items-end justify-between gap-1.5 h-12 mb-2">
           {bars.map((b, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
@@ -205,7 +205,7 @@ export function FeaturesSection() {
           >
             <div
               className="rounded-2xl border border-primary-200 p-7"
-              style={{ background: "linear-gradient(135deg, #f9f6f0 0%, #f2ebe0 100%)" }}
+              style={{ background: "var(--color-card)" }}
             >
               <div className="flex items-center gap-3 mb-5">
                 <Zap size={28} style={{ color: "#b8936a" }} />
@@ -233,7 +233,7 @@ export function FeaturesSection() {
           >
             <div
               className="rounded-2xl border border-primary-200 p-6"
-              style={{ background: "#f9f6f0" }}
+              style={{ background: "var(--color-card)" }}
             >
               <FileText size={26} className="block mb-4" style={{ color: "#b8936a" }} />
               <h3 className="font-serif font-semibold text-text-primary mb-2">
@@ -259,7 +259,7 @@ export function FeaturesSection() {
           >
             <div
               className="rounded-2xl border border-primary-200 p-6"
-              style={{ background: "#f9f6f0" }}
+              style={{ background: "var(--color-card)" }}
             >
               <Users size={26} className="block mb-4" style={{ color: "#b8936a" }} />
               <h3 className="font-serif font-semibold text-text-primary mb-2">
@@ -281,7 +281,7 @@ export function FeaturesSection() {
           >
             <div
               className="rounded-2xl border border-primary-200 p-6"
-              style={{ background: "#f9f6f0" }}
+              style={{ background: "var(--color-card)" }}
             >
               <BarChart3 size={26} className="block mb-4" style={{ color: "#b8936a" }} />
               <h3 className="font-serif font-semibold text-text-primary mb-2">
@@ -304,7 +304,7 @@ export function FeaturesSection() {
             <div
               className="rounded-2xl border p-6"
               style={{
-                background: "linear-gradient(135deg, #f2ece3 0%, #ede4d4 100%)",
+                background: "var(--color-card)",
                 borderColor: "rgba(184,147,106,0.35)",
               }}
             >

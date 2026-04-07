@@ -87,7 +87,7 @@ export function PricingSection() {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              background: "#f9f6f0",
+              background: "var(--color-card)",
               border: "1px solid rgba(184,147,106,0.28)",
               boxShadow: "0 4px 28px rgba(26,22,18,0.09), 0 1px 4px rgba(26,22,18,0.04)",
             }}

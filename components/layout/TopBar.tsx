@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Bell, Menu, Stethoscope, CheckCircle2 } from "lucide-react";
 import { Logo } from "./Logo";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useLanguage } from "@/lib/language-context";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
@@ -128,6 +129,7 @@ export function TopBar({
         </div>
         <div className="flex items-center gap-3 md:gap-4">
           <LanguageToggle />
+          <ThemeToggle />
 
           {/* Notification bell */}
           <div className="relative" ref={dropdownRef}>
@@ -146,23 +148,23 @@ export function TopBar({
               <div
                 className="absolute right-0 mt-2 w-80 rounded-xl border shadow-lg overflow-hidden"
                 style={{
-                  background: "#faf8f4",
-                  borderColor: "rgba(184,147,106,0.3)",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  background: "var(--dropdown-bg)",
+                  borderColor: "var(--dropdown-border)",
+                  boxShadow: "var(--dropdown-shadow)",
                 }}
               >
                 {/* Header */}
                 <div
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ borderBottom: "1px solid rgba(184,147,106,0.2)" }}
+                  style={{ borderBottom: "1px solid var(--color-separator)" }}
                 >
-                  <span className="text-sm font-semibold" style={{ color: "#3d2e22" }}>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                     Notifications
                   </span>
                   {hasNotifications && (
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{ background: "rgba(184,147,106,0.18)", color: "#7a5c35" }}
+                      style={{ background: "rgba(184,147,106,0.18)", color: "var(--sidebar-active-color)" }}
                     >
                       {notifications.length}
                     </span>
@@ -178,23 +180,23 @@ export function TopBar({
                         href="/dashboard/ready-for-diagnosis"
                         onClick={() => setOpen(false)}
                         className="flex items-start gap-3 px-4 py-3 hover:bg-primary-100/50 transition-colors"
-                        style={{ borderBottom: "1px solid rgba(184,147,106,0.1)" }}
+                        style={{ borderBottom: "1px solid var(--color-separator)" }}
                       >
                         <div
                           className="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ background: "rgba(184,147,106,0.15)" }}
                         >
-                          <Stethoscope size={16} style={{ color: "#7a5c35" }} />
+                          <Stethoscope size={16} style={{ color: "var(--sidebar-active-color)" }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: "#3d2e22" }}>
+                          <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
                             New patient ready for diagnosis
                           </p>
-                          <p className="text-xs mt-0.5 truncate" style={{ color: "#8a7060" }}>
+                          <p className="text-xs mt-0.5 truncate" style={{ color: "var(--color-text-secondary)" }}>
                             {n.patientName}
                           </p>
                         </div>
-                        <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: "#b8a898" }}>
+                        <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: "var(--color-text-muted)" }}>
                           {formatTime(n.createdAt)}
                         </span>
                       </Link>
@@ -206,10 +208,10 @@ export function TopBar({
                         className="mx-auto mb-3"
                         style={{ color: "#b8936a" }}
                       />
-                      <p className="text-sm font-medium" style={{ color: "#3d2e22" }}>
+                      <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
                         You&apos;re all caught up!
                       </p>
-                      <p className="text-xs mt-1" style={{ color: "#8a7060" }}>
+                      <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>
                         No pending patients at the moment.
                       </p>
                     </div>
@@ -223,8 +225,8 @@ export function TopBar({
                     onClick={() => setOpen(false)}
                     className="block text-center text-sm font-medium py-2.5 hover:bg-primary-100/50 transition-colors"
                     style={{
-                      color: "#7a5c35",
-                      borderTop: "1px solid rgba(184,147,106,0.2)",
+                      color: "var(--sidebar-active-color)",
+                      borderTop: "1px solid var(--color-separator)",
                     }}
                   >
                     View all pending patients

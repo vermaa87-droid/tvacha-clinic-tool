@@ -26,12 +26,13 @@ const _svgPattern = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height=
 export const FLORAL_BG = `url("data:image/svg+xml,${encodeURIComponent(_svgPattern)}")`;
 
 export const sidebarStyle: React.CSSProperties = {
-  backgroundImage: `${FLORAL_BG}, linear-gradient(180deg, #e8d9b8 0%, #dfd0a8 50%, #d9c89a 100%)`,
+  backgroundImage: `${FLORAL_BG}, var(--sidebar-gradient)`,
   backgroundRepeat: "repeat-y, no-repeat",
   backgroundSize: "100% auto, 100% 100%",
   backgroundPosition: "center, center",
-  borderRight: "1px solid rgba(184, 147, 106, 0.40)",
-  boxShadow: "inset 0 2px 8px rgba(184, 147, 106, 0.12)",
+  borderRight: `1px solid var(--sidebar-border)`,
+  boxShadow: `inset 0 2px 8px var(--sidebar-inset-shadow)`,
+  transition: "background-image 0.3s ease, border-color 0.3s ease",
 };
 
 export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; onMobileClose?: () => void }) {
@@ -129,8 +130,8 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
                     )}
                     style={
                       isActive
-                        ? { background: "rgba(184, 147, 106, 0.25)", color: "#6b4a1e", fontWeight: 700 }
-                        : { color: "#5c3d18" }
+                        ? { background: "var(--sidebar-active-bg)", color: "var(--sidebar-active-color)", fontWeight: 700 }
+                        : { color: "var(--sidebar-link-color)" }
                     }
                   >
                     <Icon size={20} />
@@ -161,12 +162,12 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
 
         <div
           className="px-4 py-6"
-          style={{ borderTop: "1px solid rgba(184, 147, 106, 0.15)" }}
+          style={{ borderTop: "1px solid var(--color-separator)" }}
         >
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
-            style={{ color: "#5c3d18" }}
+            style={{ color: "var(--sidebar-link-color)" }}
           >
             <LogOut size={20} />
             <span>{t("dash_sidebar_logout")}</span>

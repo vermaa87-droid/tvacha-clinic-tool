@@ -140,7 +140,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.4, ease }}
             style={{ willChange: "transform" }}
           >
-            <div className="border border-primary-200 rounded-lg shadow-2xl p-6 space-y-4" style={{ background: "#f9f6f0" }}>
+            <div className="border border-primary-200 rounded-lg shadow-2xl p-6 space-y-4" style={{ background: "var(--color-card)" }}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-serif font-semibold text-text-primary">Today&apos;s Patients</h3>
@@ -197,7 +197,7 @@ export function HeroSection() {
               </div>
             </div>
 
-            <div className="absolute right-0 bottom-0 w-44 border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-2 translate-y-14 md:translate-x-12 md:translate-y-12" style={{ background: "#f9f6f0" }}>
+            <div className="absolute right-0 bottom-0 w-44 border border-primary-200 rounded-lg shadow-lg p-4 transform translate-x-2 translate-y-14 md:translate-x-12 md:translate-y-12" style={{ background: "var(--color-card)" }}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-semibold text-text-primary">My Patients</h4>
                 <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: "rgba(45,74,62,0.1)", color: "#2d4a3e" }}>24 total</span>
@@ -218,7 +218,7 @@ export function HeroSection() {
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-6 h-6 bg-primary-200 rounded-full flex items-center justify-center font-bold flex-shrink-0" style={{ fontSize: "9px", color: "#7a5c35" }}>AP</div>
+                  <div className="w-6 h-6 bg-primary-200 rounded-full flex items-center justify-center font-bold flex-shrink-0" style={{ fontSize: "9px", color: "var(--sidebar-active-color)" }}>AP</div>
                   <div>
                     <p className="font-medium text-text-primary leading-tight">Amit P.</p>
                     <p className="text-text-muted leading-tight" style={{ fontSize: "9px" }}>New patient</p>
