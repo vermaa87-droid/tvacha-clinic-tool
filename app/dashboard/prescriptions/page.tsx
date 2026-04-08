@@ -17,6 +17,9 @@ import {
   FREQUENCY_OPTIONS,
   MEDICATION_CATEGORY_OPTIONS,
 } from "@/lib/constants";
+import { useMutationQueue } from "@/lib/mutation-queue";
+import { useDataCache } from "@/lib/data-cache";
+import { useToast } from "@/components/ui/Toast";
 
 /* ------------------------------------------------------------------ */
 /*  Template edit form (kept from original)                           */
@@ -195,6 +198,9 @@ export default function PrescriptionsPage() {
   const { user } = useAuthStore();
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
+  const { enqueue } = useMutationQueue();
+  const { invalidatePrescriptions } = useDataCache();
+  const { showToast } = useToast();
 
   // Data
   const [templates, setTemplates] = useState<PrescriptionTemplate[]>([]);
@@ -222,7 +228,7 @@ export default function PrescriptionsPage() {
   const [rxInstructions, setRxInstructions] = useState("");
   const [rxFollowUpDate, setRxFollowUpDate] = useState("");
   const [rxFollowUpNotes, setRxFollowUpNotes] = useState("");
-  const [rxSaving, setRxSaving] = useState(false);
+  const [rxSaving] = useState(false);
 
   /* ---- Fetch data ---- */
 
@@ -254,7 +260,7 @@ export default function PrescriptionsPage() {
         fetchPrescriptions(),
         supabase
           .from("patients")
-          .select("*")
+          .select("id, name, age, gender")
           .eq("linked_doctor_id", user.id)
           .order("name"),
       ]);
@@ -425,47 +431,104 @@ export default function PrescriptionsPage() {
     setRxMedicines((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const savePrescription = async () => {
+  const savePrescription = () => {
     if (!user || !selectedPatientId || !rxDiagnosis) return;
-    setRxSaving(true);
 
-    try {
-      const medicines: Medicine[] = rxMedicines
-        .filter((m) => m.name.trim())
-        .map((m) => ({
-          name: m.name,
-          dosage: m.dosage,
-          frequency:
-            FREQUENCY_OPTIONS.find((f) => f.value === m.frequency)?.label ||
-            m.frequency,
-          duration: m.duration,
-          instructions: m.instructions || undefined,
-        }));
+    // 1. Build medicines array (client-side validation)
+    const medicines: Medicine[] = rxMedicines
+      .filter((m) => m.name.trim())
+      .map((m) => ({
+        name: m.name,
+        dosage: m.dosage,
+        frequency:
+          FREQUENCY_OPTIONS.find((f) => f.value === m.frequency)?.label ||
+          m.frequency,
+        duration: m.duration,
+        instructions: m.instructions || undefined,
+      }));
 
-      const { error } = await supabase.from("prescriptions").insert({
-        doctor_id: user.id,
-        patient_id: selectedPatientId,
-        diagnosis: rxDiagnosis,
-        medicines,
-        special_instructions: rxInstructions || null,
-        follow_up_date: rxFollowUpDate || null,
-        follow_up_notes: rxFollowUpNotes || null,
-        status: "active",
-        template_id: selectedTemplateId || null,
-      });
+    // Build the insert payload
+    const insertPayload = {
+      doctor_id: user.id,
+      patient_id: selectedPatientId,
+      diagnosis: rxDiagnosis,
+      medicines,
+      special_instructions: rxInstructions || null,
+      follow_up_date: rxFollowUpDate || null,
+      follow_up_notes: rxFollowUpNotes || null,
+      status: "active" as const,
+      template_id: selectedTemplateId || null,
+    };
 
-      if (error) {
-        console.error("[prescriptions] insert error:", error);
-        return;
-      }
+    // 2. Create an optimistic prescription entry
+    const optimisticId = `optimistic-${Date.now()}`;
+    const selectedPatient = patients.find((p) => p.id === selectedPatientId);
+    const optimisticRx: Prescription = {
+      id: optimisticId,
+      doctor_id: user.id,
+      patient_id: selectedPatientId,
+      case_id: null,
+      diagnosis: rxDiagnosis,
+      medicines,
+      special_instructions: rxInstructions || null,
+      follow_up_date: rxFollowUpDate || null,
+      follow_up_notes: rxFollowUpNotes || null,
+      template_id: selectedTemplateId || null,
+      status: "active",
+      pdf_url: null,
+      created_at: new Date().toISOString(),
+      patients: selectedPatient || undefined,
+    };
 
-      await fetchPrescriptions();
-      closeCreateModal();
-    } catch (err) {
-      console.error("[prescriptions] savePrescription error:", err);
-    } finally {
-      setRxSaving(false);
-    }
+    // 3. Show success toast immediately
+    showToast({ message: "Prescription created" });
+
+    // 4. Close the modal immediately
+    closeCreateModal();
+
+    // 5. Add the optimistic entry to local state
+    setPrescriptions((prev) => [optimisticRx, ...prev]);
+
+    // Capture form values for the modal re-open on error
+    const savedFormState = {
+      selectedPatientId,
+      selectedTemplateId,
+      rxDiagnosis,
+      rxMedicines: [...rxMedicines],
+      rxInstructions,
+      rxFollowUpDate,
+      rxFollowUpNotes,
+    };
+
+    // 6. Enqueue the background insert
+    enqueue({
+      label: "Create prescription",
+      fn: async () => {
+        const { error } = await supabase.from("prescriptions").insert(insertPayload);
+        if (error) throw error;
+        // On success: invalidate cache so next fetch gets server data
+        invalidatePrescriptions();
+        // Refetch to replace optimistic entry with real data
+        fetchPrescriptions();
+      },
+      onError: (err) => {
+        console.error("[prescriptions] insert error:", err);
+        // Show error toast
+        showToast({ message: "Failed to save prescription. Please try again.", duration: 5000 });
+        // Remove the optimistic entry
+        setPrescriptions((prev) => prev.filter((rx) => rx.id !== optimisticId));
+        // Reopen the modal with the form data
+        setSelectedPatientId(savedFormState.selectedPatientId);
+        setSelectedTemplateId(savedFormState.selectedTemplateId);
+        setRxDiagnosis(savedFormState.rxDiagnosis);
+        setRxMedicines(savedFormState.rxMedicines);
+        setRxInstructions(savedFormState.rxInstructions);
+        setRxFollowUpDate(savedFormState.rxFollowUpDate);
+        setRxFollowUpNotes(savedFormState.rxFollowUpNotes);
+        setCreateStep(3);
+        setShowCreateModal(true);
+      },
+    });
   };
 
   /* ---- Filtered patients for search ---- */

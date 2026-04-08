@@ -15,6 +15,9 @@ import {
   APPOINTMENT_STATUS_OPTIONS,
 } from "@/lib/constants";
 import { Calendar, Plus, ChevronLeft, ChevronRight, List } from "lucide-react";
+import { useMutationQueue } from "@/lib/mutation-queue";
+import { useDataCache } from "@/lib/data-cache";
+import { useToast } from "@/components/ui/Toast";
 import {
   format,
   startOfMonth,
@@ -134,6 +137,9 @@ export default function AppointmentsPage() {
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
   const router = useRouter();
+  const { enqueue } = useMutationQueue();
+  const { invalidateAppointments } = useDataCache();
+  const { showToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -252,37 +258,78 @@ export default function AppointmentsPage() {
     }
   };
 
-  const handleSchedule = async () => {
+  const handleSchedule = () => {
     if (!user || !form.patient_id || !form.date || !form.time) return;
-    setActionLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("appointments")
-        .insert({
-          doctor_id: user.id,
-          patient_id: form.patient_id,
-          appointment_date: form.date,
-          appointment_time: form.time,
-          duration_minutes: form.duration_minutes,
-          type: form.type,
-          notes: form.notes || null,
-          reason: form.reason || null,
-          visit_fee: form.visit_fee ? parseFloat(form.visit_fee) : null,
-          status: "scheduled",
-        })
-        .select("*, patients(name)")
-        .single();
 
-      if (!error && data) {
-        setAppointments((prev) => [...prev, data as Appointment]);
-      }
-      setShowScheduleModal(false);
-      setForm({ ...emptyForm });
-    } catch (err) {
-      console.error("[appointments] create error:", err);
-    } finally {
-      setActionLoading(false);
-    }
+    // Build the insert payload
+    const insertPayload = {
+      doctor_id: user.id,
+      patient_id: form.patient_id,
+      appointment_date: form.date,
+      appointment_time: form.time,
+      duration_minutes: form.duration_minutes,
+      type: form.type,
+      notes: form.notes || null,
+      reason: form.reason || null,
+      visit_fee: form.visit_fee ? parseFloat(form.visit_fee) : null,
+      status: "scheduled" as const,
+    };
+
+    // Create optimistic appointment entry
+    const optimisticId = `optimistic-${Date.now()}`;
+    const selectedPatient = patients.find((p) => p.id === form.patient_id);
+    const optimisticApt: Appointment = {
+      id: optimisticId,
+      doctor_id: user.id,
+      patient_id: form.patient_id,
+      appointment_date: form.date,
+      appointment_time: form.time,
+      duration_minutes: form.duration_minutes,
+      type: form.type,
+      status: "scheduled",
+      notes: form.notes || null,
+      reason: form.reason || null,
+      visit_fee: form.visit_fee ? parseFloat(form.visit_fee) : null,
+      created_at: new Date().toISOString(),
+      patients: selectedPatient || undefined,
+    };
+
+    // Show success toast immediately
+    showToast({ message: "Appointment scheduled" });
+
+    // Close the modal immediately
+    setShowScheduleModal(false);
+
+    // Add to local state optimistically
+    setAppointments((prev) => [...prev, optimisticApt]);
+
+    // Save form state for error recovery
+    const savedForm = { ...form };
+
+    // Reset form
+    setForm({ ...emptyForm });
+
+    // Enqueue the background insert
+    enqueue({
+      label: "Schedule appointment",
+      fn: async () => {
+        const { error } = await supabase.from("appointments").insert(insertPayload);
+        if (error) throw error;
+        // On success: invalidate cache and refetch to get server data
+        invalidateAppointments();
+        fetchData(true);
+      },
+      onError: (err) => {
+        console.error("[appointments] create error:", err);
+        // Show error toast
+        showToast({ message: "Failed to schedule appointment. Please try again.", duration: 5000 });
+        // Remove the optimistic entry
+        setAppointments((prev) => prev.filter((a) => a.id !== optimisticId));
+        // Reopen modal with form data
+        setForm(savedForm);
+        setShowScheduleModal(true);
+      },
+    });
   };
 
   const handleRescheduleOpen = (apt: Appointment) => {

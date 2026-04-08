@@ -94,7 +94,7 @@ export default function LoginPage() {
         style={{ background: "rgba(250,248,244,0.95)" }}
       >
         <div
-          onClick={() => { window.location.href = '/'; }}
+          onClick={() => { router.push('/'); }}
           style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
         >
           <Logo />
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
           {/* Logo */}
           <div
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => { router.push('/'); }}
             style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
           >
             <Logo />

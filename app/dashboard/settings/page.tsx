@@ -29,7 +29,47 @@ export default function SettingsPage() {
     clinic_city: doctor?.clinic_city || "",
     clinic_state: doctor?.clinic_state || "",
     clinic_pincode: doctor?.clinic_pincode || "",
+    signature_url: doctor?.signature_url || "",
+    logo_url: doctor?.logo_url || "",
   });
+
+  // Prescription Letterhead state
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(doctor?.signature_url || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(doctor?.logo_url || null);
+  const [uploadingLetterhead, setUploadingLetterhead] = useState(false);
+
+  const handleLetterheadSave = async () => {
+    if (!doctor) return;
+    setUploadingLetterhead(true);
+    try {
+      const uploads: Array<{ type: string; file: File }> = [];
+      if (signatureFile) uploads.push({ type: "signature", file: signatureFile });
+      if (logoFile) uploads.push({ type: "logo", file: logoFile });
+
+      for (const upload of uploads) {
+        const form = new FormData();
+        form.append("doctorId", doctor.id);
+        form.append("type", upload.type);
+        form.append("file", upload.file);
+        const res = await fetch("/api/upload-letterhead", { method: "POST", body: form });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `Failed to upload ${upload.type}`);
+        }
+      }
+      await refreshDoctor();
+      setSignatureFile(null);
+      setLogoFile(null);
+      alert("Letterhead saved successfully!");
+    } catch (err) {
+      console.error("[settings] letterhead upload error:", err);
+      alert(err instanceof Error ? err.message : "Failed to upload. Please try again.");
+    } finally {
+      setUploadingLetterhead(false);
+    }
+  };
 
   const handleCopyCode = () => {
     if (doctor?.referral_code) {
@@ -60,6 +100,8 @@ export default function SettingsPage() {
       clinic_city: doctor?.clinic_city || "",
       clinic_state: doctor?.clinic_state || "",
       clinic_pincode: doctor?.clinic_pincode || "",
+      signature_url: doctor?.signature_url || "",
+      logo_url: doctor?.logo_url || "",
     });
     setEditing(true);
   };
@@ -186,6 +228,57 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
+        </CardBody>
+      </Card>
+
+      {/* Prescription Letterhead */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-text-primary">Prescription Letterhead</h3>
+        </CardHeader>
+        <CardBody>
+          <p className="text-text-secondary text-sm mb-4">Upload your signature and clinic logo for auto-generated prescription PDFs.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Signature</label>
+              {signaturePreview && (
+                <div className="mb-2 p-2 border border-primary-200 rounded-lg bg-surface inline-block">
+                  <img src={signaturePreview} alt="Signature" className="h-12 object-contain" />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) { setSignatureFile(f); setSignaturePreview(URL.createObjectURL(f)); }
+                }}
+                className="block w-full text-sm text-text-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200 cursor-pointer"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Clinic Logo <span className="text-text-muted font-normal">(optional)</span></label>
+              {logoPreview && (
+                <div className="mb-2 p-2 border border-primary-200 rounded-lg bg-surface inline-block">
+                  <img src={logoPreview} alt="Logo" className="h-12 object-contain" />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) { setLogoFile(f); setLogoPreview(URL.createObjectURL(f)); }
+                }}
+                className="block w-full text-sm text-text-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200 cursor-pointer"
+              />
+            </div>
+          </div>
+          {(signatureFile || logoFile) && (
+            <Button className="bg-primary-500 hover:bg-primary-600 text-white mt-4" onClick={handleLetterheadSave} loading={uploadingLetterhead}>
+              Save Letterhead
+            </Button>
+          )}
         </CardBody>
       </Card>
 

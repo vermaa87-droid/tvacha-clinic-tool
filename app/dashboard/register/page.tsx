@@ -14,6 +14,7 @@ import { useRefreshTick } from "@/lib/RefreshContext";
 import Link from "next/link";
 import { Pencil, Plus, Phone, Trash2, CheckSquare } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { useMutationQueue } from "@/lib/mutation-queue";
 import {
   SEVERITY_OPTIONS,
   SEVERITY_COLORS,
@@ -138,6 +139,7 @@ export default function RegisterPage() {
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
   const { showToast } = useToast();
+  const { enqueue } = useMutationQueue();
   const pendingDeletions = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [activeTab, setActiveTab] = useState<TabKey>("patients");
 
@@ -172,7 +174,8 @@ export default function RegisterPage() {
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [submitting, _setSubmitting] = useState(false);
 
   // ─── Data Fetching ─────────────────────────────────────────────────────────
 
@@ -997,6 +1000,7 @@ export default function RegisterPage() {
     if (!user) return;
     setPatientFormError("");
 
+    // Client-side validation
     const missing: string[] = [];
     if (!patientForm.name.trim()) missing.push("Name");
     if (!patientForm.age) missing.push("Age");
@@ -1014,38 +1018,82 @@ export default function RegisterPage() {
       }
     }
 
-    setSubmitting(true);
-    try {
-      const displayId = `TVP-${String(patients.length + 1).padStart(4, "0")}`;
-      const medicalHistory: Record<string, unknown> = {};
-      if (patientForm.chronic_conditions) medicalHistory.chronic_conditions = patientForm.chronic_conditions;
-      if (patientForm.family_history) medicalHistory.family_history = patientForm.family_history;
+    // Capture form values before resetting
+    const capturedForm = { ...patientForm };
+    const displayId = `TVP-${String(patients.length + 1).padStart(4, "0")}`;
+    const tempId = `temp-${Date.now()}`;
 
-      const { error } = await supabase.from("patients").insert({
-        linked_doctor_id: user.id,
-        patient_display_id: displayId,
-        name: patientForm.name,
-        age: parseInt(patientForm.age),
-        gender: patientForm.gender,
-        phone: patientForm.phone || null,
-        email: patientForm.email || null,
-        blood_group: patientForm.blood_group || null,
-        fitzpatrick_type: patientForm.fitzpatrick_type ? parseInt(patientForm.fitzpatrick_type) : null,
-        chief_complaint: patientForm.chief_complaint,
-        city: patientForm.city || null,
-        state: patientForm.state || null,
-        allergies: patientForm.allergies ? patientForm.allergies.split(",").map((a) => a.trim()) : null,
-        medical_history: Object.keys(medicalHistory).length > 0 ? medicalHistory : {},
-      });
-      if (error) throw error;
-      setShowAddPatient(false);
-      setPatientForm({ name: "", age: "", gender: "", phone: "", email: "", blood_group: "", fitzpatrick_type: "", chief_complaint: "", city: "", state: "", allergies: "", chronic_conditions: "", family_history: "" });
-      fetchPatients();
-    } catch (err) {
-      console.error("[register] add patient error:", err);
-    } finally {
-      setSubmitting(false);
-    }
+    const medicalHistory: Record<string, unknown> = {};
+    if (capturedForm.chronic_conditions) medicalHistory.chronic_conditions = capturedForm.chronic_conditions;
+    if (capturedForm.family_history) medicalHistory.family_history = capturedForm.family_history;
+
+    // Build optimistic patient entry
+    const optimisticPatient: PatientRow = {
+      id: tempId,
+      patient_display_id: displayId,
+      name: capturedForm.name,
+      age: parseInt(capturedForm.age),
+      gender: capturedForm.gender,
+      phone: capturedForm.phone || null,
+      email: capturedForm.email || null,
+      chief_complaint: capturedForm.chief_complaint,
+      current_diagnosis: null,
+      severity: null,
+      treatment_status: null,
+      last_visit_date: null,
+      next_followup_date: null,
+      total_visits: 0,
+      city: capturedForm.city || null,
+      total_fees: 0,
+      latest_diagnosis: null,
+      blood_group: capturedForm.blood_group || null,
+      allergies: capturedForm.allergies ? capturedForm.allergies.split(",").map((a) => a.trim()) : null,
+      chronic_conditions: capturedForm.chronic_conditions ? [capturedForm.chronic_conditions] : null,
+      current_medications: null,
+      fitzpatrick_type: capturedForm.fitzpatrick_type ? parseInt(capturedForm.fitzpatrick_type) : null,
+    };
+
+    // 1. Close modal immediately
+    setShowAddPatient(false);
+    setPatientForm({ name: "", age: "", gender: "", phone: "", email: "", blood_group: "", fitzpatrick_type: "", chief_complaint: "", city: "", state: "", allergies: "", chronic_conditions: "", family_history: "" });
+
+    // 2. Show success toast
+    showToast({ message: "Patient added" });
+
+    // 3. Optimistic update — add to local array
+    setPatients((prev) => [optimisticPatient, ...prev]);
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Add patient",
+      fn: async () => {
+        const { error } = await supabase.from("patients").insert({
+          linked_doctor_id: user.id,
+          patient_display_id: displayId,
+          name: capturedForm.name,
+          age: parseInt(capturedForm.age),
+          gender: capturedForm.gender,
+          phone: capturedForm.phone || null,
+          email: capturedForm.email || null,
+          blood_group: capturedForm.blood_group || null,
+          fitzpatrick_type: capturedForm.fitzpatrick_type ? parseInt(capturedForm.fitzpatrick_type) : null,
+          chief_complaint: capturedForm.chief_complaint,
+          city: capturedForm.city || null,
+          state: capturedForm.state || null,
+          allergies: capturedForm.allergies ? capturedForm.allergies.split(",").map((a) => a.trim()) : null,
+          medical_history: Object.keys(medicalHistory).length > 0 ? medicalHistory : {},
+        });
+        if (error) throw error;
+        // Refetch to get real ID and server data
+        fetchPatients(true);
+      },
+      onError: (err) => {
+        console.error("[register] add patient error:", err);
+        showToast({ message: "Failed to add patient. Please try again." });
+        // Remove optimistic entry
+        setPatients((prev) => prev.filter((p) => p.id !== tempId));
+      },
+    });
   };
 
   // ─── Add Visit Form ───────────────────────────────────────────────────────
@@ -1064,43 +1112,99 @@ export default function RegisterPage() {
 
   const handleAddVisit = async () => {
     if (!user || !visitForm.patient_id) return;
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.from("visits").insert({
-        doctor_id: user.id,
-        patient_id: visitForm.patient_id,
-        visit_date: visitForm.visit_date,
-        chief_complaint: visitForm.chief_complaint || null,
-        diagnosis: visitForm.diagnosis || null,
-        severity: visitForm.severity || null,
-        body_location: visitForm.body_location || null,
-        visit_fee: visitForm.visit_fee ? parseFloat(visitForm.visit_fee) : null,
-        duration_minutes: visitForm.duration_minutes ? parseInt(visitForm.duration_minutes) : null,
-        doctor_notes: visitForm.doctor_notes || null,
-      });
-      if (error) throw error;
 
-      // Update patient's last_visit_date and increment total_visits
-      const patient = patients.find((p) => p.id === visitForm.patient_id);
-      if (patient) {
-        await supabase
-          .from("patients")
-          .update({
-            last_visit_date: visitForm.visit_date,
-            total_visits: ((patient.total_visits as number) || 0) + 1,
-          })
-          .eq("id", visitForm.patient_id);
-      }
+    // Capture form values before resetting
+    const capturedForm = { ...visitForm };
+    const tempId = `temp-${Date.now()}`;
+    const matchedPatient = patients.find((p) => p.id === capturedForm.patient_id);
 
-      setShowAddVisit(false);
-      setVisitForm({ patient_id: "", visit_date: new Date().toISOString().split("T")[0], chief_complaint: "", diagnosis: "", severity: "", body_location: "", visit_fee: "", duration_minutes: "", doctor_notes: "" });
-      fetchVisits();
-      fetchPatients();
-    } catch (err) {
-      console.error("[register] add visit error:", err);
-    } finally {
-      setSubmitting(false);
+    // Build optimistic visit entry
+    const optimisticVisit: VisitRow = {
+      id: tempId,
+      patient_id: capturedForm.patient_id,
+      visit_date: capturedForm.visit_date,
+      patient_name: matchedPatient?.name || "Unknown",
+      chief_complaint: capturedForm.chief_complaint || null,
+      diagnosis: capturedForm.diagnosis || null,
+      severity: capturedForm.severity || null,
+      body_location: capturedForm.body_location || null,
+      treatment_given: null,
+      visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+      duration_minutes: capturedForm.duration_minutes ? parseInt(capturedForm.duration_minutes) : null,
+      doctor_notes: capturedForm.doctor_notes || null,
+    };
+
+    // 1. Close modal immediately
+    setShowAddVisit(false);
+    setVisitForm({ patient_id: "", visit_date: new Date().toISOString().split("T")[0], chief_complaint: "", diagnosis: "", severity: "", body_location: "", visit_fee: "", duration_minutes: "", doctor_notes: "" });
+
+    // 2. Show success toast
+    showToast({ message: "Visit logged" });
+
+    // 3. Optimistic update — add to local array
+    setVisits((prev) => [optimisticVisit, ...prev]);
+
+    // Also optimistically update patient stats
+    if (matchedPatient) {
+      setPatients((prev) =>
+        prev.map((p) =>
+          p.id === capturedForm.patient_id
+            ? { ...p, last_visit_date: capturedForm.visit_date, total_visits: ((p.total_visits as number) || 0) + 1 }
+            : p
+        )
+      );
     }
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Log visit",
+      fn: async () => {
+        const { error } = await supabase.from("visits").insert({
+          doctor_id: user.id,
+          patient_id: capturedForm.patient_id,
+          visit_date: capturedForm.visit_date,
+          chief_complaint: capturedForm.chief_complaint || null,
+          diagnosis: capturedForm.diagnosis || null,
+          severity: capturedForm.severity || null,
+          body_location: capturedForm.body_location || null,
+          visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+          duration_minutes: capturedForm.duration_minutes ? parseInt(capturedForm.duration_minutes) : null,
+          doctor_notes: capturedForm.doctor_notes || null,
+        });
+        if (error) throw error;
+
+        // Update patient's last_visit_date and increment total_visits
+        if (matchedPatient) {
+          await supabase
+            .from("patients")
+            .update({
+              last_visit_date: capturedForm.visit_date,
+              total_visits: ((matchedPatient.total_visits as number) || 0) + 1,
+            })
+            .eq("id", capturedForm.patient_id);
+        }
+
+        // Refetch to get real IDs
+        fetchVisits(true);
+        fetchPatients(true);
+      },
+      onError: (err) => {
+        console.error("[register] add visit error:", err);
+        showToast({ message: "Failed to log visit. Please try again." });
+        // Remove optimistic entry
+        setVisits((prev) => prev.filter((v) => v.id !== tempId));
+        // Revert patient stats
+        if (matchedPatient) {
+          setPatients((prev) =>
+            prev.map((p) =>
+              p.id === capturedForm.patient_id
+                ? { ...p, total_visits: Math.max(((p.total_visits as number) || 1) - 1, 0) }
+                : p
+            )
+          );
+        }
+      },
+    });
   };
 
   // ─── Add Treatment Plan Form ───────────────────────────────────────────────
@@ -1114,26 +1218,62 @@ export default function RegisterPage() {
 
   const handleAddTreatment = async () => {
     if (!user || !treatmentForm.patient_id) return;
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.from("treatment_plans").insert({
-        doctor_id: user.id,
-        patient_id: treatmentForm.patient_id,
-        condition: treatmentForm.condition || null,
-        treatment_plan: treatmentForm.treatment_plan || null,
-        treatment_started: new Date().toISOString().split("T")[0],
-        next_assessment: treatmentForm.next_assessment || null,
-        status: "ongoing",
-      });
-      if (error) throw error;
-      setShowAddTreatment(false);
-      setTreatmentForm({ patient_id: "", condition: "", treatment_plan: "", next_assessment: "" });
-      fetchTreatmentPlans();
-    } catch (err) {
-      console.error("[register] add treatment plan error:", err);
-    } finally {
-      setSubmitting(false);
-    }
+
+    // Capture form values before resetting
+    const capturedForm = { ...treatmentForm };
+    const tempId = `temp-${Date.now()}`;
+    const matchedPatient = patients.find((p) => p.id === capturedForm.patient_id);
+    const today = new Date().toISOString().split("T")[0];
+
+    // Build optimistic treatment entry
+    const optimisticTreatment: TreatmentPlanRow = {
+      id: tempId,
+      patient_id: capturedForm.patient_id,
+      patient_name: matchedPatient?.name || "Unknown",
+      condition: capturedForm.condition || null,
+      treatment_started: today,
+      treatment_plan: capturedForm.treatment_plan || null,
+      response: null,
+      side_effects: null,
+      status: "ongoing",
+      compliance: null,
+      next_assessment: capturedForm.next_assessment || null,
+    };
+
+    // 1. Close modal immediately
+    setShowAddTreatment(false);
+    setTreatmentForm({ patient_id: "", condition: "", treatment_plan: "", next_assessment: "" });
+
+    // 2. Show success toast
+    showToast({ message: "Treatment plan added" });
+
+    // 3. Optimistic update — add to local array
+    setTreatmentPlans((prev) => [optimisticTreatment, ...prev]);
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Add treatment plan",
+      fn: async () => {
+        const { error } = await supabase.from("treatment_plans").insert({
+          doctor_id: user.id,
+          patient_id: capturedForm.patient_id,
+          condition: capturedForm.condition || null,
+          treatment_plan: capturedForm.treatment_plan || null,
+          treatment_started: today,
+          next_assessment: capturedForm.next_assessment || null,
+          status: "ongoing",
+        });
+        if (error) throw error;
+        // Refetch to get real ID
+        fetchTreatmentPlans(true);
+      },
+      onError: (err) => {
+        console.error("[register] add treatment plan error:", err);
+        showToast({ message: "Failed to add treatment plan. Please try again." });
+        // Remove optimistic entry
+        setTreatmentPlans((prev) => prev.filter((t) => t.id !== tempId));
+      },
+    });
   };
 
   // ─── Add Appointment Form ─────────────────────────────────────────────────
@@ -1150,28 +1290,62 @@ export default function RegisterPage() {
 
   const handleAddAppointment = async () => {
     if (!user || !appointmentForm.patient_id || !appointmentForm.appointment_date) return;
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.from("appointments").insert({
-        doctor_id: user.id,
-        patient_id: appointmentForm.patient_id,
-        appointment_date: appointmentForm.appointment_date,
-        appointment_time: appointmentForm.appointment_time || null,
-        type: appointmentForm.type || null,
-        duration_minutes: parseInt(appointmentForm.duration_minutes),
-        reason: appointmentForm.reason || null,
-        visit_fee: appointmentForm.visit_fee ? parseFloat(appointmentForm.visit_fee) : null,
-        status: "scheduled",
-      });
-      if (error) throw error;
-      setShowAddAppointment(false);
-      setAppointmentForm({ patient_id: "", appointment_date: "", appointment_time: "", type: "", duration_minutes: "30", reason: "", visit_fee: "" });
-      fetchAppointments();
-    } catch (err) {
-      console.error("[register] add appointment error:", err);
-    } finally {
-      setSubmitting(false);
-    }
+
+    // Capture form values before resetting
+    const capturedForm = { ...appointmentForm };
+    const tempId = `temp-${Date.now()}`;
+    const matchedPatient = patients.find((p) => p.id === capturedForm.patient_id);
+
+    // Build optimistic appointment entry
+    const optimisticAppointment: AppointmentRow = {
+      id: tempId,
+      patient_id: capturedForm.patient_id,
+      appointment_date: capturedForm.appointment_date,
+      appointment_time: capturedForm.appointment_time || "",
+      patient_name: matchedPatient?.name || "Unknown",
+      type: capturedForm.type || null,
+      duration_minutes: parseInt(capturedForm.duration_minutes),
+      reason: capturedForm.reason || null,
+      status: "scheduled",
+      visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+    };
+
+    // 1. Close modal immediately
+    setShowAddAppointment(false);
+    setAppointmentForm({ patient_id: "", appointment_date: "", appointment_time: "", type: "", duration_minutes: "30", reason: "", visit_fee: "" });
+
+    // 2. Show success toast
+    showToast({ message: "Appointment scheduled" });
+
+    // 3. Optimistic update — add to local array
+    setAppointments((prev) => [optimisticAppointment, ...prev]);
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Schedule appointment",
+      fn: async () => {
+        const { error } = await supabase.from("appointments").insert({
+          doctor_id: user.id,
+          patient_id: capturedForm.patient_id,
+          appointment_date: capturedForm.appointment_date,
+          appointment_time: capturedForm.appointment_time || null,
+          type: capturedForm.type || null,
+          duration_minutes: parseInt(capturedForm.duration_minutes),
+          reason: capturedForm.reason || null,
+          visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+          status: "scheduled",
+        });
+        if (error) throw error;
+        // Refetch to get real ID
+        fetchAppointments(true);
+      },
+      onError: (err) => {
+        console.error("[register] add appointment error:", err);
+        showToast({ message: "Failed to schedule appointment. Please try again." });
+        // Remove optimistic entry
+        setAppointments((prev) => prev.filter((a) => a.id !== tempId));
+      },
+    });
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────

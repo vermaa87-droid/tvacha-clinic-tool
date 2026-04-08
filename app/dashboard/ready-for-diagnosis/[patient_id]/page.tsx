@@ -128,7 +128,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 export default function ReviewPatientPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, doctor } = useAuthStore();
   const patientId = params.patient_id as string;
 
   const [patient, setPatient] = useState<PatientDetail | null>(null);
@@ -151,6 +151,9 @@ export default function ReviewPatientPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [generatedPdfUrl, setGeneratedPdfUrl] = useState<string | null>(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   // AI case data
   const [aiCase, setAiCase] = useState<{
@@ -230,18 +233,18 @@ export default function ReviewPatientPage() {
       setRecommendedTemplates([]);
       return;
     }
+    // Match templates by condition field (e.g. "acne", "fungal_infection", "eczema")
+    // Also fall back to old category-based matching for legacy templates
     const categories = AI_CLASS_CATEGORIES[classification] ?? [];
-    if (categories.length === 0) {
-      setRecommendedTemplates([]);
-      return;
-    }
+    const conditionFilter = `condition.eq.${classification}`;
+    const categoryFilter = categories.length > 0 ? `,category.in.(${categories.join(",")})` : "";
     const { data: tmplData } = await supabase
       .from("prescription_templates")
       .select("id, name, condition, condition_display, category, medicines, special_instructions, follow_up_days, is_system, usage_count, created_at, doctor_id")
       .or(`is_system.eq.true,doctor_id.eq.${user.id}`)
-      .in("category", categories)
+      .or(`${conditionFilter}${categoryFilter}`)
       .order("usage_count", { ascending: false })
-      .limit(5);
+      .limit(10);
     setRecommendedTemplates((tmplData ?? []) as PrescriptionTemplate[]);
   }, [user]);
 
@@ -341,6 +344,93 @@ export default function ReviewPatientPage() {
             status: feeStatus,
             fee_type: "consultation",
           }).then(() => { /* ignore errors if table doesn't exist yet */ });
+        }
+      }
+
+      // 5. Generate prescription PDF if a template was selected
+      const selectedTmpl = selectedTemplateId
+        ? recommendedTemplates.find((t) => t.id === selectedTemplateId)
+        : null;
+      const medicines = selectedTmpl
+        ? (selectedTmpl.medicines as Medicine[])
+        : [];
+
+      if (medicines.length > 0 && doctor) {
+        const today = new Date().toISOString().split("T")[0];
+        const patientNum = (patient as { patient_display_id?: string }).patient_display_id || patient.id.slice(0, 6);
+        const refNumber = `TC-RX-${today.replace(/-/g, "")}-${patientNum}`;
+
+        // Insert prescription record
+        const { data: rxRecord } = await supabase.from("prescriptions").insert({
+          doctor_id: user.id,
+          patient_id: patient.id,
+          diagnosis: classificationLabel,
+          medicines,
+          special_instructions: selectedTmpl?.special_instructions || null,
+          follow_up_date: selectedTmpl?.follow_up_days
+            ? new Date(Date.now() + selectedTmpl.follow_up_days * 86400000).toISOString().split("T")[0]
+            : null,
+          status: "active",
+        }).select("id").single();
+
+        // Generate PDF
+        try {
+          const followUpDate = selectedTmpl?.follow_up_days
+            ? new Date(Date.now() + selectedTmpl.follow_up_days * 86400000).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+            : undefined;
+
+          const res = await fetch("/api/generate-prescription", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              doctor: {
+                name: doctor.full_name,
+                qualifications: doctor.qualifications,
+                regNumber: doctor.registration_number,
+                clinicName: doctor.clinic_name,
+                clinicAddress: [doctor.clinic_address, doctor.clinic_city, doctor.clinic_state].filter(Boolean).join(", "),
+                phone: doctor.phone || "",
+                signatureUrl: doctor.signature_url || undefined,
+                logoUrl: doctor.logo_url || undefined,
+              },
+              patient: {
+                name: patient.name,
+                age: patient.age,
+                gender: patient.gender,
+                patientId: patientNum,
+              },
+              diagnosis: classificationLabel,
+              severity: selectedSeverity,
+              medicines: medicines.map((m) => ({
+                name: m.name,
+                dosage: m.dosage,
+                frequency: m.frequency,
+                duration: m.duration,
+                instructions: m.instructions,
+              })),
+              specialInstructions: selectedTmpl?.special_instructions || undefined,
+              followUpDate,
+              consultationDate: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+              referenceNumber: refNumber,
+              fees: parseFloat(feeAmount) || undefined,
+            }),
+          });
+
+          if (res.ok) {
+            const { pdfUrl } = await res.json();
+            setGeneratedPdfUrl(pdfUrl);
+
+            // Update prescription record with PDF URL
+            if (rxRecord?.id && pdfUrl) {
+              await supabase.from("prescriptions").update({ pdf_url: pdfUrl }).eq("id", rxRecord.id);
+            }
+
+            setShowPdfModal(true);
+            return; // Don't redirect — show the modal first
+          }
+        } catch (pdfErr) {
+          console.error("[review] PDF generation failed:", pdfErr);
+          // Continue to redirect even if PDF fails
         }
       }
 
@@ -676,6 +766,17 @@ export default function ReviewPatientPage() {
                       {tmpl.follow_up_days && (
                         <p className="text-xs mt-2" style={{ color: "var(--color-text-secondary)" }}>Follow-up in {tmpl.follow_up_days} days</p>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplateId(selectedTemplateId === tmpl.id ? null : tmpl.id)}
+                        className="w-full mt-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                        style={{
+                          background: selectedTemplateId === tmpl.id ? "#b8936a" : "rgba(184,147,106,0.12)",
+                          color: selectedTemplateId === tmpl.id ? "#fff" : "#7a5c35",
+                        }}
+                      >
+                        {selectedTemplateId === tmpl.id ? "Selected for Prescription" : "Use This Template"}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -811,6 +912,62 @@ export default function ReviewPatientPage() {
       >
         {submitting ? "Saving..." : "Confirm & Add to Patients"}
       </button>
+
+      {/* PDF Generated Modal */}
+      {showPdfModal && generatedPdfUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)" }}>
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(184,147,106,0.15)" }}>
+                <FileText size={28} style={{ color: "#b8936a" }} />
+              </div>
+            </div>
+            <h3 className="text-lg font-serif font-bold text-center mb-1" style={{ color: "var(--color-text-primary)" }}>
+              Prescription Generated
+            </h3>
+            <p className="text-sm text-center mb-5" style={{ color: "var(--color-text-secondary)" }}>
+              PDF has been saved to the patient&apos;s record.
+            </p>
+            <div className="space-y-2">
+              <a
+                href={generatedPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-2.5 rounded-lg text-sm font-semibold text-white text-center"
+                style={{ background: "#b8936a" }}
+              >
+                View PDF
+              </a>
+              <a
+                href={generatedPdfUrl}
+                download
+                className="block w-full py-2.5 rounded-lg text-sm font-semibold text-center"
+                style={{ background: "rgba(184,147,106,0.12)", color: "#7a5c35" }}
+              >
+                Download PDF
+              </a>
+              {patient?.phone && (
+                <a
+                  href={`https://wa.me/${patient.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Your prescription is ready. Download here: ${generatedPdfUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-2.5 rounded-lg text-sm font-semibold text-center"
+                  style={{ background: "rgba(45,74,62,0.1)", color: "#2d4a3e" }}
+                >
+                  Share on WhatsApp
+                </a>
+              )}
+              <button
+                onClick={() => { setShowPdfModal(false); router.push(`/dashboard/patients/${patient?.id}`); }}
+                className="block w-full py-2.5 rounded-lg text-sm font-medium text-center"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                Go to Patient
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxUrl && (

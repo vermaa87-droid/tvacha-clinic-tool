@@ -263,7 +263,7 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
 
       {/* Loading */}
       {loading && (
-        <div className="rounded-2xl p-8 mb-6 text-center" style={{ background: "#fef9f0", border: "1px solid #f0e0c0" }}>
+        <div className="rounded-2xl p-8 mb-6 text-center" style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)" }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(184,147,106,0.15)" }}>
             <Brain size={28} style={{ color: "#b8936a" }} className="animate-pulse" />
           </div>
@@ -279,10 +279,10 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
 
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-3 rounded-xl p-4 mb-4" style={{ background: "#fffbeb", border: "1px solid #fbbf24" }}>
+        <div className="flex items-start gap-3 rounded-xl p-4 mb-4" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}>
           <AlertTriangle size={18} style={{ color: "#d97706", flexShrink: 0, marginTop: 1 }} />
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#92400e" }}>AI service issue</p>
+            <p className="text-sm font-semibold" style={{ color: "#d97706" }}>AI service issue</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{error}. Using fallback analysis. Doctor will review manually.</p>
           </div>
         </div>
@@ -311,11 +311,11 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
         <div className="rounded-2xl p-5 mb-5" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.25)" }}>
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle size={17} style={{ color: "#d97706", flexShrink: 0 }} />
-            <p className="text-sm font-bold" style={{ color: "#92400e" }}>Clinical Flags from Screening</p>
+            <p className="text-sm font-bold" style={{ color: "#d97706" }}>Clinical Flags from Screening</p>
           </div>
           <ul className="space-y-1.5">
             {aiResult.api_warnings.map((w, i) => (
-              <li key={i} className="text-xs leading-relaxed" style={{ color: "#78350f" }}>• {w}</li>
+              <li key={i} className="text-xs leading-relaxed" style={{ color: "#d97706" }}>• {w}</li>
             ))}
           </ul>
         </div>
@@ -323,7 +323,7 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
 
       {/* AI Result Card */}
       {!loading && aiResult && (
-        <div className="rounded-2xl p-6 mb-6" style={{ background: "#fef9f0", border: "1px solid #f0e0c0" }}>
+        <div className="rounded-2xl p-6 mb-6" style={{ background: "var(--color-card)", border: "1px solid var(--color-primary-200)" }}>
           {classWarning && <ClassWarningBanner warning={classWarning} />}
 
           {isCancer && !classWarning && (
@@ -353,7 +353,7 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
           </div>
 
           {aiResult.source === "ai" && (
-            <div className="rounded-xl p-5 mb-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid var(--color-primary-200)" }}>
+            <div className="rounded-xl p-5 mb-5" style={{ background: "var(--color-surface)", border: "1px solid var(--color-primary-200)" }}>
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--color-text-secondary)" }}>Primary Diagnosis</p>
@@ -396,7 +396,7 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
           )}
 
           {aiResult.source === "pending" && (
-            <div className="rounded-xl p-5 mb-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid var(--color-primary-200)" }}>
+            <div className="rounded-xl p-5 mb-5" style={{ background: "var(--color-surface)", border: "1px solid var(--color-primary-200)" }}>
               <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
                 AI screening could not be completed. The patient&apos;s data has been saved. The doctor can review and diagnose manually.
               </p>
@@ -436,7 +436,7 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
       )}
 
       {savedPatient.photoUploadFailed > 0 && (
-        <div className="rounded-xl px-4 py-3 mb-5 text-sm" style={{ background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e" }}>
+        <div className="rounded-xl px-4 py-3 mb-5 text-sm" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", color: "#d97706" }}>
           {t("ap_s4_upload_fail").replace("{count}", String(savedPatient.photoUploadFailed))}
         </div>
       )}

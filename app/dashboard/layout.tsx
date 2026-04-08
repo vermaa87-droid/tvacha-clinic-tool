@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { useAuthStore } from "@/lib/store";
+import { useDataCache } from "@/lib/data-cache";
 import { VerificationPending } from "@/components/VerificationPending";
 import { RefreshProvider } from "@/lib/RefreshContext";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -18,11 +19,19 @@ export default function DashboardLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const prefetchAll = useDataCache((s) => s.prefetchAll);
+
   useEffect(() => {
     if (initialized && !loading && !user) {
       router.push("/login");
     }
   }, [initialized, loading, user, router]);
+
+  useEffect(() => {
+    if (user) {
+      prefetchAll(user.id);
+    }
+  }, [user, prefetchAll]);
 
   if (!initialized || loading) {
     return (
@@ -42,18 +51,18 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-primary-50">
+    <div className="flex h-screen bg-primary-50 overflow-x-hidden">
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
       />
-      <div className="flex-1 flex flex-col md:ml-64">
+      <div className="flex-1 flex flex-col md:ml-64 min-w-0 overflow-x-hidden">
         <TopBar
           doctorName={doctor?.full_name}
           onMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
         />
-        <div className="flex-1 overflow-auto">
-          <div className="w-full px-4 md:px-8 py-4 md:py-8">
+        <div className="flex-1 overflow-auto overflow-x-hidden">
+          <div className="w-full max-w-full px-3 sm:px-4 md:px-8 py-3 md:py-8">
             <RefreshProvider>
               <ToastProvider>
                 {children}

@@ -13,7 +13,7 @@ export function Logo() {
       <svg
         viewBox="18 -2 64 102"
         fill="none"
-        className="w-10 h-10 text-primary-500"
+        className="w-7 h-7 md:w-10 md:h-10 text-primary-500"
         xmlns="http://www.w3.org/2000/svg"
       >
         {/* Drop outline */}
@@ -45,7 +45,7 @@ export function Logo() {
         <circle cx="50" cy="82" r="1.8" fill="currentColor" opacity="0.45"/>
       </svg>
       <div>
-        <div className="font-serif font-bold text-lg text-text-primary">
+        <div className="font-serif font-bold text-sm md:text-lg text-text-primary">
           Tvacha
           <span className="ml-1 text-primary-500">Clinic</span>
         </div>

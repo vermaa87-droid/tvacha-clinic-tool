@@ -48,6 +48,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import { useToast } from "@/components/ui/Toast";
+import { useMutationQueue } from "@/lib/mutation-queue";
 
 // ─── Common diagnoses for autocomplete ──────────────────────────────────────
 
@@ -190,6 +191,7 @@ export default function PatientDetailPage({
   const router = useRouter();
   const refreshTick = useRefreshTick();
   const { showToast } = useToast();
+  const { enqueue } = useMutationQueue();
 
   // Patient data
   const [patient, setPatient] = useState<PatientWithDetails | null>(null);
@@ -219,7 +221,8 @@ export default function PatientDetailPage({
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [visitForm, setVisitForm] = useState(INITIAL_VISIT_FORM);
   const [visitMedicines, setVisitMedicines] = useState<MedicineRow[]>([]);
-  const [visitSubmitting, setVisitSubmitting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [visitSubmitting, _setVisitSubmitting] = useState(false);
   const [expandedVisitId, setExpandedVisitId] = useState<string | null>(null);
 
   // Diagnosis autocomplete
@@ -236,7 +239,8 @@ export default function PatientDetailPage({
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
-  const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [scheduleSubmitting, _setScheduleSubmitting] = useState(false);
 
   // Lab reports
   const [showLabModal, setShowLabModal] = useState(false);
@@ -485,77 +489,133 @@ export default function PatientDetailPage({
     e.preventDefault();
     if (!user || !patient) return;
 
-    try {
-      setVisitSubmitting(true);
+    // Build vitals object
+    const vitals: Record<string, unknown> = {};
+    if (visitForm.bp) vitals.bp = visitForm.bp;
+    if (visitForm.temperature)
+      vitals.temperature = parseFloat(visitForm.temperature);
+    if (visitForm.weight) vitals.weight = parseFloat(visitForm.weight);
+    if (visitForm.pulse) vitals.pulse = parseInt(visitForm.pulse, 10);
+    if (visitForm.spo2) vitals.spo2 = parseInt(visitForm.spo2, 10);
 
-      const vitals: Record<string, unknown> = {};
-      if (visitForm.bp) vitals.bp = visitForm.bp;
-      if (visitForm.temperature)
-        vitals.temperature = parseFloat(visitForm.temperature);
-      if (visitForm.weight) vitals.weight = parseFloat(visitForm.weight);
-      if (visitForm.pulse) vitals.pulse = parseInt(visitForm.pulse, 10);
-      if (visitForm.spo2) vitals.spo2 = parseInt(visitForm.spo2, 10);
+    // Capture form values before resetting
+    const capturedForm = { ...visitForm };
+    const capturedMedicines = [...visitMedicines];
 
-      const { error } = await supabase.from("visits").insert({
-        patient_id: patient.id,
-        doctor_id: user.id,
-        visit_date: visitForm.visit_date,
-        chief_complaint: visitForm.chief_complaint || null,
-        examination_notes: visitForm.examination_notes || null,
-        diagnosis: visitForm.diagnosis || null,
-        severity: visitForm.severity || null,
-        body_location: visitForm.body_location || null,
-        treatment_given: visitForm.treatment_given || null,
-        vitals: Object.keys(vitals).length > 0 ? vitals : null,
-        visit_fee: visitForm.visit_fee
-          ? parseFloat(visitForm.visit_fee)
-          : null,
-        fee_paid: visitForm.fee_paid,
-        duration_minutes: null,
-        doctor_notes: visitForm.doctor_notes || null,
-        follow_up_date: visitForm.follow_up_date || null,
-        lab_tests: visitForm.lab_tests || null,
-      });
+    // Build optimistic visit entry
+    const tempId = `temp-${Date.now()}`;
+    const optimisticVisit: Visit = {
+      id: tempId,
+      patient_id: patient.id,
+      doctor_id: user.id,
+      visit_date: capturedForm.visit_date,
+      chief_complaint: capturedForm.chief_complaint || null,
+      diagnosis: capturedForm.diagnosis || null,
+      severity: capturedForm.severity || null,
+      body_location: capturedForm.body_location || null,
+      treatment_given: capturedForm.treatment_given || null,
+      examination_notes: capturedForm.examination_notes || null,
+      vitals: Object.keys(vitals).length > 0 ? vitals : null,
+      visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+      fee_paid: capturedForm.fee_paid,
+      duration_minutes: null,
+      doctor_notes: capturedForm.doctor_notes || null,
+      follow_up_date: capturedForm.follow_up_date || null,
+      lab_tests: capturedForm.lab_tests || null,
+      created_at: new Date().toISOString(),
+    };
 
-      if (error) throw error;
+    // 1. Close modal immediately
+    setShowVisitModal(false);
+    setVisitForm(INITIAL_VISIT_FORM);
+    setVisitMedicines([]);
 
-      // Update patient last_visit_date and total_visits
-      const patientUpdate: Record<string, unknown> = {
-        last_visit_date: visitForm.visit_date,
-        total_visits: (patient.total_visits || 0) + 1,
-      };
-      if (visitForm.follow_up_date) {
-        patientUpdate.next_followup_date = visitForm.follow_up_date;
-      }
-      await supabase
-        .from("patients")
-        .update(patientUpdate)
-        .eq("id", patient.id);
+    // 2. Show success toast
+    showToast({ message: "Visit logged" });
 
-      // Create prescription if medicines were added
-      if (visitMedicines.length > 0 && visitMedicines.some((m) => m.name)) {
-        const validMedicines = visitMedicines.filter((m) => m.name.trim());
-        if (validMedicines.length > 0) {
-          await supabase.from("prescriptions").insert({
-            doctor_id: user.id,
-            patient_id: patient.id,
-            diagnosis: visitForm.diagnosis || "General",
-            medicines: validMedicines,
-            follow_up_date: visitForm.follow_up_date || null,
-            status: "active",
-          });
+    // 3. Optimistic update — add visit to local array
+    setVisits((prev) => [optimisticVisit, ...prev]);
+
+    // Also optimistically update patient stats
+    setPatient((prev) =>
+      prev
+        ? {
+            ...prev,
+            last_visit_date: capturedForm.visit_date,
+            total_visits: (prev.total_visits || 0) + 1,
+            ...(capturedForm.follow_up_date ? { next_followup_date: capturedForm.follow_up_date } : {}),
+          }
+        : prev
+    );
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Log visit",
+      fn: async () => {
+        const { error } = await supabase.from("visits").insert({
+          patient_id: patient.id,
+          doctor_id: user.id,
+          visit_date: capturedForm.visit_date,
+          chief_complaint: capturedForm.chief_complaint || null,
+          examination_notes: capturedForm.examination_notes || null,
+          diagnosis: capturedForm.diagnosis || null,
+          severity: capturedForm.severity || null,
+          body_location: capturedForm.body_location || null,
+          treatment_given: capturedForm.treatment_given || null,
+          vitals: Object.keys(vitals).length > 0 ? vitals : null,
+          visit_fee: capturedForm.visit_fee ? parseFloat(capturedForm.visit_fee) : null,
+          fee_paid: capturedForm.fee_paid,
+          duration_minutes: null,
+          doctor_notes: capturedForm.doctor_notes || null,
+          follow_up_date: capturedForm.follow_up_date || null,
+          lab_tests: capturedForm.lab_tests || null,
+        });
+        if (error) throw error;
+
+        // Update patient last_visit_date and total_visits
+        const patientUpdate: Record<string, unknown> = {
+          last_visit_date: capturedForm.visit_date,
+          total_visits: (patient.total_visits || 0) + 1,
+        };
+        if (capturedForm.follow_up_date) {
+          patientUpdate.next_followup_date = capturedForm.follow_up_date;
         }
-      }
+        await supabase.from("patients").update(patientUpdate).eq("id", patient.id);
 
-      setVisitForm(INITIAL_VISIT_FORM);
-      setVisitMedicines([]);
-      setShowVisitModal(false);
-      await Promise.all([fetchVisits(), fetchPatient(), fetchPrescriptions()]);
-    } catch (err) {
-      console.error("[patient-detail] visit insert error:", err);
-    } finally {
-      setVisitSubmitting(false);
-    }
+        // Create prescription if medicines were added
+        if (capturedMedicines.length > 0 && capturedMedicines.some((m) => m.name)) {
+          const validMedicines = capturedMedicines.filter((m) => m.name.trim());
+          if (validMedicines.length > 0) {
+            await supabase.from("prescriptions").insert({
+              doctor_id: user.id,
+              patient_id: patient.id,
+              diagnosis: capturedForm.diagnosis || "General",
+              medicines: validMedicines,
+              follow_up_date: capturedForm.follow_up_date || null,
+              status: "active",
+            });
+          }
+        }
+
+        // Refetch to get real IDs
+        await Promise.all([fetchVisits(true), fetchPatient(true), fetchPrescriptions(true)]);
+      },
+      onError: (err) => {
+        console.error("[patient-detail] visit insert error:", err);
+        showToast({ message: "Failed to log visit. Please try again." });
+        // Remove optimistic entry
+        setVisits((prev) => prev.filter((v) => v.id !== tempId));
+        // Revert patient stats
+        setPatient((prev) =>
+          prev
+            ? {
+                ...prev,
+                total_visits: Math.max((prev.total_visits || 1) - 1, 0),
+              }
+            : prev
+        );
+      },
+    });
   };
 
   // ─── Schedule follow-up ─────────────────────────────────────────────────
@@ -564,34 +624,54 @@ export default function PatientDetailPage({
     e.preventDefault();
     if (!user || !patient || !scheduleDate) return;
 
-    try {
-      setScheduleSubmitting(true);
+    // Capture values before resetting
+    const capturedDate = scheduleDate;
+    const capturedTime = scheduleTime || "10:00";
 
-      await supabase.from("appointments").insert({
-        patient_id: patient.id,
-        doctor_id: user.id,
-        appointment_date: scheduleDate,
-        appointment_time: scheduleTime || "10:00",
-        type: "in_person",
-        duration_minutes: 30,
-        status: "scheduled",
-        notes: "Follow-up appointment",
-      });
+    // 1. Close modal immediately
+    setScheduleDate("");
+    setScheduleTime("");
+    setShowScheduleModal(false);
 
-      await supabase
-        .from("patients")
-        .update({ next_followup_date: scheduleDate })
-        .eq("id", patient.id);
+    // 2. Show success toast
+    showToast({ message: "Follow-up scheduled" });
 
-      setScheduleDate("");
-      setScheduleTime("");
-      setShowScheduleModal(false);
-      await fetchPatient();
-    } catch (err) {
-      console.error("[patient-detail] schedule error:", err);
-    } finally {
-      setScheduleSubmitting(false);
-    }
+    // 3. Optimistic update — update patient's next follow-up
+    setPatient((prev) =>
+      prev ? { ...prev, next_followup_date: capturedDate } : prev
+    );
+
+    // 4. Enqueue background Supabase insert
+    enqueue({
+      label: "Schedule follow-up",
+      fn: async () => {
+        await supabase.from("appointments").insert({
+          patient_id: patient.id,
+          doctor_id: user.id,
+          appointment_date: capturedDate,
+          appointment_time: capturedTime,
+          type: "in_person",
+          duration_minutes: 30,
+          status: "scheduled",
+          notes: "Follow-up appointment",
+        });
+
+        await supabase
+          .from("patients")
+          .update({ next_followup_date: capturedDate })
+          .eq("id", patient.id);
+
+        await fetchPatient(true);
+      },
+      onError: (err) => {
+        console.error("[patient-detail] schedule error:", err);
+        showToast({ message: "Failed to schedule follow-up. Please try again." });
+        // Revert optimistic update
+        setPatient((prev) =>
+          prev ? { ...prev, next_followup_date: null } : prev
+        );
+      },
+    });
   };
 
   // ─── Delete / Unlink Patient ────────────────────────────────────────────
@@ -789,7 +869,7 @@ export default function PatientDetailPage({
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] md:overflow-hidden">
+    <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] md:overflow-hidden max-w-full overflow-x-hidden">
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
         className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 md:overflow-y-auto"
@@ -1063,7 +1143,7 @@ export default function PatientDetailPage({
       </aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 min-w-0 overflow-y-auto md:min-h-0">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden md:min-h-0">
         {/* Tabs */}
         <div className="border-b border-primary-200 bg-primary-50 sticky top-0 z-10 overflow-x-auto">
           <div className="flex gap-0 overflow-x-auto px-4 md:px-6 whitespace-nowrap">
@@ -1752,15 +1832,49 @@ export default function PatientDetailPage({
                             </div>
                           )}
 
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => duplicatePrescription(rx)}
-                          >
-                            <span className="inline-flex items-center gap-2">
-                              <Copy size={14} /> Duplicate
-                            </span>
-                          </Button>
+                          <div className="flex flex-wrap gap-2">
+                            {rx.pdf_url && (
+                              <>
+                                <a
+                                  href={rx.pdf_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors"
+                                  style={{ background: "#b8936a" }}
+                                >
+                                  <FileText size={14} /> View PDF
+                                </a>
+                                <a
+                                  href={rx.pdf_url}
+                                  download
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                                  style={{ background: "rgba(184,147,106,0.12)", color: "#7a5c35" }}
+                                >
+                                  <ArrowLeft size={14} className="rotate-[270deg]" /> Download
+                                </a>
+                                {patient?.phone && (
+                                  <a
+                                    href={`https://wa.me/${patient.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Your prescription is ready. Download here: ${rx.pdf_url}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                                    style={{ background: "rgba(45,74,62,0.1)", color: "#2d4a3e" }}
+                                  >
+                                    Share WhatsApp
+                                  </a>
+                                )}
+                              </>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => duplicatePrescription(rx)}
+                            >
+                              <span className="inline-flex items-center gap-2">
+                                <Copy size={14} /> Duplicate
+                              </span>
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </Card>

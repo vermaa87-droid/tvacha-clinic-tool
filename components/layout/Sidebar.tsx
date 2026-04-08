@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
+import { useDataCache } from "@/lib/data-cache";
 import { useLanguage } from "@/lib/language-context";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
@@ -40,6 +41,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
   const router = useRouter();
   const signOut = useAuthStore((s) => s.signOut);
   const user = useAuthStore((s) => s.user);
+  const prefetchAll = useDataCache((s) => s.prefetchAll);
   const { t } = useLanguage();
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -122,6 +124,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
                   <Link
                     href={item.href}
                     onClick={handleNavClick}
+                    onMouseEnter={() => { if (user) prefetchAll(user.id); }}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium",
                       isActive

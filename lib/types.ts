@@ -12,6 +12,8 @@ export interface Doctor {
   clinic_pincode: string | null;
   referral_code: string;
   profile_photo_url: string | null;
+  signature_url: string | null;
+  logo_url: string | null;
   specialization: string;
   experience_years: number;
   rating: number;
@@ -21,6 +23,7 @@ export interface Doctor {
   subscription_end_date: string;
   state_medical_council: string | null;
   is_verified: boolean;
+  default_consultation_fee: number | null;
   created_at: string;
   updated_at: string;
 }

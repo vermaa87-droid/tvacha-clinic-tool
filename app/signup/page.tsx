@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +45,7 @@ const STATE_MEDICAL_COUNCILS = [
 
 export default function SignupPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     doctorName: "",
     email: "",
@@ -194,7 +196,7 @@ export default function SignupPage() {
               className="w-full bg-[#7a5c35] hover:bg-[#5c4527] text-white font-semibold"
               onClick={() => {
                 useAuthStore.getState().signOut();
-                window.location.href = "/login";
+                router.push("/login");
               }}
             >
               {t("signup_goto_login")}
@@ -209,7 +211,7 @@ export default function SignupPage() {
         style={{ background: "rgba(250,248,244,0.95)" }}
       >
         <div
-          onClick={() => { window.location.href = '/'; }}
+          onClick={() => { router.push('/'); }}
           style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
         >
           <Logo />
@@ -240,7 +242,7 @@ export default function SignupPage() {
 
           {/* Logo */}
           <div
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => { router.push('/'); }}
             style={{ cursor: 'pointer', position: 'relative', zIndex: 9999 }}
           >
             <Logo />

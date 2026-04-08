@@ -75,7 +75,7 @@ export function Step5Summary({ savedPatient, onAddAnother }: Step5SummaryProps) 
         {/* What's next */}
         <div
           className="rounded-xl p-4"
-          style={{ background: "#fef9f0", border: "1px solid #f0e0c0" }}
+          style={{ background: "var(--color-surface)", border: "1px solid var(--color-primary-200)" }}
         >
           <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: "#b8936a" }}>
             {t("ap_s5_whats_next")}
@@ -89,7 +89,7 @@ export function Step5Summary({ savedPatient, onAddAnother }: Step5SummaryProps) 
       {savedPatient.photoUploadFailed > 0 && (
         <div
           className="rounded-xl px-4 py-3 mb-5 text-sm text-left"
-          style={{ background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e" }}
+          style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", color: "#d97706" }}
         >
           {t("ap_s5_upload_fail").replace("{count}", String(savedPatient.photoUploadFailed))}
         </div>
@@ -107,11 +107,11 @@ export function Step5Summary({ savedPatient, onAddAnother }: Step5SummaryProps) 
           {t("ap_s5_add_another")}
         </button>
         <Link
-          href={`/dashboard/patients/${savedPatient.id}`}
+          href="/dashboard/ready-for-diagnosis"
           className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white min-h-[44px]"
           style={{ background: "#b8936a" }}
         >
-          {t("ap_s5_view_patient")}
+          Review Patient
         </Link>
       </div>
     </div>

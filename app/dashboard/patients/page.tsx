@@ -87,7 +87,7 @@ export default function PatientsPage() {
     try {
       const { data, error } = await supabase
         .from("patients")
-        .select("*")
+        .select("id, name, patient_display_id, age, gender, phone, chief_complaint, current_diagnosis, treatment_status, severity, total_visits, last_visit_date, blood_group, chronic_conditions, family_history, created_at, updated_at")
         .eq("linked_doctor_id", user.id)
         .neq("treatment_status", "pending_diagnosis")
         .order("updated_at", { ascending: false });

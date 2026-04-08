@@ -9,6 +9,7 @@ import { useLanguage } from "@/lib/language-context";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { getInitials } from "@/lib/utils";
+import { useMutationQueue } from "@/lib/mutation-queue";
 import Link from "next/link";
 
 interface Notification {
@@ -30,6 +31,7 @@ export function TopBar({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const mutationProcessing = useMutationQueue((s) => s.processing);
   const name = doctorName || "Doctor";
   const initials = getInitials(name);
   const displayName = name.startsWith("Dr.") ? name : `Dr. ${name.split(" ")[0]}`;
@@ -117,7 +119,7 @@ export function TopBar({
 
   return (
     <div className="bg-primary-50 border-b border-primary-200 sticky top-0 z-40">
-      <div className="px-4 md:px-8 py-3 md:py-4 flex items-center justify-between">
+      <div className="px-3 sm:px-4 md:px-8 py-2 md:py-4 flex items-center justify-between min-w-0">
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
@@ -127,9 +129,14 @@ export function TopBar({
           </button>
           <Logo />
         </div>
-        <div className="flex items-center gap-3 md:gap-4">
-          <LanguageToggle />
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden md:block"><LanguageToggle /></div>
           <ThemeToggle />
+
+          {/* Background sync indicator */}
+          {mutationProcessing && (
+            <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" title="Syncing..." />
+          )}
 
           {/* Notification bell */}
           <div className="relative" ref={dropdownRef}>
@@ -146,7 +153,7 @@ export function TopBar({
             {/* Dropdown */}
             {open && (
               <div
-                className="absolute right-0 mt-2 w-80 rounded-xl border shadow-lg overflow-hidden"
+                className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-80 rounded-xl border shadow-lg overflow-hidden"
                 style={{
                   background: "var(--dropdown-bg)",
                   borderColor: "var(--dropdown-border)",
