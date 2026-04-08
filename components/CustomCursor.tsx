@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/lib/theme-context";
 
 export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -8,6 +9,8 @@ export function CustomCursor() {
   const current = useRef({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
   const [visible, setVisible] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     // Disable entirely on touch devices / small screens
@@ -77,7 +80,7 @@ export function CustomCursor() {
         border: hovered ? "1.5px solid #b8936a" : "none",
         pointerEvents: "none",
         zIndex: 9999,
-        mixBlendMode: "multiply",
+        mixBlendMode: isDark ? "screen" : "multiply",
         willChange: "transform",
         transition: "width 0.15s, height 0.15s, margin 0.15s, background 0.15s, border 0.15s",
       }}

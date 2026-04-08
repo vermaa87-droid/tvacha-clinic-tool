@@ -100,7 +100,7 @@ export function PricingSection() {
 
             {/* Header */}
             <div
-              className="px-7 pt-7 pb-6 md:px-10 md:pt-9"
+              className="px-5 pt-5 pb-5 md:px-10 md:pt-9 md:pb-6"
               style={{ borderBottom: "1px solid rgba(184,147,106,0.15)" }}
             >
               <div className="flex items-start justify-between gap-4">
@@ -121,7 +121,7 @@ export function PricingSection() {
 
             {/* Trial banner — full-width centered, main marketing hook */}
             <div
-              className="px-7 py-4 md:px-10 text-center"
+              className="px-5 py-4 md:px-10 text-center"
               style={{
                 background: "linear-gradient(90deg, rgba(196,146,42,0.08) 0%, rgba(196,146,42,0.16) 50%, rgba(196,146,42,0.08) 100%)",
                 borderBottom: "1px solid rgba(196,146,42,0.22)",
@@ -136,9 +136,9 @@ export function PricingSection() {
             </div>
 
             {/* Body */}
-            <div className="px-7 py-7 md:px-10 md:py-9 space-y-8">
+            <div className="px-5 py-5 md:px-10 md:py-9 space-y-8">
               {/* Feature checklist — gold checks, more breathing room */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                 {features.map((feature, idx) => (
                   <motion.div
                     key={idx}

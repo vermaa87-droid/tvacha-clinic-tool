@@ -133,7 +133,7 @@ export function HeroSection() {
           </div>
 
           <motion.div
-            className="relative pb-16 md:pb-0"
+            className="relative pb-16 md:pb-0 hidden md:block"
             ref={mockupRef}
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
