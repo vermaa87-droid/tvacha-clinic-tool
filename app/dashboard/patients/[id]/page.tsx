@@ -792,10 +792,10 @@ export default function PatientDetailPage({
     <main className="flex flex-col md:flex-row md:h-[calc(100vh-4rem)] md:overflow-hidden">
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
-        className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 overflow-y-auto"
+        className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-primary-200 md:overflow-y-auto"
         style={{ backgroundColor: "var(--color-surface)" }}
       >
-        <div className="p-4 space-y-3 md:p-6 md:space-y-5">
+        <div className="px-4 py-3 space-y-2 md:p-6 md:space-y-5">
           {/* Back link + Delete */}
           <div className="flex items-center justify-between">
             <Link
@@ -840,26 +840,30 @@ export default function PatientDetailPage({
             </p>
           </Modal>
 
-          {/* Avatar + Name */}
-          <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-200 flex items-center justify-center mx-auto mb-2 md:mb-3">
-              <span className="text-xl md:text-2xl font-bold text-primary-700">
+          {/* Avatar + Name — inline on mobile, centered on desktop */}
+          <div className="flex items-center gap-3 md:flex-col md:items-center md:text-center">
+            <div className="w-12 h-12 md:w-20 md:h-20 rounded-full bg-primary-200 flex items-center justify-center shrink-0">
+              <span className="text-lg md:text-2xl font-bold text-primary-700">
                 {getInitials(patient.name)}
               </span>
             </div>
-            <h2 className="text-lg md:text-xl font-serif font-bold text-text-primary truncate w-full px-2" title={patient.name}>
-              {patient.name}
-            </h2>
-            <p className="text-xs md:text-sm text-text-muted mt-0.5">
-              {patient.patient_display_id ||
-                `TVP-${patient.id.slice(0, 4).toUpperCase()}`}
-            </p>
+            <div className="min-w-0 flex-1 md:flex-none md:w-full md:px-2">
+              <h2 className="text-base md:text-xl font-serif font-bold text-text-primary truncate" title={patient.name}>
+                {patient.name}
+              </h2>
+              <p className="text-xs text-text-muted mt-0.5">
+                {patient.patient_display_id || `TVP-${patient.id.slice(0, 4).toUpperCase()}`}
+                <span className="ml-2 md:hidden text-text-secondary">
+                  {patient.age ? `${patient.age}y` : ""}
+                  {patient.gender ? ` ${patient.gender.charAt(0).toUpperCase()}` : ""}
+                </span>
+              </p>
+            </div>
           </div>
 
-          <hr className="border-primary-200" />
-
-          {/* Info rows */}
-          <div className="space-y-2 md:space-y-3 text-sm">
+          {/* Info rows — hidden on mobile (shown inline above), visible on desktop */}
+          <hr className="border-primary-200 hidden md:block" />
+          <div className="hidden md:block space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-text-muted">Age | Gender</span>
               <span className="text-text-primary font-medium">
@@ -904,10 +908,40 @@ export default function PatientDetailPage({
             )}
           </div>
 
+          {/* Mobile compact summary — badges + quick actions in a row */}
+          <div className="md:hidden">
+            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+              {(patient as PatientWithDetails).current_diagnosis && (
+                <span className="inline-block px-2 py-0.5 rounded text-xs font-medium" style={{ background: "rgba(184,147,106,0.15)", color: "var(--color-text-muted)" }}>
+                  {(patient as PatientWithDetails).current_diagnosis}
+                </span>
+              )}
+              {patient.treatment_status && (
+                <Badge className={`text-xs ${TREATMENT_STATUS_COLORS[patient.treatment_status] || ""}`}>
+                  {TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label || patient.treatment_status}
+                </Badge>
+              )}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Button size="sm" className="flex-1 justify-center text-xs py-2" onClick={() => setShowVisitModal(true)}>
+                <span className="inline-flex items-center gap-1"><Plus size={14} /> Visit</span>
+              </Button>
+              <Link href="/dashboard/prescriptions" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full justify-center text-xs py-2">
+                  <span className="inline-flex items-center gap-1"><FileText size={14} /> Rx</span>
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" className="flex-1 justify-center text-xs py-2" onClick={() => setShowScheduleModal(true)}>
+                <span className="inline-flex items-center gap-1"><Calendar size={14} /> Follow-up</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Desktop full sidebar sections */}
           {(patient as PatientWithDetails).current_diagnosis && (
-            <>
+            <div className="hidden md:block">
               <hr className="border-primary-200" />
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm mt-5">
                 <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
                   Disease Classification
                 </p>
@@ -915,13 +949,13 @@ export default function PatientDetailPage({
                   {(patient as PatientWithDetails).current_diagnosis}
                 </span>
               </div>
-            </>
+            </div>
           )}
 
-          <hr className="border-primary-200" />
+          <hr className="border-primary-200 hidden md:block" />
 
           {/* Status section */}
-          <div className="space-y-2 text-sm">
+          <div className="hidden md:block space-y-2 text-sm">
             <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
               Status
             </p>
@@ -944,10 +978,10 @@ export default function PatientDetailPage({
             </div>
           </div>
 
-          <hr className="border-primary-200" />
+          <hr className="border-primary-200 hidden md:block" />
 
           {/* Allergies */}
-          <div className="space-y-2">
+          <div className="hidden md:block space-y-2">
             <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
               Allergies
             </p>
@@ -967,10 +1001,10 @@ export default function PatientDetailPage({
             )}
           </div>
 
-          <hr className="border-primary-200" />
+          <hr className="border-primary-200 hidden md:block" />
 
           {/* Chronic Conditions */}
-          <div className="space-y-2">
+          <div className="hidden md:block space-y-2">
             <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
               Chronic Conditions
             </p>
@@ -991,10 +1025,10 @@ export default function PatientDetailPage({
             )}
           </div>
 
-          <hr className="border-primary-200" />
+          <hr className="border-primary-200 hidden md:block" />
 
-          {/* Quick Actions */}
-          <div className="space-y-2">
+          {/* Quick Actions — desktop only */}
+          <div className="hidden md:block space-y-2">
             <p className="text-text-muted font-medium text-xs uppercase tracking-wide">
               Quick Actions
             </p>
