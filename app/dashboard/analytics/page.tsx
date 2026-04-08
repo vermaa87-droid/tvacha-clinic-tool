@@ -73,16 +73,16 @@ interface StatCardProps {
 function StatCard({ label, value, sub }: StatCardProps) {
   return (
     <div
-      className="rounded-xl bg-card px-4 py-4 flex flex-col"
+      className="rounded-xl bg-card px-3 sm:px-4 py-3 sm:py-4 flex flex-col"
       style={{
         border: "1px solid rgba(184,147,106,0.18)",
         borderLeft: "3px solid #b8936a",
         boxShadow: "0 1px 4px rgba(90,60,20,0.04)",
       }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>{label}</p>
-      <p className="text-4xl font-bold leading-none" style={{ color: "var(--color-text-primary)" }}>{value}</p>
-      {sub && <p className="text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>{sub}</p>}
+      <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>{label}</p>
+      <p className="text-2xl sm:text-4xl font-bold leading-none" style={{ color: "var(--color-text-primary)" }}>{value}</p>
+      {sub && <p className="text-[10px] sm:text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>{sub}</p>}
     </div>
   );
 }
@@ -93,11 +93,11 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
       className="rounded-xl bg-card overflow-hidden"
       style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
     >
-      <div className="px-5 pt-5 pb-3">
-        <h3 className="font-serif font-semibold text-lg" style={{ color: "var(--color-text-primary)" }}>{title}</h3>
+      <div className="px-3 sm:px-5 pt-4 sm:pt-5 pb-3">
+        <h3 className="font-serif font-semibold text-base sm:text-lg" style={{ color: "var(--color-text-primary)" }}>{title}</h3>
         <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
       </div>
-      <div className="px-5 pb-5">{children}</div>
+      <div className="px-2 sm:px-5 pb-4 sm:pb-5">{children}</div>
     </div>
   );
 }
@@ -469,7 +469,7 @@ export default function AnalyticsPage() {
     <main className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-serif font-bold text-text-primary">{t("analytics_title")}</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">{t("analytics_title")}</h1>
         <p className="text-text-secondary mt-2">{t("analytics_subtitle")}</p>
       </div>
 
@@ -615,7 +615,7 @@ export default function AnalyticsPage() {
               <BarChart data={topConditions} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={14}>
                 <CartesianGrid {...GRID_PROPS} horizontal={false} />
                 <XAxis type="number" tick={AXIS_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" tick={AXIS_STYLE} axisLine={false} tickLine={false} width={120} />
+                <YAxis type="category" dataKey="name" tick={{ ...AXIS_STYLE, fontSize: 10 }} axisLine={false} tickLine={false} width={80} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(184,147,106,0.06)" }} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {topConditions.map((_, i) => (
@@ -726,11 +726,11 @@ export default function AnalyticsPage() {
         className="rounded-xl bg-card overflow-hidden"
         style={{ border: "1px solid rgba(184,147,106,0.2)", boxShadow: "0 1px 4px rgba(90,60,20,0.05)" }}
       >
-        <div className="px-5 pt-5 pb-3">
-          <h3 className="font-serif font-semibold text-lg" style={{ color: "var(--color-text-primary)" }}>{t("analytics_quick_insights")}</h3>
+        <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
+          <h3 className="font-serif font-semibold text-base sm:text-lg" style={{ color: "var(--color-text-primary)" }}>{t("analytics_quick_insights")}</h3>
           <div className="mt-2 h-px" style={{ background: "rgba(184,147,106,0.2)" }} />
         </div>
-        <div className="px-5 pb-4 space-y-0">
+        <div className="px-4 sm:px-5 pb-4 space-y-0">
           {[
             { label: t("analytics_top_diagnosis"), value: topDiagnosisMonth || "—" },
             { label: t("analytics_avg_visits"), value: avgVisits || "—" },
@@ -738,11 +738,11 @@ export default function AnalyticsPage() {
           ].map((item, i, arr) => (
             <div
               key={item.label}
-              className="flex items-center justify-between py-3"
+              className="flex items-center justify-between gap-3 py-3"
               style={{ borderBottom: i < arr.length - 1 ? "1px solid rgba(184,147,106,0.12)" : "none" }}
             >
-              <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>{item.label}</span>
-              <span className="font-semibold text-sm" style={{ color: "#b8936a" }}>{item.value}</span>
+              <span className="text-xs sm:text-sm" style={{ color: "var(--color-text-muted)" }}>{item.label}</span>
+              <span className="font-semibold text-xs sm:text-sm text-right flex-shrink-0 max-w-[50%] truncate" style={{ color: "#b8936a" }}>{item.value}</span>
             </div>
           ))}
         </div>

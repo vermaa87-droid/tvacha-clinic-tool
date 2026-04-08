@@ -1185,13 +1185,13 @@ export default function RegisterPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="border-b border-primary-200 overflow-x-auto">
-        <nav className="flex gap-0 -mb-px whitespace-nowrap">
+      <div className="border-b border-primary-200 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+        <nav className="flex flex-nowrap gap-0 -mb-px" style={{ minWidth: "max-content" }}>
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-5 py-3 text-sm transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-5 py-3 text-sm transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === tab.key
                   ? "border-b-[3px] border-[#b8936a] text-[#b8936a] font-semibold"
                   : "text-text-muted hover:text-[#b8936a] font-medium"
@@ -1242,7 +1242,7 @@ export default function RegisterPage() {
               emptyAction={t("reg_empty_patients_action")}
               pageSize={patientPageSize}
             />
-            <div className="flex items-center gap-2 mt-2 text-sm text-text-muted">
+            <div className="hidden md:flex items-center gap-2 mt-2 text-sm text-text-muted">
               <span>Rows per page:</span>
               <select
                 value={patientPageSize}
@@ -1349,59 +1349,67 @@ export default function RegisterPage() {
       )}
 
       {activeTab === "visits" && (
-        <DataTable<VisitRow>
-          data={visits}
-          columns={visitColumns}
-          onCellEdit={handleVisitCellEdit}
-          onAddRow={() => setShowAddVisit(true)}
-          addRowLabel={t("reg_add_visit")}
-          searchPlaceholder={t("reg_search_visits")}
-          exportFilename="visit-log"
-          loading={loadingVisits}
-          emptyMessage={t("reg_empty_visits")}
-          emptyAction={t("reg_empty_visits_action")}
-        />
+        <div className="overflow-x-auto">
+          <DataTable<VisitRow>
+            data={visits}
+            columns={visitColumns}
+            onCellEdit={handleVisitCellEdit}
+            onAddRow={() => setShowAddVisit(true)}
+            addRowLabel={t("reg_add_visit")}
+            searchPlaceholder={t("reg_search_visits")}
+            exportFilename="visit-log"
+            loading={loadingVisits}
+            emptyMessage={t("reg_empty_visits")}
+            emptyAction={t("reg_empty_visits_action")}
+          />
+        </div>
       )}
 
       {activeTab === "treatments" && (
-        <DataTable<TreatmentPlanRow>
-          data={treatmentPlans}
-          columns={treatmentColumns}
-          onCellEdit={handleTreatmentCellEdit}
-          onAddRow={() => setShowAddTreatment(true)}
-          addRowLabel={t("reg_add_treatment")}
-          searchPlaceholder={t("reg_search_treatments")}
-          exportFilename="treatment-tracker"
-          loading={loadingTreatments}
-          emptyMessage={t("reg_empty_treatments")}
-          emptyAction={t("reg_empty_treatments_action")}
-        />
+        <div className="overflow-x-auto">
+          <DataTable<TreatmentPlanRow>
+            data={treatmentPlans}
+            columns={treatmentColumns}
+            onCellEdit={handleTreatmentCellEdit}
+            onAddRow={() => setShowAddTreatment(true)}
+            addRowLabel={t("reg_add_treatment")}
+            searchPlaceholder={t("reg_search_treatments")}
+            exportFilename="treatment-tracker"
+            loading={loadingTreatments}
+            emptyMessage={t("reg_empty_treatments")}
+            emptyAction={t("reg_empty_treatments_action")}
+          />
+        </div>
       )}
 
       {activeTab === "medications" && (
-        <DataTable<MedicationRow>
-          data={medications}
-          columns={medicationColumns}
-          searchPlaceholder={t("reg_search_medications")}
-          exportFilename="medication-log"
-          loading={loadingMedications}
-          emptyMessage={t("reg_empty_medications")}
-        />
+        <div className="overflow-x-auto">
+          <DataTable<MedicationRow>
+            data={medications}
+            columns={medicationColumns}
+            searchPlaceholder={t("reg_search_medications")}
+            exportFilename="medication-log"
+            loading={loadingMedications}
+            emptyMessage={t("reg_empty_medications")}
+          />
+        </div>
       )}
 
       {activeTab === "appointments" && (
-        <DataTable<AppointmentRow>
-          data={appointments}
-          columns={appointmentColumns}
-          onCellEdit={handleAppointmentCellEdit}
-          onAddRow={() => setShowAddAppointment(true)}
-          addRowLabel={t("reg_add_appointment")}
-          searchPlaceholder={t("reg_search_appointments")}
-          exportFilename="appointments"
-          loading={loadingAppointments}
-          emptyMessage={t("reg_empty_appointments")}
-          emptyAction={t("reg_empty_appointments_action")}
-        />
+        <div className="overflow-x-auto">
+          <DataTable<AppointmentRow>
+            data={appointments}
+            columns={appointmentColumns}
+            onCellEdit={handleAppointmentCellEdit}
+            onAddRow={() => setShowAddAppointment(true)}
+            addRowLabel={t("reg_add_appointment")}
+            searchPlaceholder={t("reg_search_appointments")}
+            exportFilename="appointments"
+            loading={loadingAppointments}
+            emptyMessage={t("reg_empty_appointments")}
+            emptyAction={t("reg_empty_appointments_action")}
+          />
+        </div>
       )}
 
       {/* ─── Remove Patient Modal ─────────────────────────────────────────────── */}
@@ -1477,7 +1485,7 @@ export default function RegisterPage() {
               {patientFormError}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Name *"
             value={patientForm.name}
@@ -1563,7 +1571,7 @@ export default function RegisterPage() {
             onChange={(e) => setPatientForm((f) => ({ ...f, state: e.target.value }))}
             placeholder="State"
           />
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Input
               label="Known Allergies"
               value={patientForm.allergies}
@@ -1571,7 +1579,7 @@ export default function RegisterPage() {
               placeholder="Comma-separated allergies"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Input
               label="Chronic Conditions"
               value={patientForm.chronic_conditions}
@@ -1579,7 +1587,7 @@ export default function RegisterPage() {
               placeholder="Any chronic conditions"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Input
               label="Family History"
               value={patientForm.family_history}
@@ -1608,7 +1616,7 @@ export default function RegisterPage() {
           </>
         }
       >
-        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="w-full">
             <label className="block text-sm font-medium text-text-primary mb-2">Patient *</label>
             <select
@@ -1680,7 +1688,7 @@ export default function RegisterPage() {
             onChange={(e) => setVisitForm((f) => ({ ...f, duration_minutes: e.target.value }))}
             placeholder="Duration in minutes"
           />
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Textarea
               label="Doctor Notes"
               value={visitForm.doctor_notes}
@@ -1709,7 +1717,7 @@ export default function RegisterPage() {
           </>
         }
       >
-        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="w-full">
             <label className="block text-sm font-medium text-text-primary mb-2">Patient *</label>
             <select
@@ -1729,7 +1737,7 @@ export default function RegisterPage() {
             onChange={(e) => setTreatmentForm((f) => ({ ...f, condition: e.target.value }))}
             placeholder="Condition being treated"
           />
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <Textarea
               label="Treatment Plan"
               value={treatmentForm.treatment_plan}
@@ -1764,7 +1772,7 @@ export default function RegisterPage() {
           </>
         }
       >
-        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="w-full">
             <label className="block text-sm font-medium text-text-primary mb-2">Patient *</label>
             <select

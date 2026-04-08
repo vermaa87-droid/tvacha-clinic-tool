@@ -11,12 +11,12 @@ export default function CasesPage() {
   return (
     <main className="space-y-8">
       <div>
-        <h1 className="text-4xl font-serif font-bold text-text-primary">{t("cases_title")}</h1>
+        <h1 className="text-2xl sm:text-4xl font-serif font-bold text-text-primary">{t("cases_title")}</h1>
         <p className="text-text-secondary mt-2">{t("cases_subtitle")}</p>
       </div>
 
       <div
-        className="rounded-xl border p-8"
+        className="rounded-xl border p-4 sm:p-8"
         style={{
           background: "var(--color-card)",
           borderColor: "rgba(184,147,106,0.25)",
@@ -24,7 +24,7 @@ export default function CasesPage() {
       >
         <div className="flex items-center gap-3 mb-5">
           <Stethoscope size={26} className="text-primary-500 flex-shrink-0" />
-          <h2 className="text-xl font-serif font-semibold text-primary-500 uppercase tracking-widest">
+          <h2 className="text-base sm:text-xl font-serif font-semibold text-primary-500 uppercase tracking-widest break-words">
             {t("cases_coming_title")}
           </h2>
         </div>

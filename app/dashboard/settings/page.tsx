@@ -82,7 +82,7 @@ export default function SettingsPage() {
   return (
     <main className="space-y-8">
       <div>
-        <h1 className="text-4xl font-serif font-bold text-text-primary">{t("settings_title")}</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">{t("settings_title")}</h1>
         <p className="text-text-secondary mt-2">{t("settings_subtitle")}</p>
       </div>
 
@@ -139,14 +139,14 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-text-primary">Appearance</h3>
         </CardHeader>
         <CardBody>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
               <p className="font-medium text-text-primary">Dark Mode</p>
               <p className="text-sm text-text-secondary">Switch between light and dark themes</p>
             </div>
             <button
               onClick={toggleTheme}
-              className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300"
+              className="relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300"
               style={{ background: theme === "dark" ? "#b8936a" : "rgba(184,147,106,0.3)" }}
             >
               <span
@@ -198,15 +198,15 @@ export default function SettingsPage() {
           <p className="text-text-secondary mb-4">
             {t("settings_referral_desc")}
           </p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-primary-100 border border-primary-200 rounded-lg px-4 py-3">
-              <p className="font-mono font-bold text-lg text-primary-500">{doctor.referral_code}</p>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0 bg-primary-100 border border-primary-200 rounded-lg px-3 sm:px-4 py-3">
+              <p className="font-mono font-bold text-sm sm:text-lg text-primary-500 truncate">{doctor.referral_code}</p>
             </div>
             <Button variant="outline" className="border-primary-500 text-primary-500" onClick={handleCopyCode}>
               {copied ? <Check size={20} /> : <Copy size={20} />}
             </Button>
           </div>
-          <p className="text-xs text-text-muted mt-2">
+          <p className="text-xs text-text-muted mt-2 break-words">
             Copies: &quot;Download Tvacha and use code {doctor.referral_code} to link with me&quot;
           </p>
         </CardBody>
@@ -218,12 +218,12 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-text-primary">{t("settings_subscription")}</h3>
         </CardHeader>
         <CardBody className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
+          <div className="flex justify-between items-center gap-3">
+            <div className="min-w-0">
               <p className="font-medium text-text-primary">{subscriptionLabel} Plan</p>
               <p className="text-sm text-text-secondary">₹2,000/month</p>
             </div>
-            <Badge variant={doctor.subscription_status === "expired" ? "error" : "success"}>
+            <Badge variant={doctor.subscription_status === "expired" ? "error" : "success"} className="flex-shrink-0">
               {doctor.subscription_status}
             </Badge>
           </div>
@@ -250,7 +250,7 @@ export default function SettingsPage() {
           <Button variant="ghost" className="w-full justify-start" onClick={() => setShowContact(!showContact)}>{t("settings_contact_support")}</Button>
           {showContact && (
             <div className="rounded-xl p-4 space-y-3" style={{ background: "#faf8f4", border: "1px solid #e8ddd0" }}>
-              <a href="mailto:support@tvacha-clinic.com" className="flex items-center gap-2.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#5c4030" }}>
+              <a href="mailto:support@tvacha-clinic.com" className="flex items-center gap-2.5 text-xs sm:text-sm hover:opacity-70 transition-opacity break-all" style={{ color: "#5c4030" }}>
                 <Mail size={15} style={{ color: "#b8936a" }} /> support@tvacha-clinic.com
               </a>
               <a href="tel:+917881154003" className="flex items-center gap-2.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#5c4030" }}>

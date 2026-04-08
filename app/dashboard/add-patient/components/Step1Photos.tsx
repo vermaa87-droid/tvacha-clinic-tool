@@ -63,7 +63,7 @@ export function Step1Photos({
       />
 
       {/* Photo slots */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
         {SLOT_LABELS.map((label, index) => (
           <div key={label} className="flex flex-col items-center gap-2">
             <div className="w-full relative" style={{ paddingBottom: "100%" }}>
@@ -126,7 +126,7 @@ export function Step1Photos({
         <button
           type="submit"
           disabled={!canProceed}
-          className="px-8 py-3 rounded-lg font-semibold text-white transition-opacity min-h-[44px]"
+          className="w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-white transition-opacity min-h-[44px]"
           style={{ background: "#b8936a", opacity: canProceed ? 1 : 0.45, cursor: canProceed ? "pointer" : "not-allowed" }}
         >
           {t("ap_s1_next")}

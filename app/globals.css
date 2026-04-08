@@ -146,6 +146,7 @@ html [class*="text-text-"] {
 html {
   @apply bg-primary-50;
   scroll-behavior: smooth;
+  font-size: 80%;
 }
 
 body {
@@ -240,13 +241,26 @@ select:-webkit-autofill:focus {
   will-change: transform;
 }
 
-/* Mobile-specific fixes */
+/* ═══════════════════════════════════════════════════════════════════════ */
+/*  MOBILE RESPONSIVE — screens below 768px                               */
+/* ═══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
-  .float-element {
-    animation: none;
-    will-change: auto;
+  /* A. Overflow control — prevent horizontal scroll globally */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw;
   }
 
+  /* B. Font sizing caps */
+  h1 { font-size: 1.75rem !important; } /* 28px */
+  h2 { font-size: 1.375rem !important; } /* 22px */
+  h3 { font-size: 1.125rem !important; } /* 18px */
+  p, li, td, th, label, span, div { word-break: break-word; }
+
+  /* C. Spacing — tighter on mobile */
+  .card { padding: 1rem; }
+
+  /* D. Tap targets */
   button, a, select, [role="button"] {
     min-height: 36px;
   }
@@ -258,6 +272,32 @@ select:-webkit-autofill:focus {
   .btn-primary, .btn-secondary {
     width: 100%;
     text-align: center;
+  }
+
+  /* Animations — disable on mobile */
+  .float-element {
+    animation: none;
+    will-change: auto;
+  }
+
+  /* Tables — force horizontal scroll when needed */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Images and media — never exceed container */
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent any fixed-width elements from overflowing */
+  pre, code {
+    overflow-x: auto;
+    max-width: 100%;
   }
 }
 
@@ -273,6 +313,15 @@ select:-webkit-autofill:focus {
   body:has(.custom-cursor) [data-logo-link] {
     cursor: pointer !important;
   }
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Respect reduced motion */

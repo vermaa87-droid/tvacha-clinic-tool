@@ -440,18 +440,18 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between mt-10">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-10">
         <button
           type="button"
           onClick={onBack}
-          className="px-6 py-3 rounded-lg font-semibold border transition-colors min-h-[44px]"
+          className="w-full sm:w-auto px-6 py-3 rounded-lg font-semibold border transition-colors min-h-[44px] order-2 sm:order-1"
           style={{ borderColor: "#b8936a", color: "#b8936a", background: "transparent" }}
         >
           {t("ap_s2_back")}
         </button>
         <button
           type="submit"
-          className="px-8 py-3 rounded-lg font-semibold text-white min-h-[44px]"
+          className="w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-white min-h-[44px] order-1 sm:order-2"
           style={{ background: "#b8936a" }}
         >
           {t("ap_s2_next")}

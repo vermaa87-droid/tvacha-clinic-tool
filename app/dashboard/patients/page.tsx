@@ -339,7 +339,7 @@ export default function PatientsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-text-primary">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">
             {t("patients_title")}
           </h1>
           <p className="text-text-secondary mt-2">
@@ -439,9 +439,9 @@ export default function PatientsPage() {
                     <MoreHorizontal size={15} />
                   </button>
 
-                  <div className="flex flex-col flex-1 pl-5 pr-4 pt-4 pb-4 gap-3">
+                  <div className="flex flex-col flex-1 pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4 gap-2.5 sm:gap-3">
                     {/* Top: Avatar + Name + ID */}
-                    <div className="flex items-start gap-3 pr-6">
+                    <div className="flex items-start gap-2.5 sm:gap-3 pr-6">
                       <div
                         className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm select-none"
                         style={{ background: "#b8936a" }}
@@ -450,7 +450,7 @@ export default function PatientsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p
-                          className="font-serif font-bold text-text-primary text-xl leading-tight truncate capitalize"
+                          className="font-serif font-bold text-text-primary text-base sm:text-xl leading-tight truncate capitalize"
                           title={patient.name}
                         >
                           {patient.name}
@@ -499,8 +499,8 @@ export default function PatientsPage() {
                     <div style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }} />
 
                     {/* Bottom: Badges + Visit info */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-wrap gap-1.5">
+                    <div className="flex items-start sm:items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
                         {patient.treatment_status && (
                           <Badge className={TREATMENT_STATUS_COLORS[patient.treatment_status] || ""}>
                             {TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label || patient.treatment_status}

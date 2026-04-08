@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import { useIsMobile } from "@/lib/use-mobile";
 import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
 import { NeuralNetworkBackground } from "@/components/NeuralNetworkBackground";
@@ -75,7 +76,7 @@ function DeepLearningPipeline() {
       >
         Model Architecture Pipeline
       </p>
-      <div className="flex items-stretch flex-wrap gap-y-2">
+      <div className="flex items-stretch flex-wrap gap-y-2 overflow-x-auto">
         {steps.map((step, i) => (
           <div key={i} className="flex items-center">
             <div
@@ -127,7 +128,7 @@ function ImageProcessingVisual() {
         >
           Fitzpatrick Scale I–VI Coverage
         </p>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 overflow-x-auto">
           {tones.map(({ hex, label }) => (
             <div key={hex} className="flex flex-col items-center gap-1">
               <div className="w-7 h-7 rounded-full shadow-sm" style={{ background: hex }} />
@@ -143,7 +144,7 @@ function ImageProcessingVisual() {
         >
           Processing Stages
         </p>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap overflow-x-auto">
           {stages.map((s, i) => (
             <div key={i} className="flex items-center gap-2">
               <div
@@ -178,7 +179,7 @@ function SevenPassVisual() {
       >
         7-Pass Ensemble Analysis
       </p>
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2 overflow-x-auto">
         <div className="flex items-end gap-1.5 h-14 flex-1">
           {heights.map((h, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -251,8 +252,10 @@ function AugmentationVisual() {
 export default function HowItWorksPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   return (
+    <MotionConfig reducedMotion={isMobile ? "always" : "never"}>
     <main className="min-h-screen" style={{ background: "transparent", position: "relative" }}>
       <NeuralNetworkBackground />
       <div style={{ position: "relative", zIndex: 1 }}>
@@ -381,7 +384,7 @@ export default function HowItWorksPage() {
 
             {/* Hero-sized typographic stat callouts — no pills, no borders */}
             <motion.div
-              className="flex flex-wrap justify-center gap-10 md:gap-16 mt-14"
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-16 mt-14"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -394,7 +397,7 @@ export default function HowItWorksPage() {
               ].map(({ value, label }) => (
                 <div key={label} className="text-center">
                   <p
-                    className="text-5xl md:text-6xl font-serif font-bold leading-none"
+                    className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold leading-none"
                     style={{ color: "#b8936a" }}
                   >
                     {value}
@@ -506,7 +509,7 @@ export default function HowItWorksPage() {
         <div className="space-y-5">
 
           {/* Row 1: 7-Pass (col-2, featured) + Smart Training Pipeline (col-1) */}
-          <div className="grid lg:grid-cols-3 gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
 
             {/* 7-Pass Analysis Per Photo — featured */}
             <motion.div
@@ -578,7 +581,7 @@ export default function HowItWorksPage() {
           </div>
 
           {/* Row 2: 17 Data Augmentation (col-1) + Evaluation (col-2, featured) */}
-          <div className="grid lg:grid-cols-3 gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
 
             {/* 17 Data Augmentation Strategies */}
             <motion.div
@@ -701,18 +704,18 @@ export default function HowItWorksPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.55, ease: "easeOut" }}
-              className="flex gap-6 md:gap-8"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-6 md:gap-8"
             >
               <div className="flex-shrink-0 pt-1">
                 <span
-                  className="text-5xl md:text-6xl font-serif font-bold select-none"
+                  className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold select-none"
                   style={{ color: "#b8936a", lineHeight: 1 }}
                 >
                   01
                 </span>
               </div>
               <div
-                className="flex-1 rounded-2xl p-6 md:p-8"
+                className="flex-1 rounded-2xl p-4 sm:p-6 md:p-8"
                 style={{
                   background: "var(--color-card)",
                   border: "1px solid var(--color-primary-200)",
@@ -771,18 +774,18 @@ export default function HowItWorksPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.55, delay: 0.1, ease: "easeOut" }}
-              className="flex gap-6 md:gap-8"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-6 md:gap-8"
             >
               <div className="flex-shrink-0 pt-1">
                 <span
-                  className="text-5xl md:text-6xl font-serif font-bold select-none"
+                  className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold select-none"
                   style={{ color: "#b8936a", lineHeight: 1 }}
                 >
                   02
                 </span>
               </div>
               <div
-                className="flex-1 rounded-2xl p-6 md:p-8"
+                className="flex-1 rounded-2xl p-4 sm:p-6 md:p-8"
                 style={{
                   background: "var(--color-card)",
                   border: "1px solid var(--color-primary-200)",
@@ -854,5 +857,6 @@ export default function HowItWorksPage() {
       <div style={{ position: "relative", zIndex: 1 }}><Footer /></div>
       </div>
     </main>
+    </MotionConfig>
   );
 }

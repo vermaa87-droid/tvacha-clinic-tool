@@ -395,7 +395,7 @@ export default function AppointmentsPage() {
     if (isInactive(s)) return <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>—</span>;
 
     return (
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1.5 sm:gap-1">
         {s === "scheduled" && (
           <>
             <Button size="sm" variant="outline" className="border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200" onClick={() => handleCheckIn(apt.id)}>
@@ -441,12 +441,12 @@ export default function AppointmentsPage() {
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="h-10 bg-primary-200 rounded w-40 animate-pulse" />
             <div className="h-4 bg-primary-100 rounded w-56 animate-pulse" />
           </div>
-          <div className="h-10 w-44 bg-primary-200 rounded-lg animate-pulse" />
+          <div className="h-10 w-full sm:w-44 bg-primary-200 rounded-lg animate-pulse" />
         </div>
         <div className="h-72 bg-primary-200 rounded-xl animate-pulse" />
       </main>
@@ -460,13 +460,13 @@ export default function AppointmentsPage() {
   return (
     <main className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-text-primary">{t("apt_title")}</h1>
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary">{t("apt_title")}</h1>
           <p className="text-text-secondary mt-2">{t("apt_subtitle")}</p>
         </div>
         <Button
-          className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide flex items-center gap-2"
+          className="w-full sm:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide flex items-center justify-center gap-2"
           onClick={() => setShowScheduleModal(true)}
         >
           <Plus size={18} /> {t("apt_schedule_btn")}
@@ -476,7 +476,7 @@ export default function AppointmentsPage() {
       {/* View Toggle */}
       <div className="flex gap-2">
         <button
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium rounded-lg transition-colors ${
             viewMode === "list"
               ? "bg-[#7a5c35] text-white"
               : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200"
@@ -486,7 +486,7 @@ export default function AppointmentsPage() {
           <List size={15} /> {t("apt_list_view")}
         </button>
         <button
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium rounded-lg transition-colors ${
             viewMode === "calendar"
               ? "bg-[#7a5c35] text-white"
               : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200"
@@ -503,8 +503,8 @@ export default function AppointmentsPage() {
       {viewMode === "list" && (
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(184,147,106,0.25)" }}>
           {/* Section header */}
-          <div className="px-5 py-4 flex items-center gap-3" style={{ background: "var(--color-card)", borderBottom: "1px solid var(--color-separator)" }}>
-            <h3 className="font-serif font-semibold text-xl text-text-primary">{t("apt_title")}</h3>
+          <div className="px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3" style={{ background: "var(--color-card)", borderBottom: "1px solid var(--color-separator)" }}>
+            <h3 className="font-serif font-semibold text-lg sm:text-xl text-text-primary">{t("apt_title")}</h3>
             <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
               {sortedAppointments.length}
             </span>
@@ -642,15 +642,15 @@ export default function AppointmentsPage() {
                 <ChevronRight size={20} />
               </button>
             </div>
-            <div className="p-4 bg-card">
-              <div className="grid grid-cols-7 gap-1 mb-1">
+            <div className="p-2 sm:p-4 bg-card overflow-x-auto">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1" style={{ minWidth: "320px" }}>
                 {DAYS_OF_WEEK.map((d) => (
-                  <div key={d} className="text-center text-xs font-semibold py-2 uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
+                  <div key={d} className="text-center text-[10px] sm:text-xs font-semibold py-1.5 sm:py-2 uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                     {d}
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1" style={{ minWidth: "320px" }}>
                 {calendarDays.map((day) => {
                   const key = format(day, "yyyy-MM-dd");
                   const dayApts = appointmentsByDate[key] || [];
@@ -661,7 +661,7 @@ export default function AppointmentsPage() {
                     <button
                       key={key}
                       onClick={() => setSelectedCalendarDate(day)}
-                      className={`relative p-2 min-h-[60px] rounded-lg text-left transition-colors ${
+                      className={`relative p-1 sm:p-2 min-h-[44px] sm:min-h-[60px] rounded-lg text-left transition-colors ${
                         isToday ? "ring-2 ring-[#b8936a]" : ""
                       } ${isSelected ? "border border-[#b8936a]" : "hover:bg-primary-200"}`}
                       style={{
@@ -670,18 +670,18 @@ export default function AppointmentsPage() {
                         opacity: inMonth ? 1 : 0.5,
                       }}
                     >
-                      <span className="text-sm font-medium" style={{ color: isToday ? "#b8936a" : undefined }}>
+                      <span className="text-xs sm:text-sm font-medium" style={{ color: isToday ? "#b8936a" : undefined }}>
                         {format(day, "d")}
                       </span>
                       {dayApts.length > 0 && (
-                        <div className="flex gap-0.5 mt-1 flex-wrap">
+                        <div className="flex gap-0.5 mt-0.5 sm:mt-1 flex-wrap">
                           {dayApts.length <= 3 ? (
                             dayApts.map((a) => (
-                              <span key={a.id} className="w-2 h-2 rounded-full" style={{ background: "#b8936a" }} />
+                              <span key={a.id} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" style={{ background: "#b8936a" }} />
                             ))
                           ) : (
-                            <span className="text-xs font-medium" style={{ color: "#b8936a" }}>
-                              {dayApts.length} appts
+                            <span className="text-[10px] sm:text-xs font-medium" style={{ color: "#b8936a" }}>
+                              {dayApts.length}
                             </span>
                           )}
                         </div>
@@ -716,7 +716,7 @@ export default function AppointmentsPage() {
                         opacity: isInactive(apt.status) ? 0.55 : 1,
                       }}
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                         <div>
                           <p className="font-semibold capitalize" style={{ color: "var(--color-text-primary)" }}>
                             {apt.patients?.name || "Unknown"}
@@ -726,7 +726,7 @@ export default function AppointmentsPage() {
                             {apt.duration_minutes ? ` (${apt.duration_minutes} min)` : ""}
                           </p>
                         </div>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 items-center flex-wrap">
                           <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
                             {typeLabel(apt.type)}
                           </span>

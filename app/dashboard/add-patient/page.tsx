@@ -404,7 +404,7 @@ export default function AddPatientPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-2xl mx-auto py-4 md:py-6">
+    <div className="w-full max-w-2xl mx-auto px-4 md:px-0 py-4 md:py-6">
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-3xl font-serif font-bold" style={{ color: "var(--color-text-primary)" }}>

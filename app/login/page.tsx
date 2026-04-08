@@ -165,7 +165,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
+      <div className="w-full md:flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
 
         {/* Language toggle — top-right on desktop */}
         <div className="hidden md:flex justify-end px-8 py-5">
@@ -173,7 +173,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form centered */}
-        <div className="flex-1 flex items-center justify-center px-6 sm:px-12 py-10 md:py-8">
+        <div className="flex-1 flex items-center justify-center px-5 py-8 md:px-12 md:py-8">
           <div className="w-full max-w-[520px]">
 
             {showForgot ? (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import { useIsMobile } from "@/lib/use-mobile";
 import { Menu, X } from "lucide-react";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/layout/Footer";
@@ -13,6 +14,7 @@ import Link from "next/link";
 
 export default function PricingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   const faqItems = [
     {
       q: "Can I cancel my subscription anytime?",
@@ -37,6 +39,7 @@ export default function PricingPage() {
   ];
 
   return (
+    <MotionConfig reducedMotion={isMobile ? "always" : "never"}>
     <main className="min-h-screen">
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -75,7 +78,11 @@ export default function PricingPage() {
                     {label}
                   </Link>
                 ))}
-                <div className="mt-4 px-4">
+                <div className="mt-4 px-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <LanguageToggle />
+                    <ThemeToggle />
+                  </div>
                   <Button className="w-full bg-primary-500 hover:bg-primary-600 text-white">
                     <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
                   </Button>
@@ -95,8 +102,8 @@ export default function PricingPage() {
             <Button size="sm" className="bg-primary-500 hover:bg-primary-600 text-white hidden md:inline-flex">
               <Link href="/signup">Get Started</Link>
             </Button>
-            <LanguageToggle />
-            <ThemeToggle />
+            <div className="hidden md:block"><LanguageToggle /></div>
+            <div className="hidden md:block"><ThemeToggle /></div>
             <button
               className="md:hidden p-2 text-text-secondary hover:text-text-primary"
               onClick={() => setMobileMenuOpen(true)}
@@ -274,5 +281,6 @@ export default function PricingPage() {
 
       <Footer />
     </main>
+    </MotionConfig>
   );
 }

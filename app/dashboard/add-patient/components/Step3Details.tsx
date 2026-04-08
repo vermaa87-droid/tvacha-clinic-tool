@@ -421,7 +421,7 @@ export function Step3Details({
                   ? "grid-cols-1"
                   : data.medicalRecords.length === 2
                   ? "grid-cols-2"
-                  : "grid-cols-3"
+                  : "grid-cols-2 sm:grid-cols-3"
               }`}
             >
               {data.medicalRecords.map((file, idx) => {
@@ -494,12 +494,12 @@ export function Step3Details({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between mt-10">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-10">
         <button
           type="button"
           onClick={onBack}
           disabled={saving}
-          className="px-6 py-3 rounded-lg font-semibold border transition-colors min-h-[44px]"
+          className="w-full sm:w-auto px-6 py-3 rounded-lg font-semibold border transition-colors min-h-[44px] order-2 sm:order-1"
           style={{ borderColor: "#b8936a", color: "#b8936a", background: "transparent", opacity: saving ? 0.5 : 1 }}
         >
           {t("ap_s3_back")}
@@ -507,7 +507,7 @@ export function Step3Details({
         <button
           type="submit"
           disabled={saving}
-          className="px-8 py-3 rounded-lg font-semibold text-white flex items-center gap-2 min-h-[44px]"
+          className="w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 min-h-[44px] order-1 sm:order-2"
           style={{ background: "#b8936a", opacity: saving ? 0.7 : 1 }}
         >
           {saving ? (

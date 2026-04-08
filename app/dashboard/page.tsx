@@ -299,7 +299,7 @@ export default function DashboardHome() {
   return (
     <main className="space-y-8">
       {/* Welcome Banner */}
-      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 px-6 py-5">
+      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 px-4 sm:px-6 py-4 sm:py-5">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-text-primary">
           {getGreeting()}, {displayName}
         </h1>
@@ -316,7 +316,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg z-10" style={{ background: "#b8936a" }} />
           <Card>
@@ -325,7 +325,7 @@ export default function DashboardHome() {
                 <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_total_patients")}</span>
                 <Users className="text-primary-400" size={18} />
               </div>
-              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{totalPatients}</p>
+              <p className="text-3xl sm:text-5xl md:text-6xl font-bold text-primary-500 leading-none">{totalPatients}</p>
               <p className="text-text-muted text-xs">{t("dash_all_time")}</p>
             </CardBody>
           </Card>
@@ -339,7 +339,7 @@ export default function DashboardHome() {
                 <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_visits_today")}</span>
                 <Activity className="text-primary-400" size={18} />
               </div>
-              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{visitsToday}</p>
+              <p className="text-3xl sm:text-5xl md:text-6xl font-bold text-primary-500 leading-none">{visitsToday}</p>
               <p className="text-text-muted text-xs">{t("dash_today")}</p>
             </CardBody>
           </Card>
@@ -353,7 +353,7 @@ export default function DashboardHome() {
                 <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_appointments_today")}</span>
                 <Calendar className="text-primary-400" size={18} />
               </div>
-              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{appointmentsToday}</p>
+              <p className="text-3xl sm:text-5xl md:text-6xl font-bold text-primary-500 leading-none">{appointmentsToday}</p>
               <p className="text-text-muted text-xs">{t("dash_appointments_today_sub")}</p>
             </CardBody>
           </Card>
@@ -367,7 +367,7 @@ export default function DashboardHome() {
                 <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">{t("dash_followups_due")}</span>
                 <CalendarPlus className="text-primary-400" size={18} />
               </div>
-              <p className="text-5xl sm:text-6xl font-bold text-primary-500 leading-none">{followupsDueThisWeek}</p>
+              <p className="text-3xl sm:text-5xl md:text-6xl font-bold text-primary-500 leading-none">{followupsDueThisWeek}</p>
               <p className="text-text-muted text-xs">{t("dash_followups_due_sub")}</p>
             </CardBody>
           </Card>
@@ -426,19 +426,19 @@ export default function DashboardHome() {
                 {todaySchedule.map((apt) => (
                   <div
                     key={apt.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
+                    className="flex items-center justify-between gap-2 p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm text-text-muted font-medium min-w-[56px]">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="text-xs sm:text-sm text-text-muted font-medium flex-shrink-0">
                         {apt.appointment_time}
                       </div>
-                      <div>
-                        <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={capitalizeName(apt.patients?.name || "Unknown")}>
+                      <div className="min-w-0">
+                        <p className="font-medium text-text-primary text-sm truncate" title={capitalizeName(apt.patients?.name || "Unknown")}>
                           {capitalizeName(apt.patients?.name || "Unknown")}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                       {apt.type && <Badge variant="info">{apt.type}</Badge>}
                       <Badge variant={statusBadgeVariant(apt.status)}>
                         {apt.status}
@@ -511,48 +511,48 @@ export default function DashboardHome() {
         <h2 className="text-lg font-serif font-semibold text-text-primary mb-4">
           {t("dash_quick_actions")}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
           <Link href="/dashboard/patients">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
-              <CardBody className="flex flex-col items-center gap-3 py-6">
-                <UserPlus size={30} style={{ color: "#b8936a" }} />
-                <span className="text-sm font-medium text-text-primary">{t("dash_add_patient")}</span>
+              <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
+                <UserPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
+                <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_add_patient")}</span>
               </CardBody>
             </Card>
           </Link>
 
           <Link href="/dashboard/prescriptions">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
-              <CardBody className="flex flex-col items-center gap-3 py-6">
-                <ClipboardPlus size={30} style={{ color: "#b8936a" }} />
-                <span className="text-sm font-medium text-text-primary">{t("dash_new_prescription")}</span>
+              <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
+                <ClipboardPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
+                <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_new_prescription")}</span>
               </CardBody>
             </Card>
           </Link>
 
           <Link href="/dashboard/appointments">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
-              <CardBody className="flex flex-col items-center gap-3 py-6">
-                <CalendarPlus size={30} style={{ color: "#b8936a" }} />
-                <span className="text-sm font-medium text-text-primary">{t("dash_schedule_appointment")}</span>
+              <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
+                <CalendarPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
+                <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_schedule_appointment")}</span>
               </CardBody>
             </Card>
           </Link>
 
           <Link href="/dashboard/register">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
-              <CardBody className="flex flex-col items-center gap-3 py-6">
-                <Activity size={30} style={{ color: "#b8936a" }} />
-                <span className="text-sm font-medium text-text-primary">{t("dash_log_visit")}</span>
+              <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
+                <Activity size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
+                <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_log_visit")}</span>
               </CardBody>
             </Card>
           </Link>
 
           <Link href="/dashboard/register">
             <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
-              <CardBody className="flex flex-col items-center gap-3 py-6">
-                <Table2 size={30} style={{ color: "#b8936a" }} />
-                <span className="text-sm font-medium text-text-primary">{t("dash_clinic_register")}</span>
+              <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
+                <Table2 size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
+                <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_clinic_register")}</span>
               </CardBody>
             </Card>
           </Link>
@@ -585,13 +585,13 @@ export default function DashboardHome() {
                     href={`/dashboard/patients/${patient.id}`}
                     className="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
                   >
-                    <div>
-                      <p className="font-medium text-text-primary text-sm truncate max-w-[150px]" title={capitalizeName(patient.name)}>{capitalizeName(patient.name)}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-text-primary text-sm truncate" title={capitalizeName(patient.name)}>{capitalizeName(patient.name)}</p>
                       <p className="text-xs text-text-muted">
                         {t("dash_followup_was")} {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
                       </p>
                     </div>
-                    <Badge variant="warning">{daysOverdue} {daysOverdue !== 1 ? t("dash_days_overdue") : t("dash_day_overdue")}</Badge>
+                    <Badge variant="warning" className="flex-shrink-0">{daysOverdue} {daysOverdue !== 1 ? t("dash_days_overdue") : t("dash_day_overdue")}</Badge>
                   </Link>
                 );
               })}
@@ -604,7 +604,7 @@ export default function DashboardHome() {
 
       {/* Growing Together Card */}
       <div
-        className="rounded-xl border p-8"
+        className="rounded-xl border p-5 sm:p-8"
         style={{
           background: "var(--color-card)",
           borderColor: "rgba(184,147,106,0.25)",

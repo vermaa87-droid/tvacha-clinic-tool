@@ -481,12 +481,12 @@ export default function PrescriptionsPage() {
   if (loading) {
     return (
       <main className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="h-10 bg-primary-200 rounded w-40 animate-pulse" />
             <div className="h-4 bg-primary-100 rounded w-56 animate-pulse" />
           </div>
-          <div className="h-10 w-44 bg-primary-200 rounded-lg animate-pulse" />
+          <div className="h-10 w-full sm:w-44 bg-primary-200 rounded-lg animate-pulse" />
         </div>
         <div className="h-48 bg-primary-200 rounded-xl animate-pulse" />
         <div className="grid md:grid-cols-2 gap-6">
@@ -506,12 +506,12 @@ export default function PrescriptionsPage() {
   return (
     <main className="space-y-8">
       {/* ---------- Header ---------- */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-text-primary">{t("rx_title")}</h1>
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary">{t("rx_title")}</h1>
           <p className="text-text-secondary mt-2">{t("rx_subtitle")}</p>
         </div>
-        <Button className="bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide" onClick={openCreatePrescription}>
+        <Button className="w-full sm:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide" onClick={openCreatePrescription}>
           + {t("rx_create_rx")}
         </Button>
       </div>
@@ -629,12 +629,12 @@ export default function PrescriptionsPage() {
 
       {/* ---------- Template Library ---------- */}
       <div>
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
           <h2 className="font-serif font-semibold text-2xl text-text-primary whitespace-nowrap">{t("rx_templates")}</h2>
-          <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+          <div className="hidden sm:block flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
           <button
             onClick={openTemplateCreate}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#b8936a]/50 text-[#b8936a] hover:bg-[#faf0e4] transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#b8936a]/50 text-[#b8936a] hover:bg-[#faf0e4] transition-colors whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
           >
             + {t("rx_create_template")}
           </button>
@@ -674,15 +674,15 @@ export default function PrescriptionsPage() {
                 </div>
 
                 {/* Card body — medicines */}
-                <div className="pl-5 pr-4 py-4 flex-1">
+                <div className="pl-5 pr-4 py-4 flex-1 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-secondary)", letterSpacing: "0.12em" }}>Medicines</p>
                   <ul>
                     {template.medicines.map((med, idx) => (
                       <li key={idx}>
                         {idx > 0 && <div className="my-2.5" style={{ borderTop: "1px solid rgba(184,147,106,0.12)" }} />}
-                        <p className="font-semibold text-sm" style={{ color: "var(--color-text-primary)" }}>{med.name}</p>
+                        <p className="font-semibold text-sm break-words" style={{ color: "var(--color-text-primary)" }}>{med.name}</p>
                         {(med.dosage || med.frequency || med.duration) && (
-                          <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
+                          <p className="text-xs mt-0.5 break-words" style={{ color: "var(--color-text-secondary)" }}>
                             {[med.dosage, med.frequency, med.duration].filter(Boolean).join(" · ")}
                           </p>
                         )}
@@ -829,9 +829,9 @@ export default function PrescriptionsPage() {
         {viewRx && (
           <div className="space-y-6">
             {/* Patient & Date */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <p className="text-lg font-semibold text-text-primary">
+                <p className="text-lg font-semibold text-text-primary break-words">
                   {viewRx.patients?.name || t("rx_unknown_patient")}
                 </p>
                 <p className="text-sm text-text-secondary">

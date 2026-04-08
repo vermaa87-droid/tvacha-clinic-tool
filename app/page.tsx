@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import { useIsMobile } from "@/lib/use-mobile";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
@@ -36,6 +37,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 100);
@@ -44,6 +46,7 @@ export default function Home() {
   }, []);
 
   return (
+    <MotionConfig reducedMotion={isMobile ? "always" : "never"}>
     <main className="min-h-screen">
       {/* Navigation */}
       <motion.nav
@@ -83,6 +86,7 @@ export default function Home() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.44 }}
+              className="hidden md:block"
             >
               <LanguageToggle />
             </motion.div>
@@ -90,6 +94,7 @@ export default function Home() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.48 }}
+              className="hidden md:block"
             >
               <ThemeToggle />
             </motion.div>
@@ -155,7 +160,10 @@ export default function Home() {
                   </Link>
                 ))}
                 <div className="mt-4 px-4 flex flex-col gap-3">
-                  <ThemeToggle />
+                  <div className="flex items-center gap-3">
+                    <LanguageToggle />
+                    <ThemeToggle />
+                  </div>
                   <Button className="w-full bg-primary-500 hover:bg-primary-600 text-white">
                     <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>{t("nav_getstarted")}</Link>
                   </Button>
@@ -270,5 +278,6 @@ export default function Home() {
         <Footer />
       </motion.div>
     </main>
+    </MotionConfig>
   );
 }

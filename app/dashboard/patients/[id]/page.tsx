@@ -1133,10 +1133,10 @@ export default function PatientDetailPage({
                     </h3>
                   </CardHeader>
                   <CardBody>
-                    <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4 mb-4">
                       <div>
                         <p className="text-xs text-text-muted mb-1">AI Diagnosis</p>
-                        <p className="text-lg font-bold text-text-primary">
+                        <p className="text-base sm:text-lg font-bold text-text-primary break-words">
                           {aiCase.ai_diagnosis_display}
                         </p>
                       </div>
@@ -1338,27 +1338,27 @@ export default function PatientDetailPage({
                     <Card key={visit.id} className="overflow-hidden">
                       {/* Collapsed header */}
                       <button
-                        className="w-full text-left p-5 flex items-center justify-between hover:bg-primary-50/50 transition-colors"
+                        className="w-full text-left p-3 sm:p-5 flex items-center justify-between hover:bg-primary-50/50 transition-colors gap-2"
                         onClick={() =>
                           setExpandedVisitId(isExpanded ? null : visit.id)
                         }
                       >
-                        <div className="flex items-center gap-4">
-                          <span className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-xs font-bold text-primary-700">
+                        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                          <span className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-xs font-bold text-primary-700 flex-shrink-0">
                             #{visitNumber}
                           </span>
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-sm font-medium text-text-primary">
                               {fmtDate(visit.visit_date)}
                             </p>
                             {visit.chief_complaint && (
-                              <p className="text-sm text-text-muted mt-0.5">
+                              <p className="text-sm text-text-muted mt-0.5 truncate">
                                 {visit.chief_complaint}
                               </p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                           {visit.diagnosis && (
                             <span className="text-sm text-text-secondary hidden sm:inline">
                               {visit.diagnosis}
@@ -1388,7 +1388,7 @@ export default function PatientDetailPage({
 
                       {/* Expanded content */}
                       {isExpanded && (
-                        <div className="border-t border-primary-200 p-5 space-y-4 bg-surface/50">
+                        <div className="border-t border-primary-200 p-3 sm:p-5 space-y-4 bg-surface/50">
                           {/* Vitals */}
                           {vitals && Object.keys(vitals).length > 0 && (
                             <div>
@@ -1604,23 +1604,23 @@ export default function PatientDetailPage({
                   return (
                     <Card key={rx.id} className="overflow-hidden">
                       <button
-                        className="w-full text-left p-5 flex items-center justify-between hover:bg-primary-50/50 transition-colors"
+                        className="w-full text-left p-3 sm:p-5 flex items-center justify-between hover:bg-primary-50/50 transition-colors gap-2"
                         onClick={() =>
                           setExpandedPrescriptionId(
                             isExpanded ? null : rx.id
                           )
                         }
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                           <FileText
                             size={20}
                             className="text-primary-500 shrink-0"
                           />
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-sm font-medium text-text-primary">
                               {fmtDate(rx.created_at)}
                             </p>
-                            <p className="text-sm text-text-muted mt-0.5">
+                            <p className="text-sm text-text-muted mt-0.5 truncate">
                               {rx.diagnosis} · {rx.medicines?.length || 0}{" "}
                               medicine{rx.medicines?.length !== 1 ? "s" : ""}
                             </p>
@@ -1647,7 +1647,7 @@ export default function PatientDetailPage({
                       </button>
 
                       {isExpanded && (
-                        <div className="border-t border-primary-200 p-5 space-y-4 bg-surface/50">
+                        <div className="border-t border-primary-200 p-3 sm:p-5 space-y-4 bg-surface/50">
                           {/* Medicine table */}
                           {rx.medicines && rx.medicines.length > 0 && (
                             <div className="overflow-x-auto">
@@ -1768,9 +1768,9 @@ export default function PatientDetailPage({
                   {labReports.map((report, idx) => (
                     <Card key={idx}>
                       <CardBody>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
                               {report.file_type?.startsWith("image/") ? (
                                 <img
                                   src={report.file_url}
@@ -1818,9 +1818,9 @@ export default function PatientDetailPage({
                     return (
                       <Card key={record.id}>
                         <CardBody>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-primary-100 border border-primary-200">
                                 {isImage ? (
                                   <img src={record.photo_url} alt={record.notes || "Medical record"} className="w-full h-full object-cover" />
                                 ) : (
@@ -1948,8 +1948,8 @@ export default function PatientDetailPage({
           {/* ── Tab F: BILLING ────────────────────────────────────────────── */}
           {activeTab === "billing" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-serif font-semibold text-text-primary">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-lg sm:text-xl font-serif font-semibold text-text-primary">
                   Billing
                 </h3>
                 <Button variant="primary" size="sm" onClick={() => setShowAddFeeModal(true)}>
@@ -1960,14 +1960,14 @@ export default function PatientDetailPage({
               {/* Summary card */}
               <Card>
                 <CardBody>
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <p className="text-text-muted text-sm">Total Fees</p>
-                      <p className="text-3xl font-bold text-text-primary mt-1">
+                      <p className="text-2xl sm:text-3xl font-bold text-text-primary mt-1">
                         ₹{totalFees.toLocaleString("en-IN")}
                       </p>
                     </div>
-                    <DollarSign size={40} className="text-primary-200 opacity-50" />
+                    <DollarSign size={40} className="text-primary-200 opacity-50 flex-shrink-0" />
                   </div>
                 </CardBody>
               </Card>
@@ -2176,7 +2176,7 @@ export default function PatientDetailPage({
             <p className="text-sm font-medium text-text-primary mb-2">
               Vitals
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               <Input
                 placeholder="BP (120/80)"
                 name="bp"
@@ -2359,7 +2359,7 @@ export default function PatientDetailPage({
                 {visitMedicines.map((med, idx) => (
                   <div
                     key={idx}
-                    className="grid grid-cols-[1fr_0.6fr_0.8fr_0.6fr_auto] gap-2 items-end"
+                    className="grid grid-cols-1 sm:grid-cols-[1fr_0.6fr_0.8fr_0.6fr_auto] gap-2 items-end"
                   >
                     <Input
                       placeholder="Medicine name"
@@ -2428,7 +2428,7 @@ export default function PatientDetailPage({
           />
 
           {/* Consultation Fee */}
-          <div className="grid grid-cols-2 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
                 Consultation Fee

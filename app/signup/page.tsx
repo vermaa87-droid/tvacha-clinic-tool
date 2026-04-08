@@ -287,7 +287,7 @@ export default function SignupPage() {
       </div>
 
       {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
+      <div className="w-full md:flex-1 flex flex-col" style={{ background: "var(--auth-form-bg)" }}>
 
         {/* Language toggle — desktop top-right */}
         <div className="hidden md:flex justify-end px-8 py-5">
@@ -295,7 +295,7 @@ export default function SignupPage() {
         </div>
 
         {/* Form area */}
-        <div className="flex-1 px-6 sm:px-10 lg:px-16 pb-12 md:pt-2 pt-8 flex flex-col items-center">
+        <div className="flex-1 px-5 pb-10 pt-8 md:px-10 lg:px-16 md:pb-12 md:pt-2 flex flex-col items-center">
           <div className="w-full max-w-2xl">
 
             {/* Header */}
@@ -337,7 +337,7 @@ export default function SignupPage() {
               </div>
 
               {/* Email + Phone */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_email")} {req}
@@ -376,7 +376,7 @@ export default function SignupPage() {
               </div>
 
               {/* Password + Confirm */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_password")} {req}
@@ -514,7 +514,7 @@ export default function SignupPage() {
               </div>
 
               {/* City + State */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_clinic_city")} {req}
