@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
@@ -182,6 +182,9 @@ export default function AnalyticsPage() {
     { name: string; value: number }[]
   >([]);
 
+  // Earnings data
+  const [fees, setFees] = useState<{ id: string; amount: number; status: string; created_at: string }[]>([]);
+
   // Quick insights
   const [topDiagnosisMonth, setTopDiagnosisMonth] = useState<string | null>(
     null
@@ -212,6 +215,7 @@ export default function AnalyticsPage() {
           allAppointmentsRes,
           prescriptionsThisMonthRes,
           allVisitsRes,
+          allFeesRes,
         ] = await Promise.all([
           // 1. Total patients
           supabase
@@ -275,6 +279,12 @@ export default function AnalyticsPage() {
             .from("visits")
             .select("id", { count: "exact" })
             .eq("doctor_id", user.id),
+          // 12. All fee records (for earnings analytics)
+          supabase
+            .from("patient_fees")
+            .select("id, amount, status, fee_type, created_at")
+            .eq("doctor_id", user.id)
+            .order("created_at", { ascending: true }),
         ]);
 
         // --- Overview Stats ---
@@ -431,6 +441,15 @@ export default function AnalyticsPage() {
         } else {
           setRecoveryRate(null);
         }
+
+        // --- Earnings data ---
+        const feeRows = (allFeesRes.data || []).map((f: Record<string, unknown>) => ({
+          id: f.id as string,
+          amount: Number(f.amount) || 0,
+          status: (f.status as string) || "unpaid",
+          created_at: f.created_at as string,
+        }));
+        setFees(feeRows);
       } catch (err) {
         console.error("[analytics] fetch error:", err);
       } finally {
@@ -441,6 +460,57 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchAll(refreshTick > 0);
   }, [fetchAll, refreshTick]);
+
+  // ─── Earnings computed data ───────────────────────────────────────────────
+
+  const formatINR = (n: number) => "₹" + n.toLocaleString("en-IN");
+
+  const earningsData = useMemo(() => {
+    const now = new Date();
+    const paidFees = fees.filter((f) => f.status === "paid");
+    const totalRevenue = paidFees.reduce((s, f) => s + f.amount, 0);
+    const thisMonthPaid = paidFees.filter((f) => {
+      const d = new Date(f.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const thisMonthRevenue = thisMonthPaid.reduce((s, f) => s + f.amount, 0);
+    const avgFee = paidFees.length > 0 ? Math.round(totalRevenue / paidFees.length) : 0;
+    const pendingPayments = fees.filter((f) => f.status === "unpaid").reduce((s, f) => s + f.amount, 0);
+    const collectionRate = fees.length > 0 ? Math.round((paidFees.length / fees.length) * 100) : 0;
+    const highestFee = paidFees.length > 0 ? Math.max(...paidFees.map((f) => f.amount)) : 0;
+
+    // Monthly revenue chart
+    const monthMap: Record<string, number> = {};
+    paidFees.forEach((f) => {
+      const key = new Date(f.created_at).toLocaleString("en-IN", { month: "short", year: "2-digit" });
+      monthMap[key] = (monthMap[key] || 0) + f.amount;
+    });
+    const monthlyRevenue = Object.entries(monthMap).map(([month, revenue]) => ({ month, revenue }));
+
+    // Daily earnings this month
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayMap: Record<number, number> = {};
+    thisMonthPaid.forEach((f) => {
+      const day = new Date(f.created_at).getDate();
+      dayMap[day] = (dayMap[day] || 0) + f.amount;
+    });
+    const dailyEarnings = Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      amount: dayMap[i + 1] || 0,
+    }));
+
+    // Payment status breakdown
+    const statusMap: Record<string, number> = {};
+    fees.forEach((f) => {
+      const s = f.status === "paid" ? "Paid" : f.status === "unpaid" ? "Pending" : f.status === "waived" ? "Waived" : "Other";
+      statusMap[s] = (statusMap[s] || 0) + 1;
+    });
+    const statusPie = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+
+    return { totalRevenue, thisMonthRevenue, avgFee, pendingPayments, collectionRate, highestFee, monthlyRevenue, dailyEarnings, statusPie };
+  }, [fees]);
+
+  const STATUS_COLORS = ["#4a9a4a", "#d97706", "#8a7e70", "#b8936a"];
 
 
   if (loading) {
@@ -748,17 +818,125 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Earnings Coming Soon */}
-      <div
-        className="rounded-xl p-5 text-center"
-        style={{ background: "rgba(184,147,106,0.06)", border: "1px solid rgba(184,147,106,0.18)" }}
-      >
-        <p className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: "#b8936a", letterSpacing: "0.1em" }}>
-          {t("analytics_earnings_title")}
+      {/* ── EARNINGS ANALYTICS ──────────────────────────────────────────── */}
+      <div className="mt-10">
+        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#b8936a", letterSpacing: "0.14em" }}>
+          Revenue
         </p>
-        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-          {t("analytics_earnings_desc")}
-        </p>
+        <h2 className="text-xl sm:text-2xl font-serif font-bold mb-6" style={{ color: "var(--color-text-primary)" }}>
+          Earnings Analytics
+        </h2>
+
+        {fees.length === 0 ? (
+          <div className="rounded-xl p-8 text-center bg-card" style={{ border: "1px solid var(--color-primary-200)" }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(184,147,106,0.12)" }}>
+              <span style={{ color: "#b8936a", fontSize: 22 }}>₹</span>
+            </div>
+            <p className="font-semibold text-text-primary mb-1">No earnings data yet</p>
+            <p className="text-sm text-text-muted">Start logging consultation fees to see your earnings analytics</p>
+          </div>
+        ) : (
+          <>
+            {/* Earnings stat cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+              {[
+                { label: "Total Revenue", val: formatINR(earningsData.totalRevenue) },
+                { label: "This Month", val: formatINR(earningsData.thisMonthRevenue) },
+                { label: "Avg Fee/Visit", val: formatINR(earningsData.avgFee) },
+                { label: "Pending", val: formatINR(earningsData.pendingPayments) },
+                { label: "Collection Rate", val: `${earningsData.collectionRate}%` },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-xl bg-card px-3 sm:px-4 py-3 sm:py-4 flex flex-col"
+                  style={{ border: "1px solid rgba(184,147,106,0.18)", borderLeft: "3px solid #b8936a", boxShadow: "0 1px 4px rgba(90,60,20,0.04)" }}
+                >
+                  <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>{s.label}</p>
+                  <p className="text-lg sm:text-2xl font-bold leading-none" style={{ color: "var(--color-text-primary)" }}>{s.val}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Charts row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+              {/* Monthly Revenue */}
+              <ChartCard title="Monthly Revenue">
+                {earningsData.monthlyRevenue.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={earningsData.monthlyRevenue}>
+                      <CartesianGrid {...GRID_PROPS} />
+                      <XAxis dataKey="month" tick={AXIS_STYLE} />
+                      <YAxis tick={AXIS_STYLE} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => formatINR(v)} />
+                      <Bar dataKey="revenue" fill="#b8936a" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <NoData />}
+              </ChartCard>
+
+              {/* Payment Status */}
+              <ChartCard title="Payment Status">
+                {earningsData.statusPie.length > 0 ? (
+                  earningsData.statusPie.length === 1 ? (
+                    <SinglePieStat name={earningsData.statusPie[0].name} value={earningsData.statusPie[0].value} color={STATUS_COLORS[0]} />
+                  ) : (
+                    <>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie data={earningsData.statusPie} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
+                            {earningsData.statusPie.map((_, i) => (
+                              <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={TOOLTIP_STYLE} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <ChartLegend items={earningsData.statusPie.map((d, i) => ({ name: `${d.name} (${d.value})`, color: STATUS_COLORS[i % STATUS_COLORS.length] }))} />
+                    </>
+                  )
+                ) : <NoData />}
+              </ChartCard>
+            </div>
+
+            {/* Daily earnings this month */}
+            <ChartCard title={`Daily Earnings — ${new Date().toLocaleString("en-IN", { month: "long", year: "numeric" })}`}>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={earningsData.dailyEarnings}>
+                  <CartesianGrid {...GRID_PROPS} />
+                  <XAxis dataKey="day" tick={AXIS_STYLE} />
+                  <YAxis tick={AXIS_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => formatINR(v)} />
+                  <Bar dataKey="amount" radius={[3, 3, 0, 0]}>
+                    {earningsData.dailyEarnings.map((entry, i) => (
+                      <Cell key={i} fill={entry.day === new Date().getDate() ? "#2d4a3e" : "#b8936a"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            {/* Earnings quick insights */}
+            <div className="rounded-xl p-4 sm:p-5 mt-5 bg-card" style={{ border: "1px solid var(--color-primary-200)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#b8936a", letterSpacing: "0.1em" }}>Earnings Insights</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Revenue This Month</p>
+                  <p className="text-lg font-bold" style={{ color: "#b8936a" }}>{formatINR(earningsData.thisMonthRevenue)}</p>
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Highest Single Fee</p>
+                  <p className="text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>{formatINR(earningsData.highestFee)}</p>
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Outstanding Payments</p>
+                  <p className="text-lg font-bold" style={{ color: earningsData.pendingPayments > 0 ? "#d97706" : "var(--color-text-primary)" }}>
+                    {earningsData.pendingPayments > 0 ? formatINR(earningsData.pendingPayments) : "None"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );

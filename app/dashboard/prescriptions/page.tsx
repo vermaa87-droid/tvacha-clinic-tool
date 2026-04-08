@@ -207,6 +207,8 @@ export default function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rxSearch, setRxSearch] = useState("");
+  const [tmplSearch, setTmplSearch] = useState("");
 
   // Template edit modal
   const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -581,12 +583,33 @@ export default function PrescriptionsPage() {
 
       {/* ---------- Recent Prescriptions ---------- */}
       <div>
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
           <h2 className="font-serif font-semibold text-2xl text-text-primary whitespace-nowrap">{t("rx_recent")}</h2>
-          <div className="flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+          <div className="hidden sm:block flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Search by diagnosis..."
+              value={rxSearch}
+              onChange={(e) => setRxSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg outline-none transition-all text-text-primary placeholder-text-muted bg-card border border-primary-200 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#b8936a" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+          </div>
         </div>
 
-        {prescriptions.length === 0 ? (
+        {(() => {
+          const q = rxSearch.trim().toLowerCase();
+          const filtered = q
+            ? prescriptions.filter((rx) =>
+                rx.diagnosis?.toLowerCase().includes(q) ||
+                (rx.patients as { name?: string } | undefined)?.name?.toLowerCase().includes(q)
+              )
+            : prescriptions;
+
+          return filtered.length === 0 ? (
           <p className="text-text-muted text-center py-8">{t("rx_no_prescriptions")}</p>
         ) : (
           <>
@@ -605,7 +628,7 @@ export default function PrescriptionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {prescriptions.map((rx, i) => (
+                  {filtered.map((rx, i) => (
                     <tr
                       key={rx.id}
                       className="group cursor-pointer transition-colors hover:bg-[#f0e8d8]"
@@ -643,7 +666,7 @@ export default function PrescriptionsPage() {
 
           {/* Mobile cards */}
           <div className="md:hidden flex flex-col gap-3">
-            {prescriptions.map((rx) => (
+            {filtered.map((rx) => (
               <div
                 key={rx.id}
                 className="bg-card rounded-xl border-l-[3px] border-[#b8936a] cursor-pointer transition-shadow hover:shadow-md"
@@ -687,14 +710,27 @@ export default function PrescriptionsPage() {
             ))}
           </div>
           </>
-        )}
+        );
+        })()}
       </div>
 
       {/* ---------- Template Library ---------- */}
       <div>
-        <div className="flex flex-wrap items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
           <h2 className="font-serif font-semibold text-2xl text-text-primary whitespace-nowrap">{t("rx_templates")}</h2>
           <div className="hidden sm:block flex-1 h-px" style={{ background: "rgba(184,147,106,0.25)" }} />
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Search templates..."
+              value={tmplSearch}
+              onChange={(e) => setTmplSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg outline-none transition-all text-text-primary placeholder-text-muted bg-card border border-primary-200 focus:border-[#b8936a] focus:ring-2 focus:ring-[#b8936a]/15"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#b8936a" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+          </div>
           <button
             onClick={openTemplateCreate}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#b8936a]/50 text-[#b8936a] hover:bg-[#faf0e4] transition-colors whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
@@ -703,11 +739,21 @@ export default function PrescriptionsPage() {
           </button>
         </div>
 
-        {templates.length === 0 ? (
-          <p className="text-text-muted text-center py-8">{t("rx_no_templates")}</p>
+        {(() => {
+          const tq = tmplSearch.trim().toLowerCase();
+          const filteredTmpls = tq
+            ? templates.filter((t) =>
+                t.name?.toLowerCase().includes(tq) ||
+                t.condition_display?.toLowerCase().includes(tq) ||
+                t.condition?.toLowerCase().includes(tq)
+              )
+            : templates;
+
+          return filteredTmpls.length === 0 ? (
+          <p className="text-text-muted text-center py-8">{tq ? "No templates match your search" : t("rx_no_templates")}</p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {templates.map((template) => (
+            {filteredTmpls.map((template) => (
               <div
                 key={template.id}
                 className="relative flex flex-col rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:shadow-[0_6px_20px_rgba(90,60,20,0.11)] hover:-translate-y-0.5"
@@ -768,7 +814,8 @@ export default function PrescriptionsPage() {
               </div>
             ))}
           </div>
-        )}
+        );
+        })()}
       </div>
 
       {/* ================================================================ */}

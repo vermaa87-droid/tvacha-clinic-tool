@@ -50,10 +50,42 @@ export interface PrescriptionPDFData {
     instructions?: string;
   }>;
   specialInstructions?: string;
+  specialInstructionsHi?: string;
   followUpDate?: string;
   consultationDate: string;
   referenceNumber: string;
   fees?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Hindi timing lookup
+// ---------------------------------------------------------------------------
+const TIMING_HINDI: Record<string, string> = {
+  "After food": "खाने के बाद",
+  "Before food": "खाने से पहले",
+  "For external use": "केवल बाहरी उपयोग के लिए",
+  "For bathing": "नहाने के लिए",
+  "At bedtime": "सोने से पहले",
+  "As needed": "ज़रूरत अनुसार",
+  "EMERGENCY": "आपातकालीन",
+  "For external use only": "केवल बाहरी इस्तेमाल के लिए",
+  "After food (morning)": "खाने के बाद (सुबह)",
+  "After food (with fat)": "खाने के बाद (तेल/घी वाले खाने के साथ)",
+  "On empty stomach": "खाली पेट",
+  "Once daily": "दिन में एक बार",
+  "Twice daily": "दिन में दो बार",
+  "Thrice daily": "दिन में तीन बार",
+};
+
+function getHindiTiming(eng: string): string {
+  if (!eng) return "";
+  // Try exact match first
+  if (TIMING_HINDI[eng]) return TIMING_HINDI[eng];
+  // Try partial match
+  for (const [key, val] of Object.entries(TIMING_HINDI)) {
+    if (eng.toLowerCase().includes(key.toLowerCase())) return val;
+  }
+  return "";
 }
 
 // ---------------------------------------------------------------------------
@@ -519,6 +551,7 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                     {med.instructions ? (
                       <Text style={styles.medicineInstructions}>
                         {med.instructions}
+                        {getHindiTiming(med.instructions) ? ` / ${getHindiTiming(med.instructions)}` : ""}
                       </Text>
                     ) : null}
                   </View>
@@ -527,6 +560,11 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                       {med.dosage}
                       {med.frequency ? ` - ${med.frequency}` : ""}
                     </Text>
+                    {med.frequency && getHindiTiming(med.frequency) ? (
+                      <Text style={{ fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
+                        {getHindiTiming(med.frequency)}
+                      </Text>
+                    ) : null}
                   </View>
                   <View style={styles.colDuration}>
                     <Text style={styles.tableCellText}>{med.duration}</Text>
@@ -536,22 +574,31 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
             </View>
           )}
 
-          {/* ===== Special Instructions ===== */}
+          {/* ===== Special Instructions (Bilingual) ===== */}
           {specialInstructions ? (
             <View style={styles.instructionsBox}>
-              <Text style={styles.instructionsLabel}>Instructions</Text>
+              <Text style={styles.instructionsLabel}>INSTRUCTIONS</Text>
               <Text style={styles.instructionsText}>
                 {specialInstructions}
               </Text>
+              {data.specialInstructionsHi ? (
+                <>
+                  <View style={{ height: 0.5, backgroundColor: BORDER, marginVertical: 4 }} />
+                  <Text style={{ fontSize: 6, color: MUTED, marginBottom: 2 }}>हिंदी</Text>
+                  <Text style={{ fontSize: 7, color: "#6b5d4f", lineHeight: 1.4 }}>
+                    {data.specialInstructionsHi}
+                  </Text>
+                </>
+              ) : null}
             </View>
           ) : null}
 
           {/* ===== Footer section (pushed to bottom) ===== */}
           <View style={styles.footerSection}>
-            {/* Follow-up */}
+            {/* Follow-up (Bilingual) */}
             {followUpDate ? (
               <View style={styles.followUpRow}>
-                <Text style={styles.followUpLabel}>Follow-up: </Text>
+                <Text style={styles.followUpLabel}>Follow-up / अगली मुलाकात: </Text>
                 <Text style={styles.followUpValue}>{followUpDate}</Text>
               </View>
             ) : null}

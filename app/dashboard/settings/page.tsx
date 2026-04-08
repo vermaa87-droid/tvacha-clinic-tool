@@ -40,6 +40,23 @@ export default function SettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(doctor?.logo_url || null);
   const [uploadingLetterhead, setUploadingLetterhead] = useState(false);
 
+  // Billing
+  const [defaultFee, setDefaultFee] = useState(doctor?.default_consultation_fee ? String(doctor.default_consultation_fee) : "");
+  const [savingFee, setSavingFee] = useState(false);
+
+  const handleSaveDefaultFee = async () => {
+    if (!doctor) return;
+    setSavingFee(true);
+    try {
+      await supabase.from("doctors").update({ default_consultation_fee: parseFloat(defaultFee) || null }).eq("id", doctor.id);
+      await refreshDoctor();
+    } catch (err) {
+      console.error("[settings] save fee error:", err);
+    } finally {
+      setSavingFee(false);
+    }
+  };
+
   const handleLetterheadSave = async () => {
     if (!doctor) return;
     setUploadingLetterhead(true);
@@ -279,6 +296,32 @@ export default function SettingsPage() {
               Save Letterhead
             </Button>
           )}
+        </CardBody>
+      </Card>
+
+      {/* Billing */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-text-primary">Billing</h3>
+        </CardHeader>
+        <CardBody>
+          <p className="text-text-secondary text-sm mb-4">Set your default consultation fee. This will auto-populate when logging visits.</p>
+          <div className="flex items-center gap-3 max-w-xs">
+            <span className="text-text-primary font-medium text-lg">₹</span>
+            <Input
+              type="number"
+              placeholder="e.g. 500"
+              value={defaultFee}
+              onChange={(e) => setDefaultFee(e.target.value)}
+            />
+            <Button
+              className="bg-primary-500 hover:bg-primary-600 text-white shrink-0"
+              onClick={handleSaveDefaultFee}
+              loading={savingFee}
+            >
+              Save
+            </Button>
+          </div>
         </CardBody>
       </Card>
 

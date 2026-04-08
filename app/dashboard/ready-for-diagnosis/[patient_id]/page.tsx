@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/lib/store";
 import { ArrowLeft, X, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import type { PrescriptionTemplate } from "@/lib/types";
+import { getHindiInstructions } from "@/lib/hindi-instructions";
 
 interface Medicine { name: string; dosage: string; frequency: string; duration: string; instructions?: string; }
 
@@ -409,6 +410,7 @@ export default function ReviewPatientPage() {
                 instructions: m.instructions,
               })),
               specialInstructions: selectedTmpl?.special_instructions || undefined,
+              specialInstructionsHi: selectedTmpl?.special_instructions ? getHindiInstructions(selectedTmpl.special_instructions) || undefined : undefined,
               followUpDate,
               consultationDate: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
               referenceNumber: refNumber,
