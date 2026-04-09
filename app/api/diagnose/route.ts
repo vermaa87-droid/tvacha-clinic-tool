@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
         form.append("photos", new Blob([buffer], { type: contentType }), filename);
       }
       form.append("answers", JSON.stringify(mapScreeningToAnswers(screeningData)));
-      form.append("use_tta", "false");
+      form.append("use_tta", "true");
 
       // 3. Call SkinAI FastAPI
       const aiRes = await fetch(`${AI_API_URL}/predict/full`, {
