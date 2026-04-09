@@ -234,18 +234,30 @@ export default function ReviewPatientPage() {
       setRecommendedTemplates([]);
       return;
     }
-    // Match templates by condition field (e.g. "acne", "fungal_infection", "eczema")
-    // Also fall back to old category-based matching for legacy templates
-    const categories = AI_CLASS_CATEGORIES[classification] ?? [];
-    const conditionFilter = `condition.eq.${classification}`;
-    const categoryFilter = categories.length > 0 ? `,category.in.(${categories.join(",")})` : "";
+    // Fetch all system + doctor templates that match the condition
     const { data: tmplData } = await supabase
       .from("prescription_templates")
       .select("id, name, condition, condition_display, category, medicines, special_instructions, follow_up_days, is_system, usage_count, created_at, doctor_id")
       .or(`is_system.eq.true,doctor_id.eq.${user.id}`)
-      .or(`${conditionFilter}${categoryFilter}`)
+      .eq("condition", classification)
       .order("usage_count", { ascending: false })
       .limit(10);
+
+    // If no exact condition match, try category-based fallback
+    if (!tmplData || tmplData.length === 0) {
+      const categories = AI_CLASS_CATEGORIES[classification] ?? [];
+      if (categories.length > 0) {
+        const { data: fallback } = await supabase
+          .from("prescription_templates")
+          .select("id, name, condition, condition_display, category, medicines, special_instructions, follow_up_days, is_system, usage_count, created_at, doctor_id")
+          .or(`is_system.eq.true,doctor_id.eq.${user.id}`)
+          .in("category", categories)
+          .order("usage_count", { ascending: false })
+          .limit(10);
+        setRecommendedTemplates((fallback ?? []) as PrescriptionTemplate[]);
+        return;
+      }
+    }
     setRecommendedTemplates((tmplData ?? []) as PrescriptionTemplate[]);
   }, [user]);
 

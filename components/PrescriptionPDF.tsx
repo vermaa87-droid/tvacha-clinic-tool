@@ -5,7 +5,22 @@ import {
   View,
   StyleSheet,
   Image,
+  Font,
 } from "@react-pdf/renderer";
+
+// ---------------------------------------------------------------------------
+// Register Hindi font for bilingual prescriptions
+// ---------------------------------------------------------------------------
+Font.register({
+  family: "NotoSansDevanagari",
+  fonts: [
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.0.18/files/noto-sans-devanagari-all-400-normal.woff", fontWeight: 400 },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.0.18/files/noto-sans-devanagari-all-600-normal.woff", fontWeight: 600 },
+  ],
+});
+
+// Disable hyphenation to prevent word-breaking
+Font.registerHyphenationCallback((word) => [word]);
 
 // ---------------------------------------------------------------------------
 // Color constants
@@ -91,6 +106,42 @@ function getHindiTiming(eng: string): string {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+function cleanText(text: string | undefined | null): string {
+  if (!text) return "";
+  return String(text)
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&/g, "")
+    .trim();
+}
+
+// Medical abbreviations used on Indian prescriptions
+const FREQ_ABBREV: Record<string, string> = {
+  "once daily": "OD",
+  "twice daily": "BD",
+  "three times daily": "TDS",
+  "thrice daily": "TDS",
+  "four times daily": "QID",
+  "at bedtime": "HS",
+  "as needed": "SOS",
+  "before food": "AC",
+  "after food": "PC",
+};
+
+function abbreviateFreq(freq: string): string {
+  if (!freq) return "";
+  const lower = freq.toLowerCase();
+  for (const [key, abbr] of Object.entries(FREQ_ABBREV)) {
+    if (lower === key || lower.startsWith(key)) return abbr;
+  }
+  return freq;
+}
+
 function formatGender(gender: string | null): string {
   if (!gender) return "-";
   const g = gender.trim().toLowerCase();
@@ -547,27 +598,30 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                     <Text style={styles.tableCellText}>{idx + 1}</Text>
                   </View>
                   <View style={styles.colMedicine}>
-                    <Text style={styles.tableCellText}>{med.name}</Text>
+                    <Text style={styles.tableCellText}>{cleanText(med.name)}</Text>
                     {med.instructions ? (
-                      <Text style={styles.medicineInstructions}>
-                        {med.instructions}
-                        {getHindiTiming(med.instructions) ? ` / ${getHindiTiming(med.instructions)}` : ""}
-                      </Text>
+                      <>
+                        <Text style={styles.medicineInstructions}>{cleanText(med.instructions)}</Text>
+                        {getHindiTiming(med.instructions) ? (
+                          <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
+                            {getHindiTiming(med.instructions)}
+                          </Text>
+                        ) : null}
+                      </>
                     ) : null}
                   </View>
                   <View style={styles.colDosage}>
                     <Text style={styles.tableCellText}>
-                      {med.dosage}
-                      {med.frequency ? ` - ${med.frequency}` : ""}
+                      {cleanText(med.dosage)}{med.frequency ? ` - ${abbreviateFreq(cleanText(med.frequency))}` : ""}
                     </Text>
                     {med.frequency && getHindiTiming(med.frequency) ? (
-                      <Text style={{ fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
+                      <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
                         {getHindiTiming(med.frequency)}
                       </Text>
                     ) : null}
                   </View>
                   <View style={styles.colDuration}>
-                    <Text style={styles.tableCellText}>{med.duration}</Text>
+                    <Text style={styles.tableCellText}>{cleanText(med.duration)}</Text>
                   </View>
                 </View>
               ))}
@@ -579,14 +633,13 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
             <View style={styles.instructionsBox}>
               <Text style={styles.instructionsLabel}>INSTRUCTIONS</Text>
               <Text style={styles.instructionsText}>
-                {specialInstructions}
+                {cleanText(specialInstructions)}
               </Text>
               {data.specialInstructionsHi ? (
                 <>
                   <View style={{ height: 0.5, backgroundColor: BORDER, marginVertical: 4 }} />
-                  <Text style={{ fontSize: 6, color: MUTED, marginBottom: 2 }}>हिंदी</Text>
-                  <Text style={{ fontSize: 7, color: "#6b5d4f", lineHeight: 1.4 }}>
-                    {data.specialInstructionsHi}
+                  <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 7, color: "#6b5d4f", lineHeight: 1.5 }}>
+                    {cleanText(data.specialInstructionsHi)}
                   </Text>
                 </>
               ) : null}
@@ -595,20 +648,25 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
 
           {/* ===== Footer section (pushed to bottom) ===== */}
           <View style={styles.footerSection}>
-            {/* Follow-up (Bilingual) */}
+            {/* Follow-up */}
             {followUpDate ? (
-              <View style={styles.followUpRow}>
-                <Text style={styles.followUpLabel}>Follow-up / अगली मुलाकात: </Text>
-                <Text style={styles.followUpValue}>{followUpDate}</Text>
+              <View>
+                <View style={styles.followUpRow}>
+                  <Text style={styles.followUpLabel}>Follow-up: </Text>
+                  <Text style={styles.followUpValue}>{cleanText(followUpDate)}</Text>
+                </View>
+                <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 7, color: "#6b5d4f", marginTop: 1 }}>
+                  अगली मुलाकात: {cleanText(followUpDate)}
+                </Text>
               </View>
             ) : null}
 
             {/* Fees */}
-            {fees != null && (
+            {fees != null && fees > 0 && (
               <View style={styles.feesRow}>
                 <Text style={styles.feesLabel}>Consultation Fee: </Text>
                 <Text style={styles.feesValue}>
-                  {"\u20B9"}{fees.toLocaleString("en-IN")}
+                  Rs. {fees.toLocaleString("en-IN")}
                 </Text>
               </View>
             )}

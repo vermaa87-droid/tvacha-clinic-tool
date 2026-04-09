@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
 
@@ -29,7 +29,7 @@ function TextReveal({ text, className, delay = 0 }: { text: string; className?: 
   );
 }
 
-export function HeroSection() {
+export function HeroSection({ onShowDemo }: { onShowDemo?: () => void }) {
   const { t } = useLanguage();
   const mockupRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +56,7 @@ export function HeroSection() {
   }, []);
 
   return (
+    <>
     <section className="min-h-screen flex items-center relative overflow-hidden" style={{ background: "transparent" }}>
       <div className="float-element absolute top-24 left-8 w-16 h-16 rounded-full border-2 border-primary-500 opacity-5" style={{ animationDelay: "0s" }} />
       <div className="float-element absolute bottom-32 left-24 w-8 h-8 rounded-full bg-primary-500 opacity-5" style={{ animationDelay: "2s" }} />
@@ -109,9 +110,13 @@ export function HeroSection() {
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="outline" size="lg" className="border-2 border-primary-500">
-                  {t("hero_cta_demo")}
-                </Button>
+                <button
+                  type="button"
+                  onClick={() => onShowDemo?.()}
+                  className="flex items-center gap-2 px-8 py-4 text-lg font-medium rounded-lg border-2 border-primary-500 text-primary-500 hover:bg-primary-50 transition-colors"
+                >
+                  <Play size={18} /> {t("hero_cta_demo")}
+                </button>
               </motion.div>
             </motion.div>
 
@@ -229,6 +234,9 @@ export function HeroSection() {
           </motion.div>
         </div>
       </div>
+
     </section>
+
+    </>
   );
 }

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { useIsMobile } from "@/lib/use-mobile";
-import { Menu, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Menu, X, Play } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -36,6 +37,7 @@ const highlights = [
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const { t } = useLanguage();
   const isMobile = useIsMobile();
 
@@ -174,7 +176,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <HeroSection />
+      <HeroSection onShowDemo={() => setShowDemo(true)} />
       <FeaturesSection />
       <PricingSection />
 
@@ -253,13 +255,13 @@ export default function Home() {
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-white text-white hover:bg-surface hover:bg-opacity-10"
+              <button
+                type="button"
+                onClick={() => setShowDemo(true)}
+                className="flex items-center gap-2 px-8 py-4 text-lg font-medium rounded-lg border-2 border-white text-white hover:bg-white/10 transition-colors"
               >
-                {t("cta_demo")}
-              </Button>
+                <Play size={18} /> {t("cta_demo")}
+              </button>
             </motion.div>
           </div>
           <p className="mt-6 text-sm opacity-75 flex items-center justify-center gap-2">
@@ -278,6 +280,40 @@ export default function Home() {
         <Footer />
       </motion.div>
     </main>
+
+    {/* Demo Video Modal */}
+    {showDemo && createPortal(
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.88)" }}
+        onClick={() => setShowDemo(false)}
+      >
+        <div
+          style={{ position: "relative", width: "100%", maxWidth: 800, borderRadius: 16, overflow: "hidden", background: "#000", border: "1px solid rgba(184,147,106,0.3)" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setShowDemo(false)}
+            style={{ position: "absolute", top: 12, right: 12, zIndex: 10, padding: 8, borderRadius: 9999, background: "rgba(255,255,255,0.2)", color: "#fff", border: "none", cursor: "pointer", display: "flex" }}
+          >
+            <X size={20} />
+          </button>
+          <div style={{ aspectRatio: "16/9", width: "100%", background: "#000" }}>
+            <video
+              controls
+              autoPlay
+              playsInline
+              style={{ width: "100%", height: "100%" }}
+              src="/demo-video.mp4"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+
     </MotionConfig>
   );
 }
