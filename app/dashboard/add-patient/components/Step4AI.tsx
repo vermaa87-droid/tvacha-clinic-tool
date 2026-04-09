@@ -42,43 +42,6 @@ function checkUrgentReferral(sd: ScreeningData): { isUrgent: boolean; triggerNam
 
 // ── Mock AI for when FastAPI is not running ────────────────────────────────────
 
-function generateMockDiagnosis(sd: ScreeningData): Promise<AIResult> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      let topClass = "eczema";
-      let conf = 0.65 + Math.random() * 0.2;
-
-      if (sd.household_affected === "Yes, multiple people" && sd.itching_timing === "Worse at night") {
-        topClass = "scabies"; conf = 0.72 + Math.random() * 0.15;
-      } else if (sd.lesion_migration === "Move around / appear in new places and old ones fade") {
-        topClass = "urticaria"; conf = 0.68 + Math.random() * 0.18;
-      } else if (sd.bodyLocation === "Face" || sd.bodyLocation === "Scalp") {
-        topClass = "acne"; conf = 0.7 + Math.random() * 0.2;
-      }
-
-      const others = Object.keys(CLASS_DISPLAY_NAMES).filter((c) => c !== topClass && c !== "healthy");
-      const shuffled = others.sort(() => Math.random() - 0.5);
-      const rem = 1 - conf;
-      const s2 = rem * (0.3 + Math.random() * 0.3);
-      const s3 = rem - s2;
-
-      resolve({
-        source: "ai",
-        diagnosis: topClass,
-        diagnosis_display: CLASS_DISPLAY_NAMES[topClass] || topClass,
-        confidence: parseFloat(conf.toFixed(3)),
-        severity: 2,
-        severity_label: "Moderate",
-        top_3: [
-          { class: topClass, confidence: parseFloat(conf.toFixed(3)) },
-          { class: shuffled[0], confidence: parseFloat(s2.toFixed(3)) },
-          { class: shuffled[1], confidence: parseFloat(s3.toFixed(3)) },
-        ],
-        category: null,
-      });
-    }, 3000 + Math.random() * 2000);
-  });
-}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
