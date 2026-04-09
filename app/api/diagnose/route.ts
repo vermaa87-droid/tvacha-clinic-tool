@@ -261,22 +261,25 @@ export async function POST(req: NextRequest) {
         api_warnings: urgentWarnings,
       });
     } catch (aiErr) {
-      console.error("[diagnose] AI unavailable:", aiErr instanceof Error ? aiErr.message : aiErr);
-    }
+      const errMsg = aiErr instanceof Error ? aiErr.message : String(aiErr);
+      console.error("[diagnose] AI unavailable:", errMsg);
 
-    // Fallback — AI backend is down or errored
-    return NextResponse.json({
-      success: true,
-      source: "pending",
-      diagnosis: "pending",
-      diagnosis_display: "AI Unavailable — Pending Doctor Review",
-      confidence: 0,
-      severity: 0,
-      severity_label: "Pending",
-      top_3: [],
-      category: null,
-      api_warnings: [],
-    });
+      // Return error details so we can debug
+      return NextResponse.json({
+        success: true,
+        source: "pending",
+        diagnosis: "pending",
+        diagnosis_display: "AI Unavailable — Pending Doctor Review",
+        confidence: 0,
+        severity: 0,
+        severity_label: "Pending",
+        top_3: [],
+        category: null,
+        api_warnings: [],
+        debug_error: errMsg,
+        debug_api_url: AI_API_URL,
+      });
+    }
   } catch (err) {
     console.error("[diagnose] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
