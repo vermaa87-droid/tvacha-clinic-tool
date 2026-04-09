@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { PrescriptionPDF } from "@/components/PrescriptionPDF";
 import type { PrescriptionPDFData } from "@/components/PrescriptionPDF";
