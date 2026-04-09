@@ -304,7 +304,15 @@ export default function Home() {
               autoPlay
               playsInline
               style={{ width: "100%", height: "100%" }}
-              src="/demo-video.mp4"
+              src="https://hvqeeokspruhbqdbrswg.supabase.co/storage/v1/object/public/assets/demo-video.mp4"
+              onError={(e) => {
+                const el = e.currentTarget;
+                el.style.display = "none";
+                const fallback = document.createElement("div");
+                fallback.style.cssText = "display:flex;align-items:center;justify-content:center;height:100%;color:#b8936a;font-size:16px;font-family:Outfit,sans-serif;text-align:center;padding:20px";
+                fallback.textContent = "Demo video loading failed. Please try again later.";
+                el.parentElement?.appendChild(fallback);
+              }}
             >
               Your browser does not support the video tag.
             </video>

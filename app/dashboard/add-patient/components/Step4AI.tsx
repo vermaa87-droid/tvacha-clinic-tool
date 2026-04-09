@@ -180,22 +180,23 @@ export function Step4AI({ previews, screeningData, savedPatient, onContinue }: S
         const data = await res.json();
 
         if (!res.ok || data.source === "pending") {
-          result = await generateMockDiagnosis(screeningData);
-        } else {
-          result = {
-            source: data.source,
-            diagnosis: data.diagnosis,
-            diagnosis_display: data.diagnosis_display,
-            confidence: data.confidence,
-            severity: data.severity,
-            severity_label: data.severity_label,
-            top_3: data.top_3 ?? [],
-            category: data.category,
-            api_warnings: data.api_warnings ?? [],
-          };
+          throw new Error("AI service unavailable");
         }
+        result = {
+          source: data.source,
+          diagnosis: data.diagnosis,
+          diagnosis_display: data.diagnosis_display,
+          confidence: data.confidence,
+          severity: data.severity,
+          severity_label: data.severity_label,
+          top_3: data.top_3 ?? [],
+          category: data.category,
+          api_warnings: data.api_warnings ?? [],
+        };
       } catch {
-        result = await generateMockDiagnosis(screeningData);
+        setLoading(false);
+        setError("Our AI is currently experiencing technical difficulties. Please try again in a few minutes. If the issue persists, contact support.");
+        return;
       }
 
       if (urgentCheck.isUrgent) {
