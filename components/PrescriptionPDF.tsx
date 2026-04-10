@@ -14,8 +14,8 @@ import {
 Font.register({
   family: "NotoSansDevanagari",
   fonts: [
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.0.18/files/noto-sans-devanagari-all-400-normal.woff", fontWeight: 400 },
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.0.18/files/noto-sans-devanagari-all-600-normal.woff", fontWeight: 600 },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.2.8/files/noto-sans-devanagari-devanagari-400-normal.woff", fontWeight: 400 },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.2.8/files/noto-sans-devanagari-devanagari-600-normal.woff", fontWeight: 600 },
   ],
 });
 

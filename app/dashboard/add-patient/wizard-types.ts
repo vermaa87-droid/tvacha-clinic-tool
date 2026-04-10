@@ -21,6 +21,8 @@ export interface ScreeningData {
   itching_timing: string;
   household_affected: string;
   lesion_migration: string;
+  // Phase 3 — visual appearance (multi-select)
+  appearance: string[];
 }
 
 export interface PatientFormData {
@@ -83,6 +85,7 @@ export const INITIAL_SCREENING: ScreeningData = {
   itching_timing: "",
   household_affected: "",
   lesion_migration: "",
+  appearance: [],
 };
 
 export const INITIAL_FORM: PatientFormData = {

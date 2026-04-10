@@ -441,10 +441,18 @@ export default function ReviewPatientPage() {
 
             setShowPdfModal(true);
             return; // Don't redirect — show the modal first
+          } else {
+            const errBody = await res.text().catch(() => "");
+            console.error("[review] PDF API returned", res.status, errBody);
+            setSubmitError(`Prescription PDF failed to generate (${res.status}). The visit was saved. Please try generating the prescription again from the patient page.`);
+            setSubmitting(false);
+            return;
           }
         } catch (pdfErr) {
           console.error("[review] PDF generation failed:", pdfErr);
-          // Continue to redirect even if PDF fails
+          setSubmitError(`Prescription PDF failed to generate: ${pdfErr instanceof Error ? pdfErr.message : "Unknown error"}. The visit was saved.`);
+          setSubmitting(false);
+          return;
         }
       }
 

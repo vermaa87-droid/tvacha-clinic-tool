@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { RadioPills } from "./RadioPills";
+import { CheckboxPills } from "./CheckboxPills";
 import { FitzpatrickSwatches } from "./FitzpatrickSwatches";
 import { useLanguage } from "@/lib/language-context";
 import type { ScreeningData } from "../wizard-types";
@@ -27,7 +28,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
   const { t } = useLanguage();
   const [errors, setErrors] = useState<ScreeningErrors>({});
 
-  const set = (field: keyof ScreeningData, value: string | number | null) => {
+  const set = (field: keyof ScreeningData, value: string | number | null | string[]) => {
     onChange({ ...data, [field]: value });
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -206,6 +207,20 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
     { value: "Not sure", label: t("ap_s2_migrate_unsure") },
   ];
 
+  // Appearance is multi-select — backend expects appearance IDs directly
+  const APPEARANCE_OPTIONS = [
+    { value: "rash_red", label: "Red rash or patch" },
+    { value: "bumps_pimples", label: "Bumps or pimples" },
+    { value: "dark_spot", label: "Dark spot or mole" },
+    { value: "scaly_flaky", label: "Scaly, flaky, or crusty" },
+    { value: "blister_sore", label: "Blister, sore, or open wound" },
+    { value: "wart_growth", label: "Wart or raised growth" },
+    { value: "light_patch", label: "Light or discolored patch" },
+    { value: "peeling", label: "Peeling or shedding skin" },
+    { value: "lump_under_skin", label: "Lump or bump under the skin" },
+    { value: "normal", label: "Looks mostly normal" },
+  ];
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
       <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
@@ -317,6 +332,21 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
             {t("ap_s2_pain")} <span style={{ color: "#c44a4a" }}>*</span>
           </label>
           <RadioPills options={PAIN_OPTIONS} value={data.pain} onChange={(v) => set("pain", v)} error={errors.pain} />
+        </div>
+
+        {/* Appearance — multi-select */}
+        <div>
+          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+            What does it look like?
+          </label>
+          <HelpText text="Select all that apply. The visual pattern strongly affects diagnosis." />
+          <div className="mt-2">
+            <CheckboxPills
+              options={APPEARANCE_OPTIONS}
+              values={data.appearance ?? []}
+              onChange={(v) => set("appearance", v)}
+            />
+          </div>
         </div>
 
         {/* Body location */}

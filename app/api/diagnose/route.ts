@@ -15,13 +15,13 @@ interface DiagnoseRequest {
   patientId: string;
   doctorId: string;
   photoUrls: string[];
-  screeningData: Record<string, string | number | null>;
+  screeningData: Record<string, string | number | null | string[]>;
 }
 
 // ── Map ScreeningData values → questionnaire option IDs ───────────────────────
 
-function mapScreeningToAnswers(sd: Record<string, string | number | null>): Record<string, string> {
-  const a: Record<string, string> = {};
+function mapScreeningToAnswers(sd: Record<string, string | number | null | string[]>): Record<string, string | string[]> {
+  const a: Record<string, string | string[]> = {};
 
   // age_group
   const age = parseInt(String(sd.age ?? ""), 10);
@@ -51,10 +51,8 @@ function mapScreeningToAnswers(sd: Record<string, string | number | null>): Reco
   // presence — "blister" in frontend means appearance=blister_sore in questionnaire.
   // The blister sub-questions are conditional_on appearance=blister_sore, not presence.
   const presence = String(sd.presence ?? "");
-  if (presence === "blister") {
-    a.appearance = "blister_sore";
-    // Don't set presence — frontend "blister" describes appearance, not frequency
-  } else if (presence) {
+  const blisterFromPresence = presence === "blister";
+  if (!blisterFromPresence && presence) {
     a.presence = presence;
   }
 
@@ -69,13 +67,14 @@ function mapScreeningToAnswers(sd: Record<string, string | number | null>): Reco
     Face: "face",
     Scalp: "scalp",
     Neck: "neck_chest",
-    "Chest/Back": "back_shoulders",
+    "Chest/Back": "back_shoulders",   // Chest ambiguous, back wins
     Arms: "arms_hands",
     "Hands/Fingers": "arms_hands",
     Legs: "legs_feet",
     "Feet/Toes": "legs_feet",
     "Groin/Armpits": "groin_folds",
-    "Multiple areas": "torso",
+    // "Multiple areas" intentionally omitted — no backend equivalent.
+    // Sending nothing is better than a wrong mapping to "torso" (stomach).
   };
   const loc = String(sd.bodyLocation ?? "");
   if (LOC_MAP[loc]) a.location = LOC_MAP[loc];
@@ -181,6 +180,16 @@ function mapScreeningToAnswers(sd: Record<string, string | number | null>): Reco
   };
   const mig = String(sd.lesion_migration ?? "");
   if (MIG_MAP[mig]) a.lesion_migration = MIG_MAP[mig];
+
+  // appearance — multi-select. Already in backend ID format (rash_red, dark_spot, etc.)
+  // Merge with blister_sore if user picked "blister" presence option.
+  const appearanceArr: string[] = Array.isArray(sd.appearance) ? sd.appearance.filter(Boolean) : [];
+  if (blisterFromPresence && !appearanceArr.includes("blister_sore")) {
+    appearanceArr.push("blister_sore");
+  }
+  if (appearanceArr.length > 0) {
+    a.appearance = appearanceArr;
+  }
 
   return a;
 }

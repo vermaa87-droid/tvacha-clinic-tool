@@ -302,6 +302,7 @@ export default function Home() {
             <video
               controls
               autoPlay
+              muted
               playsInline
               style={{ width: "100%", height: "100%" }}
               src="https://hvqeeokspruhbqdbrswg.supabase.co/storage/v1/object/public/assets/demo-video.mp4"
