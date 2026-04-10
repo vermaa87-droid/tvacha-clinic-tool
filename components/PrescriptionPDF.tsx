@@ -12,7 +12,7 @@ import {
 // Register Hindi font for bilingual prescriptions
 // ---------------------------------------------------------------------------
 Font.register({
-  family: "NotoSansDevanagari",
+  family: "NotoDevanagari",
   fonts: [
     { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.2.8/files/noto-sans-devanagari-devanagari-400-normal.woff", fontWeight: 400 },
     { src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.2.8/files/noto-sans-devanagari-devanagari-600-normal.woff", fontWeight: 600 },
@@ -603,7 +603,7 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                       <>
                         <Text style={styles.medicineInstructions}>{cleanText(med.instructions)}</Text>
                         {getHindiTiming(med.instructions) ? (
-                          <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
+                          <Text style={{ fontFamily: "NotoDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
                             {getHindiTiming(med.instructions)}
                           </Text>
                         ) : null}
@@ -615,7 +615,7 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                       {cleanText(med.dosage)}{med.frequency ? ` - ${abbreviateFreq(cleanText(med.frequency))}` : ""}
                     </Text>
                     {med.frequency && getHindiTiming(med.frequency) ? (
-                      <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
+                      <Text style={{ fontFamily: "NotoDevanagari", fontSize: 6, color: "#6b5d4f", marginTop: 1 }}>
                         {getHindiTiming(med.frequency)}
                       </Text>
                     ) : null}
@@ -638,7 +638,7 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
               {data.specialInstructionsHi ? (
                 <>
                   <View style={{ height: 0.5, backgroundColor: BORDER, marginVertical: 4 }} />
-                  <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 7, color: "#6b5d4f", lineHeight: 1.5 }}>
+                  <Text style={{ fontFamily: "NotoDevanagari", fontSize: 7, color: "#6b5d4f", lineHeight: 1.5 }}>
                     {cleanText(data.specialInstructionsHi)}
                   </Text>
                 </>
@@ -655,7 +655,7 @@ export function PrescriptionPDF({ data }: { data: PrescriptionPDFData }) {
                   <Text style={styles.followUpLabel}>Follow-up: </Text>
                   <Text style={styles.followUpValue}>{cleanText(followUpDate)}</Text>
                 </View>
-                <Text style={{ fontFamily: "NotoSansDevanagari", fontSize: 7, color: "#6b5d4f", marginTop: 1 }}>
+                <Text style={{ fontFamily: "NotoDevanagari", fontSize: 7, color: "#6b5d4f", marginTop: 1 }}>
                   अगली मुलाकात: {cleanText(followUpDate)}
                 </Text>
               </View>

@@ -81,6 +81,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
     { value: "3_6m", label: t("ap_s2_dur_3_6m") },
     { value: "6m_plus", label: t("ap_s2_dur_6m_plus") },
     { value: "always", label: t("ap_s2_dur_always") },
+    { value: "changing", label: t("ap_s2_dur_changing") },
   ];
 
   const PRESENCE_OPTIONS = [

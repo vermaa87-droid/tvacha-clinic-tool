@@ -44,6 +44,7 @@ function mapScreeningToAnswers(sd: Record<string, string | number | null | strin
     "3_6m": "months",
     "6m_plus": "long",
     always: "long",
+    changing: "changing",   // maps to backend melanoma-boost option
   };
   const dur = String(sd.duration ?? "");
   if (DURATION_MAP[dur]) a.duration = DURATION_MAP[dur];
