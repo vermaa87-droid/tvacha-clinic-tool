@@ -193,6 +193,7 @@ export default function Home() {
       </AnimatePresence>
 
       <HeroSection onShowDemo={() => setShowDemo(true)} />
+      <DownloadSection />
       <FeaturesSection />
       <PricingSection />
 
@@ -242,8 +243,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <DownloadSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-primary-500 text-white relative overflow-hidden">
