@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { SmoothScroll } from "@/components/SmoothScroll";
@@ -21,6 +21,19 @@ export const metadata: Metadata = {
     siteName: "Tvacha Clinic",
   },
   description: "AI pre-screening, patient management, and analytics for dermatologists and GP clinics",
+  manifest: "/manifest.json",
+  applicationName: "Tvacha Clinic",
+  appleWebApp: {
+    capable: true,
+    title: "Tvacha Clinic",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2d4a3e",
+  width: "device-width",
+  initialScale: 1,
 };
 
 // Inline script to prevent flash of wrong theme on load

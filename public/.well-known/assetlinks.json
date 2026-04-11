@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tvacha.clinic",
+      "sha256_cert_fingerprints": [
+        "8B:27:19:18:DB:91:1D:5F:26:38:EC:AC:45:96:85:A0:31:19:04:6A:19:74:F9:D0:76:96:DA:FD:D3:26:DC:3D"
+      ]
+    }
+  }
+]
