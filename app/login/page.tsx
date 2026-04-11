@@ -10,31 +10,47 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language-context";
 import { supabase } from "@/lib/supabase";
+import { useFormValidation, isFilled, isValidEmail } from "@/lib/use-form-validation";
+import { FieldError, FormErrorSummary } from "@/components/ui/FieldError";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
 
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotError, setForgotError] = useState("");
+  const [forgotApiError, setForgotApiError] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const signIn = useAuthStore((s) => s.signIn);
   const router = useRouter();
   const { t } = useLanguage();
 
+  const loginForm = useFormValidation();
+  const forgotForm = useFormValidation();
+
+  const loginLabels = { email: "Email", password: "Password" };
+  const forgotLabels = { forgotEmail: "Email" };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setApiError("");
+
+    const ok = loginForm.validateAll([
+      { field: "email", message: "Please enter your email", valid: isFilled(email) },
+      { field: "email", message: "Please enter a valid email address", valid: isValidEmail(email) },
+      { field: "password", message: "Please enter your password", valid: isFilled(password) },
+    ]);
+    if (!ok) return;
+
     setIsLoading(true);
 
     const { error } = await signIn(email, password);
     if (error) {
-      setError(error);
+      setApiError(error);
       setIsLoading(false);
     } else {
       router.push("/dashboard");
@@ -43,9 +59,15 @@ export default function LoginPage() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forgotEmail.trim()) return;
+    setForgotApiError("");
+
+    const ok = forgotForm.validateAll([
+      { field: "forgotEmail", message: "Please enter your email", valid: isFilled(forgotEmail) },
+      { field: "forgotEmail", message: "Please enter a valid email address", valid: isValidEmail(forgotEmail) },
+    ]);
+    if (!ok) return;
+
     setForgotLoading(true);
-    setForgotError("");
 
     const { data: doctor } = await supabase
       .from("doctors")
@@ -54,7 +76,7 @@ export default function LoginPage() {
       .maybeSingle();
 
     if (!doctor) {
-      setForgotError("No account found with this email address.");
+      setForgotApiError("No account found with this email address.");
       setForgotLoading(false);
       return;
     }
@@ -63,7 +85,7 @@ export default function LoginPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      setForgotError(error.message);
+      setForgotApiError(error.message);
     } else {
       setForgotSuccess(true);
     }
@@ -202,7 +224,8 @@ export default function LoginPage() {
                         setShowForgot(false);
                         setForgotSuccess(false);
                         setForgotEmail("");
-                        setForgotError("");
+                        setForgotApiError("");
+                        forgotForm.clearAllErrors();
                       }}
                       className="text-sm"
                       style={{ color: "#b8936a" }}
@@ -211,28 +234,40 @@ export default function LoginPage() {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleForgotPassword} className="space-y-5">
-                    {forgotError && (
+                  <form onSubmit={handleForgotPassword} className="space-y-5" noValidate>
+                    {forgotApiError && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                        {forgotError}
+                        {forgotApiError}
                       </div>
                     )}
                     <div>
                       <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--auth-label-color)" }}>
-                        Email address
+                        Email address <span style={{ color: "var(--form-error)" }}>*</span>
                       </label>
                       <input
+                        ref={forgotForm.setFieldRef("forgotEmail")}
                         type="email"
                         placeholder="Dr. email@clinic.com"
                         value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        required
-                        className={inputBase}
+                        onChange={(e) => {
+                          setForgotEmail(e.target.value);
+                          forgotForm.clearError("forgotEmail");
+                        }}
+                        className={`${inputBase} ${forgotForm.errors.forgotEmail ? "field-error-input" : ""}`}
                         style={{ ...inputStyle }}
                         onFocus={onFocus}
-                        onBlur={onBlur}
+                        onBlur={(e) => {
+                          onBlur(e);
+                          if (forgotEmail.trim() && !isValidEmail(forgotEmail)) {
+                            forgotForm.validateAll([
+                              { field: "forgotEmail", message: "Please enter a valid email address", valid: false },
+                            ]);
+                          }
+                        }}
                       />
+                      <FieldError message={forgotForm.errors.forgotEmail} />
                     </div>
+                    <FormErrorSummary errors={forgotForm.errors} fieldLabels={forgotLabels} />
                     <Button
                       type="submit"
                       loading={forgotLoading}
@@ -246,8 +281,9 @@ export default function LoginPage() {
                         type="button"
                         onClick={() => {
                           setShowForgot(false);
-                          setForgotError("");
+                          setForgotApiError("");
                           setForgotEmail("");
+                          forgotForm.clearAllErrors();
                         }}
                         className="text-sm"
                         style={{ color: "#b8936a" }}
@@ -273,47 +309,62 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {error && (
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                  {apiError && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                      {error}
+                      {apiError}
                     </div>
                   )}
 
                   {/* Email */}
                   <div>
                     <label className="block text-sm font-semibold mb-2" style={{ color: "var(--auth-label-color)" }}>
-                      {t("login_email")}
+                      {t("login_email")} <span style={{ color: "var(--form-error)" }}>*</span>
                     </label>
                     <input
+                      ref={loginForm.setFieldRef("email")}
                       type="email"
                       placeholder="Dr. email@clinic.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className={inputBase}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        loginForm.clearError("email");
+                      }}
+                      className={`${inputBase} ${loginForm.errors.email ? "field-error-input" : ""}`}
                       style={{ ...inputStyle }}
                       onFocus={onFocus}
-                      onBlur={onBlur}
+                      onBlur={(e) => {
+                        onBlur(e);
+                        if (email.trim() && !isValidEmail(email)) {
+                          loginForm.validateAll([
+                            { field: "email", message: "Please enter a valid email address", valid: false },
+                          ]);
+                        }
+                      }}
                     />
+                    <FieldError message={loginForm.errors.email} />
                   </div>
 
                   {/* Password */}
                   <div>
                     <label className="block text-sm font-semibold mb-2" style={{ color: "var(--auth-label-color)" }}>
-                      {t("login_password")}
+                      {t("login_password")} <span style={{ color: "var(--form-error)" }}>*</span>
                     </label>
                     <input
+                      ref={loginForm.setFieldRef("password")}
                       type="password"
                       placeholder="••••••••"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className={inputBase}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        loginForm.clearError("password");
+                      }}
+                      className={`${inputBase} ${loginForm.errors.password ? "field-error-input" : ""}`}
                       style={{ ...inputStyle }}
                       onFocus={onFocus}
                       onBlur={onBlur}
                     />
+                    <FieldError message={loginForm.errors.password} />
                   </div>
 
                   {/* Forgot password */}
@@ -327,6 +378,8 @@ export default function LoginPage() {
                       Forgot password?
                     </button>
                   </div>
+
+                  <FormErrorSummary errors={loginForm.errors} fieldLabels={loginLabels} />
 
                   <Button
                     type="submit"

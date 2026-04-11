@@ -22,6 +22,8 @@ export function Step1Photos({
   const { t } = useLanguage();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const photoGridRef = useRef<HTMLDivElement>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const SLOT_LABELS = [t("ap_s1_close_up"), t("ap_s1_medium"), t("ap_s1_different")];
 
@@ -35,6 +37,7 @@ export function Step1Photos({
     if (file !== undefined && activeSlot !== null) {
       const preview = URL.createObjectURL(file);
       onSetSlot(activeSlot, file, preview);
+      setPhotoError(null);
     }
     e.target.value = "";
     setActiveSlot(null);
@@ -43,8 +46,25 @@ export function Step1Photos({
   const filledCount = photoSlots.filter(Boolean).length;
   const canProceed = filledCount >= 1;
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canProceed) {
+      setPhotoError("Please capture at least one photo of the affected area");
+      const target = photoGridRef.current;
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.remove("field-blink");
+        void target.offsetWidth;
+        target.classList.add("field-blink");
+        window.setTimeout(() => target.classList.remove("field-blink"), 1700);
+      }
+      return;
+    }
+    onNext();
+  };
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
+    <form onSubmit={handleSubmit}>
       <h2 className="text-2xl font-serif font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>
         {t("ap_s1_title")}
       </h2>
@@ -63,7 +83,10 @@ export function Step1Photos({
       />
 
       {/* Photo slots */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
+      <div
+        ref={photoGridRef}
+        className={`grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 mb-6 rounded-xl p-2 -m-2 ${photoError ? "field-error-input" : ""}`}
+      >
         {SLOT_LABELS.map((label, index) => (
           <div key={label} className="flex flex-col items-center gap-2">
             <div className="w-full relative" style={{ paddingBottom: "100%" }}>
@@ -122,12 +145,15 @@ export function Step1Photos({
         </p>
       )}
 
+      {photoError && (
+        <p className="form-error-summary text-center">{photoError}</p>
+      )}
+
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={!canProceed}
           className="w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-white transition-opacity min-h-[44px]"
-          style={{ background: "#b8936a", opacity: canProceed ? 1 : 0.45, cursor: canProceed ? "pointer" : "not-allowed" }}
+          style={{ background: "#b8936a", cursor: "pointer" }}
         >
           {t("ap_s1_next")}
         </button>

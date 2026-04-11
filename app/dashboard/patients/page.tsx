@@ -13,6 +13,8 @@ import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import { Search, Users, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { useFormValidation, isFilled, isValidIndianPhone } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -73,6 +75,14 @@ export default function PatientsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
+  const quickAdd = useFormValidation();
+  const quickAddLabels = {
+    name: "Patient Name",
+    age: "Age",
+    gender: "Gender",
+    phone: "Phone Number",
+    chief_complaint: "Chief Complaint",
+  };
   const [patientToDelete, setPatientToDelete] = useState<PatientWithDetails | null>(null);
 
   // Search & filter state
@@ -178,28 +188,26 @@ export default function PatientsPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleFormChangeWithClear = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    quickAdd.clearError(e.target.name);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setFormError("");
 
-    // Validate required fields
-    const missing: string[] = [];
-    if (!form.name.trim()) missing.push("Patient name");
-    if (!form.age) missing.push("Age");
-    if (!form.gender) missing.push("Gender");
-    if (!form.phone.trim()) missing.push("Phone number");
-    if (missing.length > 0) {
-      setFormError(`Please fill in: ${missing.join(", ")}`);
-      return;
-    }
-
-    // Phone validation
-    const phoneDigits = form.phone.replace(/\D/g, "");
-    if (phoneDigits.length !== 10 && !(phoneDigits.length === 12 && phoneDigits.startsWith("91"))) {
-      setFormError("Please enter a valid 10-digit phone number.");
-      return;
-    }
+    const ok = quickAdd.validateAll([
+      { field: "name", message: "Please enter the patient's name", valid: isFilled(form.name) },
+      { field: "age", message: "Please enter the patient's age", valid: isFilled(form.age) },
+      { field: "gender", message: "Please select a gender", valid: isFilled(form.gender) },
+      { field: "phone", message: "Please enter a phone number", valid: isFilled(form.phone) },
+      { field: "phone", message: "Please enter a valid 10-digit phone number", valid: isValidIndianPhone(form.phone) },
+    ]);
+    if (!ok) return;
 
     try {
       setSubmitting(true);
@@ -581,7 +589,7 @@ export default function PatientsPage() {
           </>
         }
       >
-        <form onSubmit={handleSubmit} className="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[65vh] overflow-y-auto pr-2" noValidate>
           {formError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
               {formError}
@@ -589,35 +597,39 @@ export default function PatientsPage() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
+              ref={quickAdd.setFieldRef("name")}
               label={t("patients_form_name")}
               name="name"
               placeholder="Patient full name"
               value={form.name}
-              onChange={handleFormChange}
+              onChange={handleFormChangeWithClear}
               required
+              error={quickAdd.errors.name}
             />
             <Input
+              ref={quickAdd.setFieldRef("age")}
               label={t("patients_form_age")}
               name="age"
               type="number"
               placeholder="Age"
               value={form.age}
-              onChange={handleFormChange}
+              onChange={handleFormChangeWithClear}
               required
+              error={quickAdd.errors.age}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="w-full">
               <label className="block text-sm font-medium text-text-primary mb-2">
-                {t("patients_form_gender")}
+                {t("patients_form_gender")} <span style={{ color: "var(--form-error)" }}>*</span>
               </label>
               <select
+                ref={quickAdd.setFieldRef("gender")}
                 name="gender"
-                className={selectClass}
+                className={`${selectClass} ${quickAdd.errors.gender ? "field-error-input" : ""}`}
                 value={form.gender}
-                onChange={handleFormChange}
-                required
+                onChange={handleFormChangeWithClear}
               >
                 <option value="">{t("patients_form_gender_placeholder")}</option>
                 {GENDER_OPTIONS.map((opt) => (
@@ -626,15 +638,28 @@ export default function PatientsPage() {
                   </option>
                 ))}
               </select>
+              {quickAdd.errors.gender && (
+                <span className="field-error-message">{quickAdd.errors.gender}</span>
+              )}
             </div>
             <Input
+              ref={quickAdd.setFieldRef("phone")}
               label={t("patients_form_phone")}
               name="phone"
               type="tel"
               placeholder="Phone number"
               maxLength={15}
               value={form.phone}
-              onChange={handleFormChange}
+              onChange={handleFormChangeWithClear}
+              onBlur={() => {
+                if (form.phone.trim() && !isValidIndianPhone(form.phone)) {
+                  quickAdd.validateAll([
+                    { field: "phone", message: "Please enter a valid 10-digit phone number", valid: false },
+                  ]);
+                }
+              }}
+              required
+              error={quickAdd.errors.phone}
             />
           </div>
 
@@ -739,6 +764,7 @@ export default function PatientsPage() {
             onChange={handleFormChange}
             rows={3}
           />
+          <FormErrorSummary errors={quickAdd.errors} fieldLabels={quickAddLabels} />
         </form>
       </Modal>
     </main>

@@ -12,15 +12,19 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useFormValidation, isFilled } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isRecovery, setIsRecovery] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState(false);
   const [checking, setChecking] = useState(true);
+  const { errors, setFieldRef, validateAll, clearError } = useFormValidation();
+  const fieldLabels = { password: "New Password", confirmPassword: "Confirm Password" };
 
   useEffect(() => {
     // Listen for PASSWORD_RECOVERY event from Supabase
@@ -46,16 +50,15 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setApiError("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
+    const ok = validateAll([
+      { field: "password", message: "Please choose a new password", valid: isFilled(password) },
+      { field: "password", message: "Password must be at least 6 characters", valid: password.length >= 6 },
+      { field: "confirmPassword", message: "Please confirm your password", valid: isFilled(confirmPassword) },
+      { field: "confirmPassword", message: "Passwords do not match", valid: password === confirmPassword },
+    ]);
+    if (!ok) return;
 
     setLoading(true);
     try {
@@ -66,7 +69,7 @@ export default function ResetPasswordPage() {
           setSuccess(true);
           try { await supabase.auth.signOut(); } catch { /* ignore */ }
         } else {
-          setError(error.message);
+          setApiError(error.message);
         }
       } else {
         setSuccess(true);
@@ -80,7 +83,7 @@ export default function ResetPasswordPage() {
         setSuccess(true);
         try { await supabase.auth.signOut(); } catch { /* ignore */ }
       } else {
-        setError(msg || "An unexpected error occurred.");
+        setApiError(msg || "An unexpected error occurred.");
       }
     }
     setLoading(false);
@@ -130,28 +133,43 @@ export default function ResetPasswordPage() {
                 </div>
               ) : isRecovery ? (
                 /* ── Reset Form ── */
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error && (
+                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                  {apiError && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                      {error}
+                      {apiError}
                     </div>
                   )}
                   <Input
+                    ref={setFieldRef("password")}
                     label="New Password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                    onBlur={() => {
+                      if (password && password.length < 6) {
+                        validateAll([{ field: "password", message: "Password must be at least 6 characters", valid: false }]);
+                      }
+                    }}
                     required
+                    error={errors.password}
                   />
                   <Input
+                    ref={setFieldRef("confirmPassword")}
                     label="Confirm Password"
                     type="password"
                     placeholder="••••••••"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => { setConfirmPassword(e.target.value); clearError("confirmPassword"); }}
+                    onBlur={() => {
+                      if (confirmPassword && password !== confirmPassword) {
+                        validateAll([{ field: "confirmPassword", message: "Passwords do not match", valid: false }]);
+                      }
+                    }}
                     required
+                    error={errors.confirmPassword}
                   />
+                  <FormErrorSummary errors={errors} fieldLabels={fieldLabels} />
                   <Button
                     type="submit"
                     loading={loading}

@@ -18,6 +18,8 @@ import { Calendar, Plus, ChevronLeft, ChevronRight, List } from "lucide-react";
 import { useMutationQueue } from "@/lib/mutation-queue";
 import { useDataCache } from "@/lib/data-cache";
 import { useToast } from "@/components/ui/Toast";
+import { useFormValidation, isFilled } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 import {
   format,
   startOfMonth,
@@ -150,6 +152,8 @@ export default function AppointmentsPage() {
 
   // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const scheduleForm = useFormValidation();
+  const scheduleLabels = { patient_id: "Patient", date: "Date", time: "Time" };
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [rescheduleApt, setRescheduleApt] = useState<Appointment | null>(null);
 
@@ -259,7 +263,14 @@ export default function AppointmentsPage() {
   };
 
   const handleSchedule = () => {
-    if (!user || !form.patient_id || !form.date || !form.time) return;
+    if (!user) return;
+
+    const ok = scheduleForm.validateAll([
+      { field: "patient_id", message: "Please select a patient", valid: isFilled(form.patient_id) },
+      { field: "date", message: "Please pick a date", valid: isFilled(form.date) },
+      { field: "time", message: "Please pick a time slot", valid: isFilled(form.time) },
+    ]);
+    if (!ok) return;
 
     // Build the insert payload
     const insertPayload = {
@@ -816,7 +827,6 @@ export default function AppointmentsPage() {
               className="bg-primary-500 hover:bg-primary-600 text-white"
               onClick={handleSchedule}
               loading={actionLoading}
-              disabled={!form.patient_id || !form.date || !form.time}
             >
               {t("apt_schedule_btn")}
             </Button>
@@ -826,11 +836,14 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {/* Patient */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_patient_label")}</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              {t("apt_patient_label")} <span style={{ color: "var(--form-error)" }}>*</span>
+            </label>
             <select
-              className={selectClasses}
+              ref={scheduleForm.setFieldRef("patient_id")}
+              className={`${selectClasses} ${scheduleForm.errors.patient_id ? "field-error-input" : ""}`}
               value={form.patient_id}
-              onChange={(e) => setForm((p) => ({ ...p, patient_id: e.target.value }))}
+              onChange={(e) => { setForm((p) => ({ ...p, patient_id: e.target.value })); scheduleForm.clearError("patient_id"); }}
             >
               <option value="">{t("apt_select_patient")}</option>
               {patients.map((p) => (
@@ -839,24 +852,31 @@ export default function AppointmentsPage() {
                 </option>
               ))}
             </select>
+            {scheduleForm.errors.patient_id && <span className="field-error-message">{scheduleForm.errors.patient_id}</span>}
           </div>
 
           {/* Date */}
           <Input
+            ref={scheduleForm.setFieldRef("date")}
             label={t("apt_date_label")}
             type="date"
             min={todayStr}
             value={form.date}
-            onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+            onChange={(e) => { setForm((p) => ({ ...p, date: e.target.value })); scheduleForm.clearError("date"); }}
+            required
+            error={scheduleForm.errors.date}
           />
 
           {/* Time */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">{t("apt_time_label")}</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              {t("apt_time_label")} <span style={{ color: "var(--form-error)" }}>*</span>
+            </label>
             <select
-              className={selectClasses}
+              ref={scheduleForm.setFieldRef("time")}
+              className={`${selectClasses} ${scheduleForm.errors.time ? "field-error-input" : ""}`}
               value={form.time}
-              onChange={(e) => setForm((p) => ({ ...p, time: e.target.value }))}
+              onChange={(e) => { setForm((p) => ({ ...p, time: e.target.value })); scheduleForm.clearError("time"); }}
             >
               <option value="">{t("apt_select_time")}</option>
               {TIME_SLOTS.map((t) => (
@@ -865,6 +885,7 @@ export default function AppointmentsPage() {
                 </option>
               ))}
             </select>
+            {scheduleForm.errors.time && <span className="field-error-message">{scheduleForm.errors.time}</span>}
           </div>
 
           {/* Duration */}
@@ -916,6 +937,8 @@ export default function AppointmentsPage() {
             value={form.visit_fee}
             onChange={(e) => setForm((p) => ({ ...p, visit_fee: e.target.value }))}
           />
+
+          <FormErrorSummary errors={scheduleForm.errors} fieldLabels={scheduleLabels} />
         </div>
       </Modal>
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { RadioPills } from "./RadioPills";
 import { CheckboxPills } from "./CheckboxPills";
 import { FitzpatrickSwatches } from "./FitzpatrickSwatches";
 import { useLanguage } from "@/lib/language-context";
 import type { ScreeningData } from "../wizard-types";
+import { useFormValidation } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 const selectClass =
   "w-full px-4 py-2.5 border border-primary-200 rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors";
@@ -18,19 +19,28 @@ interface Step2ScreeningProps {
   onNext: () => void;
 }
 
-type ScreeningErrors = Partial<Record<keyof ScreeningData, string>>;
-
 function HelpText({ text }: { text: string }) {
   return <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{text}</p>;
 }
 
 export function Step2Screening({ data, onChange, onBack, onNext }: Step2ScreeningProps) {
   const { t } = useLanguage();
-  const [errors, setErrors] = useState<ScreeningErrors>({});
+  const { errors, setFieldRef, validateAll, clearError } = useFormValidation();
+
+  const fieldLabels: Record<string, string> = {
+    age: "Age",
+    gender: "Gender",
+    duration: "Duration",
+    presence: "Skin Appearance",
+    itching: "Itching",
+    pain: "Pain",
+    bodyLocation: "Body Location",
+    fitzpatrick: "Skin Type",
+  };
 
   const set = (field: keyof ScreeningData, value: string | number | null | string[]) => {
     onChange({ ...data, [field]: value });
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    clearError(field);
   };
 
   // When presence changes away from blister, clear blister sub-fields
@@ -44,28 +54,27 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         blister_duration: "",
         blister_mucous_membrane: "",
       });
+      clearError("presence");
     } else {
       set("presence", value);
     }
   };
 
-  const validate = (): boolean => {
-    const e: ScreeningErrors = {};
-    if (!data.age || parseInt(data.age, 10) < 1 || parseInt(data.age, 10) > 120)
-      e.age = t("ap_s2_age_error");
-    if (!data.gender) e.gender = t("ap_s2_required");
-    if (!data.duration) e.duration = t("ap_s2_required");
-    if (!data.presence) e.presence = t("ap_s2_required");
-    if (!data.itching) e.itching = t("ap_s2_required");
-    if (!data.pain) e.pain = t("ap_s2_required");
-    if (!data.bodyLocation) e.bodyLocation = t("ap_s2_required");
-    if (!data.fitzpatrick) e.fitzpatrick = t("ap_s2_fitz_error");
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
   const handleNext = () => {
-    if (validate()) onNext();
+    const ageNum = parseInt(data.age, 10);
+    const ageOk = !!data.age && !isNaN(ageNum) && ageNum >= 1 && ageNum <= 120;
+
+    const ok = validateAll([
+      { field: "age", message: "Please enter a valid age (1-120)", valid: ageOk },
+      { field: "gender", message: "Please select a gender", valid: !!data.gender },
+      { field: "duration", message: "Please select how long this has been present", valid: !!data.duration },
+      { field: "presence", message: "Please select what the skin looks like", valid: !!data.presence },
+      { field: "itching", message: "Please select an itching level", valid: !!data.itching },
+      { field: "pain", message: "Please select a pain level", valid: !!data.pain },
+      { field: "bodyLocation", message: "Please select the affected body location", valid: !!data.bodyLocation },
+      { field: "fitzpatrick", message: "Please select the patient's skin type", valid: !!data.fitzpatrick },
+    ]);
+    if (ok) onNext();
   };
 
   const isBlister = data.presence === "blister";
@@ -235,25 +244,26 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         {/* Age */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_age")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_age")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <input
+            ref={setFieldRef("age")}
             type="number"
             min={1}
             max={120}
             placeholder={t("ap_s2_age_placeholder")}
             value={data.age}
             onChange={(e) => set("age", e.target.value)}
-            className={selectClass}
+            className={`${selectClass} ${errors.age ? "field-error-input" : ""}`}
             style={{ maxWidth: 160 }}
           />
-          {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
+          {errors.age && <span className="field-error-message">{errors.age}</span>}
         </div>
 
         {/* Gender */}
-        <div>
+        <div ref={setFieldRef("gender")}>
           <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_gender")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_gender")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <RadioPills options={GENDER_OPTIONS} value={data.gender} onChange={(v) => set("gender", v)} error={errors.gender} />
         </div>
@@ -261,29 +271,39 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         {/* Duration */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_duration")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_duration")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <select value={data.duration} onChange={(e) => set("duration", e.target.value)} className={selectClass}>
+          <select
+            ref={setFieldRef("duration")}
+            value={data.duration}
+            onChange={(e) => set("duration", e.target.value)}
+            className={`${selectClass} ${errors.duration ? "field-error-input" : ""}`}
+          >
             <option value="">{t("ap_s2_duration_placeholder")}</option>
             {DURATION_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration}</p>}
+          {errors.duration && <span className="field-error-message">{errors.duration}</span>}
         </div>
 
         {/* Presence / Appearance */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_presence")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_presence")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <select value={data.presence} onChange={(e) => setPresence(e.target.value)} className={selectClass}>
+          <select
+            ref={setFieldRef("presence")}
+            value={data.presence}
+            onChange={(e) => setPresence(e.target.value)}
+            className={`${selectClass} ${errors.presence ? "field-error-input" : ""}`}
+          >
             <option value="">{t("ap_s2_presence_placeholder")}</option>
             {PRESENCE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          {errors.presence && <p className="text-red-500 text-sm mt-1">{errors.presence}</p>}
+          {errors.presence && <span className="field-error-message">{errors.presence}</span>}
         </div>
 
         {/* ── Blister sub-questions (conditional) ── */}
@@ -320,17 +340,17 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         )}
 
         {/* Itching */}
-        <div>
+        <div ref={setFieldRef("itching")}>
           <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_itching")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_itching")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <RadioPills options={ITCHING_OPTIONS} value={data.itching} onChange={(v) => set("itching", v)} error={errors.itching} />
         </div>
 
         {/* Pain */}
-        <div>
+        <div ref={setFieldRef("pain")}>
           <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_pain")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_pain")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <RadioPills options={PAIN_OPTIONS} value={data.pain} onChange={(v) => set("pain", v)} error={errors.pain} />
         </div>
@@ -353,21 +373,26 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         {/* Body location */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_body_location")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_body_location")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <select value={data.bodyLocation} onChange={(e) => set("bodyLocation", e.target.value)} className={selectClass}>
+          <select
+            ref={setFieldRef("bodyLocation")}
+            value={data.bodyLocation}
+            onChange={(e) => set("bodyLocation", e.target.value)}
+            className={`${selectClass} ${errors.bodyLocation ? "field-error-input" : ""}`}
+          >
             <option value="">{t("ap_s2_body_placeholder")}</option>
             {BODY_LOCATION_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          {errors.bodyLocation && <p className="text-red-500 text-sm mt-1">{errors.bodyLocation}</p>}
+          {errors.bodyLocation && <span className="field-error-message">{errors.bodyLocation}</span>}
         </div>
 
         {/* Fitzpatrick */}
-        <div>
+        <div ref={setFieldRef("fitzpatrick")}>
           <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s2_fitzpatrick")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s2_fitzpatrick")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <FitzpatrickSwatches value={data.fitzpatrick} onChange={(type) => set("fitzpatrick", type)} error={errors.fitzpatrick} />
         </div>
@@ -470,8 +495,12 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         </div>
       </div>
 
+      <div className="mt-8">
+        <FormErrorSummary errors={errors} fieldLabels={fieldLabels} />
+      </div>
+
       {/* Navigation */}
-      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-10">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
         <button
           type="button"
           onClick={onBack}

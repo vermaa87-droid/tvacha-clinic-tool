@@ -49,6 +49,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import { useToast } from "@/components/ui/Toast";
 import { useMutationQueue } from "@/lib/mutation-queue";
+import { useFormValidation, isFilled } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 // ─── Common diagnoses for autocomplete ──────────────────────────────────────
 
@@ -248,6 +250,12 @@ export default function PatientDetailPage({
   const [labFile, setLabFile] = useState<File | null>(null);
   const [labUploading, setLabUploading] = useState(false);
   const [labError, setLabError] = useState("");
+  const visitFormValidation = useFormValidation();
+  const labFormValidation = useFormValidation();
+  const followUpValidation = useFormValidation();
+  const visitFieldLabels = { visit_date: "Visit Date", chief_complaint: "Chief Complaint" };
+  const labFieldLabels = { labFile: "Report File" };
+  const followUpFieldLabels = { scheduleDate: "Follow-up Date" };
 
   // Medical records uploaded during patient registration (from photos table)
   const [wizardRecords, setWizardRecords] = useState<{ id: string; photo_url: string; notes: string | null; created_at: string }[]>([]);
@@ -489,6 +497,12 @@ export default function PatientDetailPage({
     e.preventDefault();
     if (!user || !patient) return;
 
+    const ok = visitFormValidation.validateAll([
+      { field: "visit_date", message: "Please select the visit date", valid: isFilled(visitForm.visit_date) },
+      { field: "chief_complaint", message: "Please enter the chief complaint", valid: isFilled(visitForm.chief_complaint) },
+    ]);
+    if (!ok) return;
+
     // Build vitals object
     const vitals: Record<string, unknown> = {};
     if (visitForm.bp) vitals.bp = visitForm.bp;
@@ -622,7 +636,12 @@ export default function PatientDetailPage({
 
   const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !patient || !scheduleDate) return;
+    if (!user || !patient) return;
+
+    const ok = followUpValidation.validateAll([
+      { field: "scheduleDate", message: "Please select a follow-up date", valid: isFilled(scheduleDate) },
+    ]);
+    if (!ok) return;
 
     // Capture values before resetting
     const capturedDate = scheduleDate;
@@ -712,7 +731,13 @@ export default function PatientDetailPage({
 
   const handleLabUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !patient || !labFile) return;
+    if (!user || !patient) return;
+
+    const ok = labFormValidation.validateAll([
+      { field: "labFile", message: "Please choose a file to upload", valid: !!labFile },
+    ]);
+    if (!ok || !labFile) return;
+
     setLabError("");
     setLabUploading(true);
     try {
@@ -2059,14 +2084,19 @@ export default function PatientDetailPage({
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{labError}</div>
                   )}
                   <div>
-                    <label className="block text-sm font-medium text-text-primary mb-2">Report File *</label>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      Report File <span style={{ color: "var(--form-error)" }}>*</span>
+                    </label>
                     <input
+                      ref={labFormValidation.setFieldRef("labFile")}
                       type="file"
                       accept="image/*,.pdf"
-                      className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-100 file:text-primary-500 hover:file:bg-primary-200"
-                      onChange={(e) => setLabFile(e.target.files?.[0] ?? null)}
-                      required
+                      className={`w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-100 file:text-primary-500 hover:file:bg-primary-200 ${labFormValidation.errors.labFile ? "field-error-input rounded-lg p-2" : ""}`}
+                      onChange={(e) => { setLabFile(e.target.files?.[0] ?? null); labFormValidation.clearError("labFile"); }}
                     />
+                    {labFormValidation.errors.labFile && (
+                      <span className="field-error-message">{labFormValidation.errors.labFile}</span>
+                    )}
                   </div>
                   <Input
                     label="Report Title"
@@ -2087,6 +2117,7 @@ export default function PatientDetailPage({
                     onChange={(e) => setLabForm((f) => ({ ...f, notes: e.target.value }))}
                     rows={3}
                   />
+                  <FormErrorSummary errors={labFormValidation.errors} fieldLabels={labFieldLabels} />
                   <button type="submit" className="hidden" />
                 </form>
               </Modal>
@@ -2312,11 +2343,14 @@ export default function PatientDetailPage({
 
           {/* Visit Date */}
           <Input
+            ref={visitFormValidation.setFieldRef("visit_date")}
             label="Visit Date"
             name="visit_date"
             type="date"
             value={visitForm.visit_date}
-            onChange={handleVisitChange}
+            onChange={(e) => { handleVisitChange(e); visitFormValidation.clearError("visit_date"); }}
+            required
+            error={visitFormValidation.errors.visit_date}
           />
 
           {/* Vitals row */}
@@ -2367,11 +2401,14 @@ export default function PatientDetailPage({
           {/* Chief Complaint */}
           <div>
             <Input
+              ref={visitFormValidation.setFieldRef("chief_complaint")}
               label="Chief Complaint"
               name="chief_complaint"
               value={visitForm.chief_complaint}
-              onChange={handleVisitChange}
+              onChange={(e) => { handleVisitChange(e); visitFormValidation.clearError("chief_complaint"); }}
               placeholder="Describe the main complaint..."
+              required
+              error={visitFormValidation.errors.chief_complaint}
             />
             <div className="flex flex-wrap gap-1.5 mt-2">
               {QUICK_COMPLAINTS.map((chip) => (
@@ -2616,6 +2653,8 @@ export default function PatientDetailPage({
             rows={2}
             placeholder="Internal notes..."
           />
+
+          <FormErrorSummary errors={visitFormValidation.errors} fieldLabels={visitFieldLabels} />
         </form>
       </Modal>
 
@@ -2638,7 +2677,6 @@ export default function PatientDetailPage({
               size="sm"
               loading={scheduleSubmitting}
               onClick={handleScheduleSubmit}
-              disabled={!scheduleDate}
             >
               Schedule
             </Button>
@@ -2647,10 +2685,13 @@ export default function PatientDetailPage({
       >
         <form onSubmit={handleScheduleSubmit} className="space-y-4">
           <Input
+            ref={followUpValidation.setFieldRef("scheduleDate")}
             label="Follow-up Date"
             type="date"
             value={scheduleDate}
-            onChange={(e) => setScheduleDate(e.target.value)}
+            onChange={(e) => { setScheduleDate(e.target.value); followUpValidation.clearError("scheduleDate"); }}
+            required
+            error={followUpValidation.errors.scheduleDate}
           />
           <Input
             label="Preferred Time"
@@ -2658,6 +2699,7 @@ export default function PatientDetailPage({
             value={scheduleTime}
             onChange={(e) => setScheduleTime(e.target.value)}
           />
+          <FormErrorSummary errors={followUpValidation.errors} fieldLabels={followUpFieldLabels} />
         </form>
       </Modal>
     </main>

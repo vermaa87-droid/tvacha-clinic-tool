@@ -9,6 +9,13 @@ import { Footer } from "@/components/layout/Footer";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language-context";
+import {
+  useFormValidation,
+  isFilled,
+  isValidEmail,
+  isValidIndianPhone,
+} from "@/lib/use-form-validation";
+import { FieldError, FormErrorSummary } from "@/components/ui/FieldError";
 
 const STATE_MEDICAL_COUNCILS = [
   "National Medical Commission (NMC)",
@@ -60,40 +67,113 @@ export default function SignupPage() {
     clinicState: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const signUp = useAuthStore((s) => s.signUp);
+
+  const { errors, setFieldRef, validateAll, clearError } = useFormValidation();
+
+  // Friendly labels for the FormErrorSummary
+  const fieldLabels: Record<string, string> = {
+    doctorName: "Full Name",
+    email: "Email",
+    phone: "Phone Number",
+    password: "Password",
+    confirmPassword: "Confirm Password",
+    qualifications: "Qualifications",
+    registrationNumber: "Medical Registration Number",
+    stateMedicalCouncil: "State Medical Council",
+    clinicName: "Clinic Name",
+    clinicCity: "Clinic City",
+    clinicState: "Clinic State",
+    agreeTerms: "Terms of Service",
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    clearError(name);
+  };
+
+  // On-blur per-field validation for format-sensitive fields
+  const handleEmailBlur = () => {
+    if (!formData.email.trim()) return;
+    if (!isValidEmail(formData.email)) {
+      // setError directly via the hook would be cleaner, but we just re-run
+      // the same rule the submit uses so users see the same message twice.
+      validateAll([
+        {
+          field: "email",
+          message: "Please enter a valid email address",
+          valid: isValidEmail(formData.email),
+        },
+      ]);
+    }
+  };
+  const handlePhoneBlur = () => {
+    if (!formData.phone.trim()) return;
+    if (!isValidIndianPhone(formData.phone)) {
+      validateAll([
+        {
+          field: "phone",
+          message: "Please enter a valid 10-digit phone number",
+          valid: isValidIndianPhone(formData.phone),
+        },
+      ]);
+    }
+  };
+  const handlePasswordBlur = () => {
+    if (!formData.password) return;
+    if (formData.password.length < 6) {
+      validateAll([
+        {
+          field: "password",
+          message: "Password must be at least 6 characters",
+          valid: formData.password.length >= 6,
+        },
+      ]);
+    }
+  };
+  const handleConfirmPasswordBlur = () => {
+    if (!formData.confirmPassword) return;
+    if (formData.password !== formData.confirmPassword) {
+      validateAll([
+        {
+          field: "confirmPassword",
+          message: "Passwords do not match",
+          valid: formData.password === formData.confirmPassword,
+        },
+      ]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setApiError("");
 
-    if (!formData.stateMedicalCouncil) {
-      setError(t("signup_error_council"));
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError(t("signup_error_password_match"));
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError(t("signup_error_password_length"));
-      return;
-    }
-    if (formData.phone) {
-      const phoneDigits = formData.phone.replace(/\D/g, "");
-      if (phoneDigits.length !== 10 && !(phoneDigits.length === 12 && phoneDigits.startsWith("91"))) {
-        setError("Please enter a valid 10-digit phone number.");
-        return;
-      }
-    }
+    const ok = validateAll([
+      { field: "doctorName", message: "Please enter your full name", valid: isFilled(formData.doctorName) },
+      { field: "email", message: "Please enter your email", valid: isFilled(formData.email) },
+      { field: "email", message: "Please enter a valid email address", valid: isValidEmail(formData.email) },
+      { field: "phone", message: "Please enter your phone number", valid: isFilled(formData.phone) },
+      { field: "phone", message: "Please enter a valid 10-digit phone number", valid: isValidIndianPhone(formData.phone) },
+      { field: "password", message: "Please choose a password", valid: isFilled(formData.password) },
+      { field: "password", message: "Password must be at least 6 characters", valid: formData.password.length >= 6 },
+      { field: "confirmPassword", message: "Please confirm your password", valid: isFilled(formData.confirmPassword) },
+      { field: "confirmPassword", message: "Passwords do not match", valid: formData.password === formData.confirmPassword },
+      { field: "qualifications", message: "Please enter your qualifications", valid: isFilled(formData.qualifications) },
+      { field: "registrationNumber", message: "Please enter your medical registration number", valid: isFilled(formData.registrationNumber) },
+      { field: "stateMedicalCouncil", message: "Please select a state medical council", valid: isFilled(formData.stateMedicalCouncil) },
+      { field: "clinicName", message: "Please enter your clinic name", valid: isFilled(formData.clinicName) },
+      { field: "clinicCity", message: "Please enter your clinic city", valid: isFilled(formData.clinicCity) },
+      { field: "clinicState", message: "Please enter your clinic state", valid: isFilled(formData.clinicState) },
+      { field: "agreeTerms", message: "Please accept the Terms of Service", valid: agreeTerms },
+    ]);
+
+    if (!ok) return;
 
     setIsLoading(true);
 
@@ -109,7 +189,7 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(error);
+      setApiError(error);
       setIsLoading(false);
     } else {
       setIsLoading(false);
@@ -313,10 +393,10 @@ export default function SignupPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              {apiError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                  {error}
+                  {apiError}
                 </div>
               )}
 
@@ -326,16 +406,17 @@ export default function SignupPage() {
                   {t("signup_fullname")} {req}
                 </label>
                 <input
+                  ref={setFieldRef("doctorName")}
                   name="doctorName"
                   placeholder="Dr. Priya Sharma"
                   value={formData.doctorName}
                   onChange={handleChange}
-                  required
-                  className={inputBase}
+                  className={`${inputBase} ${errors.doctorName ? "field-error-input" : ""}`}
                   style={{ ...inputStyle }}
                   onFocus={onFocus}
                   onBlur={onBlur}
                 />
+                <FieldError message={errors.doctorName} />
               </div>
 
               {/* Email + Phone */}
@@ -345,35 +426,37 @@ export default function SignupPage() {
                     {t("signup_email")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("email")}
                     name="email"
                     type="email"
                     placeholder="dr.priya@clinic.com"
                     value={formData.email}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.email ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => { onBlur(e); handleEmailBlur(); }}
                   />
+                  <FieldError message={errors.email} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_phone")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("phone")}
                     name="phone"
                     type="tel"
                     placeholder="+91 XXXXX XXXXX"
                     maxLength={15}
                     value={formData.phone}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.phone ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => { onBlur(e); handlePhoneBlur(); }}
                   />
+                  <FieldError message={errors.phone} />
                 </div>
               </div>
 
@@ -384,34 +467,36 @@ export default function SignupPage() {
                     {t("signup_password")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("password")}
                     name="password"
                     type="password"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.password ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => { onBlur(e); handlePasswordBlur(); }}
                   />
+                  <FieldError message={errors.password} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_confirm_password")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("confirmPassword")}
                     name="confirmPassword"
                     type="password"
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.confirmPassword ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => { onBlur(e); handleConfirmPasswordBlur(); }}
                   />
+                  <FieldError message={errors.confirmPassword} />
                 </div>
               </div>
 
@@ -421,16 +506,17 @@ export default function SignupPage() {
                   {t("signup_qualifications")} {req}
                 </label>
                 <input
+                  ref={setFieldRef("qualifications")}
                   name="qualifications"
                   placeholder="MBBS, MD (Dermatology)"
                   value={formData.qualifications}
                   onChange={handleChange}
-                  required
-                  className={inputBase}
+                  className={`${inputBase} ${errors.qualifications ? "field-error-input" : ""}`}
                   style={{ ...inputStyle }}
                   onFocus={onFocus}
                   onBlur={onBlur}
                 />
+                <FieldError message={errors.qualifications} />
               </div>
 
               {/* ── Medical Registration Section ── */}
@@ -454,16 +540,17 @@ export default function SignupPage() {
                       </span>
                     </label>
                     <input
+                      ref={setFieldRef("registrationNumber")}
                       name="registrationNumber"
                       placeholder="e.g. MCI/2010-0245 or DMC/R/2015/4521"
                       value={formData.registrationNumber}
                       onChange={handleChange}
-                      required
-                      className={inputBase}
+                      className={`${inputBase} ${errors.registrationNumber ? "field-error-input" : ""}`}
                       style={{ ...inputStyle }}
                       onFocus={onFocus}
                       onBlur={onBlur}
                     />
+                    <FieldError message={errors.registrationNumber} />
                     <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>
                       {t("signup_registration_help")}
                     </p>
@@ -475,13 +562,13 @@ export default function SignupPage() {
                       {t("signup_council")} {req}
                     </label>
                     <select
+                      ref={setFieldRef("stateMedicalCouncil")}
                       name="stateMedicalCouncil"
                       value={formData.stateMedicalCouncil}
                       onChange={handleChange}
-                      required
                       className={`w-full px-4 py-3 rounded-lg outline-none transition-all ${
                         !formData.stateMedicalCouncil ? "text-[var(--auth-input-placeholder)]" : "text-[var(--auth-input-text)]"
-                      }`}
+                      } ${errors.stateMedicalCouncil ? "field-error-input" : ""}`}
                       style={{ ...inputStyle }}
                       onFocus={onSelectFocus}
                       onBlur={onSelectBlur}
@@ -493,6 +580,7 @@ export default function SignupPage() {
                         </option>
                       ))}
                     </select>
+                    <FieldError message={errors.stateMedicalCouncil} />
                   </div>
                 </div>
               </div>
@@ -503,16 +591,17 @@ export default function SignupPage() {
                   {t("signup_clinic_name")} {req}
                 </label>
                 <input
+                  ref={setFieldRef("clinicName")}
                   name="clinicName"
                   placeholder="Derma Care Clinic"
                   value={formData.clinicName}
                   onChange={handleChange}
-                  required
-                  className={inputBase}
+                  className={`${inputBase} ${errors.clinicName ? "field-error-input" : ""}`}
                   style={{ ...inputStyle }}
                   onFocus={onFocus}
                   onBlur={onBlur}
                 />
+                <FieldError message={errors.clinicName} />
               </div>
 
               {/* City + State */}
@@ -522,57 +611,76 @@ export default function SignupPage() {
                     {t("signup_clinic_city")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("clinicCity")}
                     name="clinicCity"
                     placeholder="Mumbai"
                     value={formData.clinicCity}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.clinicCity ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
                     onBlur={onBlur}
                   />
+                  <FieldError message={errors.clinicCity} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={labelMuted}>
                     {t("signup_clinic_state")} {req}
                   </label>
                   <input
+                    ref={setFieldRef("clinicState")}
                     name="clinicState"
                     placeholder="Maharashtra"
                     value={formData.clinicState}
                     onChange={handleChange}
-                    required
-                    className={inputBase}
+                    className={`${inputBase} ${errors.clinicState ? "field-error-input" : ""}`}
                     style={{ ...inputStyle }}
                     onFocus={onFocus}
                     onBlur={onBlur}
                   />
+                  <FieldError message={errors.clinicState} />
                 </div>
               </div>
 
               {/* Terms */}
-              <div className="flex items-start gap-2.5">
-                <input type="checkbox" id="terms" className="mt-1 flex-shrink-0" required />
-                <label htmlFor="terms" className="text-sm" style={{ color: "var(--auth-label-color)" }}>
-                  {t("signup_agree")}{" "}
-                  <Link
-                    href="/terms"
-                    className="transition-colors hover:text-[#9a6a3a]"
-                    style={{ color: "#b8936a" }}
-                  >
-                    {t("signup_terms")}
-                  </Link>{" "}
-                  {t("signup_and")}{" "}
-                  <Link
-                    href="/privacy"
-                    className="transition-colors hover:text-[#9a6a3a]"
-                    style={{ color: "#b8936a" }}
-                  >
-                    {t("signup_privacy")}
-                  </Link>
-                </label>
+              <div>
+                <div
+                  ref={setFieldRef("agreeTerms")}
+                  className={`flex items-start gap-2.5 rounded-md ${errors.agreeTerms ? "p-2 -m-2 field-error-input" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={agreeTerms}
+                    onChange={(e) => {
+                      setAgreeTerms(e.target.checked);
+                      if (e.target.checked) clearError("agreeTerms");
+                    }}
+                    className="mt-1 flex-shrink-0"
+                  />
+                  <label htmlFor="terms" className="text-sm" style={{ color: "var(--auth-label-color)" }}>
+                    {t("signup_agree")}{" "}
+                    <Link
+                      href="/terms"
+                      className="transition-colors hover:text-[#9a6a3a]"
+                      style={{ color: "#b8936a" }}
+                    >
+                      {t("signup_terms")}
+                    </Link>{" "}
+                    {t("signup_and")}{" "}
+                    <Link
+                      href="/privacy"
+                      className="transition-colors hover:text-[#9a6a3a]"
+                      style={{ color: "#b8936a" }}
+                    >
+                      {t("signup_privacy")}
+                    </Link>
+                  </label>
+                </div>
+                <FieldError message={errors.agreeTerms} />
               </div>
+
+              <FormErrorSummary errors={errors} fieldLabels={fieldLabels} />
 
               <Button
                 type="submit"

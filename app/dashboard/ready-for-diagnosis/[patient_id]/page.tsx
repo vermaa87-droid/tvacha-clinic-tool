@@ -8,6 +8,8 @@ import { useAuthStore } from "@/lib/store";
 import { ArrowLeft, X, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import type { PrescriptionTemplate } from "@/lib/types";
 import { getHindiInstructions } from "@/lib/hindi-instructions";
+import { useFormValidation } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 interface Medicine { name: string; dosage: string; frequency: string; duration: string; instructions?: string; }
 
@@ -152,6 +154,12 @@ export default function ReviewPatientPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { errors, setFieldRef, validateAll, clearError } = useFormValidation();
+  const fieldLabels = {
+    diseaseClassification: "Disease Classification",
+    customClassification: "Custom Classification",
+    selectedSeverity: "Severity",
+  };
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [generatedPdfUrl, setGeneratedPdfUrl] = useState<string | null>(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
@@ -268,16 +276,17 @@ export default function ReviewPatientPage() {
 
   const handleConfirm = async () => {
     if (!patient || !user) return;
-    if (!diseaseClassification) { setSubmitError("Please select a disease classification."); return; }
-    if (!selectedSeverity) { setSubmitError("Please select a severity level."); return; }
+
+    const ok = validateAll([
+      { field: "diseaseClassification", message: "Please select a disease classification", valid: !!diseaseClassification },
+      { field: "customClassification", message: "Please enter a custom classification name", valid: diseaseClassification !== "other" || !!customClassification.trim() },
+      { field: "selectedSeverity", message: "Please select a severity level", valid: !!selectedSeverity },
+    ]);
+    if (!ok) return;
 
     const classificationLabel = diseaseClassification === "other"
       ? customClassification.trim()
       : DIAGNOSIS_OPTIONS.find((d) => d.value === diseaseClassification)?.label ?? diseaseClassification;
-
-    if (diseaseClassification === "other" && !customClassification.trim()) {
-      setSubmitError("Please enter a custom classification name."); return;
-    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -834,35 +843,41 @@ export default function ReviewPatientPage() {
               </button>
             </div>
           ) : (
-            <select
-              value={diseaseClassification}
-              onChange={(e) => setDiseaseClassification(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none"
-              style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
-            >
-              <option value="">— Select a classification —</option>
-              {DIAGNOSIS_OPTIONS.slice(0, -1).map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-              <option disabled>──────────────</option>
-              <option value="other">Other (Custom)</option>
-            </select>
+            <>
+              <select
+                ref={setFieldRef("diseaseClassification")}
+                value={diseaseClassification}
+                onChange={(e) => { setDiseaseClassification(e.target.value); clearError("diseaseClassification"); }}
+                className={`w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none ${errors.diseaseClassification ? "field-error-input" : ""}`}
+                style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
+              >
+                <option value="">— Select a classification —</option>
+                {DIAGNOSIS_OPTIONS.slice(0, -1).map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+                <option disabled>──────────────</option>
+                <option value="other">Other (Custom)</option>
+              </select>
+              {errors.diseaseClassification && <span className="field-error-message">{errors.diseaseClassification}</span>}
+            </>
           )}
         </div>
 
         {diseaseClassification === "other" && (
           <div className="mb-4">
             <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
-              Custom Classification <span style={{ color: "#dc2626" }}>*</span>
+              Custom Classification <span style={{ color: "var(--form-error)" }}>*</span>
             </label>
             <input
+              ref={setFieldRef("customClassification")}
               type="text"
               placeholder="Enter classification name..."
               value={customClassification}
-              onChange={(e) => setCustomClassification(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg text-sm outline-none"
+              onChange={(e) => { setCustomClassification(e.target.value); clearError("customClassification"); }}
+              className={`w-full px-4 py-2.5 rounded-lg text-sm outline-none ${errors.customClassification ? "field-error-input" : ""}`}
               style={{ border: "1px solid var(--color-primary-200)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
             />
+            {errors.customClassification && <span className="field-error-message">{errors.customClassification}</span>}
           </div>
         )}
 
@@ -883,14 +898,17 @@ export default function ReviewPatientPage() {
 
         <div className="mb-4">
           <label className="text-xs font-semibold uppercase tracking-wide block mb-2" style={{ color: "var(--color-text-secondary)" }}>
-            Severity <span style={{ color: "#dc2626" }}>*</span>
+            Severity <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div
+            ref={setFieldRef("selectedSeverity")}
+            className={`flex flex-wrap gap-2 rounded-lg ${errors.selectedSeverity ? "p-2 -m-2 field-error-input" : ""}`}
+          >
             {SEVERITY_OPTIONS.map((sev) => (
               <button
                 key={sev}
                 type="button"
-                onClick={() => setSelectedSeverity(sev)}
+                onClick={() => { setSelectedSeverity(sev); clearError("selectedSeverity"); }}
                 className="px-4 py-2 rounded-lg text-xs font-semibold transition-all"
                 style={selectedSeverity === sev
                   ? { background: "#b8936a", color: "#fff" }
@@ -900,6 +918,7 @@ export default function ReviewPatientPage() {
               </button>
             ))}
           </div>
+          {errors.selectedSeverity && <span className="field-error-message">{errors.selectedSeverity}</span>}
         </div>
 
         <div>
@@ -923,6 +942,8 @@ export default function ReviewPatientPage() {
           {submitError}
         </div>
       )}
+
+      <FormErrorSummary errors={errors} fieldLabels={fieldLabels} />
 
       {/* Confirm button */}
       <button

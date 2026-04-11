@@ -8,6 +8,8 @@ import { useLanguage } from "@/lib/language-context";
 import { TagInput } from "./TagInput";
 import type { PatientFormData } from "../wizard-types";
 import { BLOOD_GROUP_OPTIONS } from "@/lib/constants";
+import { useFormValidation, isFilled, isValidIndianPhone } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -35,11 +37,6 @@ interface DuplicatePatient {
   patient_display_id: string;
 }
 
-interface FormErrors {
-  fullName?: string;
-  phone?: string;
-}
-
 interface Step3DetailsProps {
   data: PatientFormData;
   onChange: (updated: PatientFormData) => void;
@@ -59,7 +56,8 @@ export function Step3Details({
 }: Step3DetailsProps) {
   const { user } = useAuthStore();
   const { t } = useLanguage();
-  const [errors, setErrors] = useState<FormErrors>({});
+  const { errors, setFieldRef, validateAll, clearError } = useFormValidation();
+  const fieldLabels = { fullName: "Full Name", phone: "Phone Number" };
   const [duplicate, setDuplicate] = useState<DuplicatePatient | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const recordInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +77,7 @@ export function Step3Details({
   const set = <K extends keyof PatientFormData>(field: K, value: PatientFormData[K]) => {
     onChange({ ...data, [field]: value });
     if (field === "fullName" || field === "phone") {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+      clearError(field as string);
     }
   };
 
@@ -126,16 +124,13 @@ export function Step3Details({
     set("medicalRecords", data.medicalRecords.filter((_, i) => i !== index));
   };
 
-  const validate = (): boolean => {
-    const e: FormErrors = {};
-    if (!data.fullName.trim()) e.fullName = t("ap_s3_name_error");
-    if (!/^\d{10}$/.test(data.phone)) e.phone = t("ap_s3_phone_error");
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
   const handleSave = () => {
-    if (validate()) onSave();
+    const ok = validateAll([
+      { field: "fullName", message: "Please enter the patient's full name", valid: isFilled(data.fullName) },
+      { field: "phone", message: "Please enter a phone number", valid: isFilled(data.phone) },
+      { field: "phone", message: "Please enter a valid 10-digit phone number", valid: isValidIndianPhone(data.phone) },
+    ]);
+    if (ok) onSave();
   };
 
   const sectionLabel = (text: string) => (
@@ -179,24 +174,25 @@ export function Step3Details({
         {/* Full Name */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s3_full_name")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s3_full_name")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
           <input
+            ref={setFieldRef("fullName")}
             type="text"
             value={data.fullName}
             onChange={(e) => set("fullName", e.target.value)}
             placeholder={t("ap_s3_name_placeholder")}
-            className={inputClass}
+            className={`${inputClass} ${errors.fullName ? "field-error-input" : ""}`}
           />
-          {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+          {errors.fullName && <span className="field-error-message">{errors.fullName}</span>}
         </div>
 
         {/* Phone */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
-            {t("ap_s3_phone")} <span style={{ color: "#c44a4a" }}>*</span>
+            {t("ap_s3_phone")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <div className="flex">
+          <div ref={setFieldRef("phone")} className="flex">
             <span
               className="flex items-center px-3 rounded-l-lg border border-r-0 border-primary-200 text-sm font-medium flex-shrink-0"
               style={{ background: "var(--color-surface)", color: "#5c3d18" }}
@@ -207,13 +203,20 @@ export function Step3Details({
               type="tel"
               value={data.phone}
               onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-              onBlur={handlePhoneBlur}
+              onBlur={() => {
+                handlePhoneBlur();
+                if (data.phone && !isValidIndianPhone(data.phone)) {
+                  validateAll([
+                    { field: "phone", message: "Please enter a valid 10-digit phone number", valid: false },
+                  ]);
+                }
+              }}
               placeholder="9876543210"
               maxLength={10}
-              className="flex-1 px-4 py-2.5 border border-primary-200 rounded-r-lg bg-surface text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className={`flex-1 px-4 py-2.5 border border-primary-200 rounded-r-lg bg-surface text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${errors.phone ? "field-error-input" : ""}`}
             />
           </div>
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          {errors.phone && <span className="field-error-message">{errors.phone}</span>}
           {checkingDuplicate && (
             <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{t("ap_s3_checking_dup")}</p>
           )}
@@ -493,8 +496,12 @@ export function Step3Details({
         )}
       </div>
 
+      <div className="mt-8">
+        <FormErrorSummary errors={errors} fieldLabels={fieldLabels} />
+      </div>
+
       {/* Navigation */}
-      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-10">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
         <button
           type="button"
           onClick={onBack}

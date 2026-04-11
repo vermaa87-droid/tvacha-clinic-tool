@@ -349,3 +349,79 @@ button:active:not(:disabled),
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   Form validation feedback (used by useFormValidation hook)
+   ============================================================ */
+
+/* Warm red used across light + dark modes for error feedback */
+:root {
+  --form-error: #b54a3a;
+  --form-error-glow: rgba(181, 74, 58, 0.32);
+}
+
+[data-theme="dark"] {
+  --form-error: #d96a55;
+  --form-error-glow: rgba(217, 106, 85, 0.45);
+}
+
+/* Red border on inputs/selects/textareas/buttons that failed validation.
+   Using attribute selector + class so we override default :focus styles. */
+.field-error-input,
+.field-error-input:focus {
+  border-color: var(--form-error) !important;
+  box-shadow: 0 0 0 1px var(--form-error) !important;
+}
+
+/* Pulse 3 times over ~1.5s when scroll-to-error fires */
+@keyframes fieldBlink {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--form-error);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--form-error-glow);
+  }
+}
+
+.field-blink {
+  animation: fieldBlink 0.5s ease-in-out 3;
+}
+
+/* Inline error message below a field */
+@keyframes formErrorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.field-error-message {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--form-error);
+  animation: formErrorFadeIn 0.2s ease-out;
+}
+
+/* Summary error message near submit button */
+.form-error-summary {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--form-error);
+  margin-bottom: 8px;
+  animation: formErrorFadeIn 0.2s ease-out;
+}
+
+/* Required-field asterisk on labels */
+.required-asterisk::after {
+  content: " *";
+  color: var(--form-error);
+  font-weight: 600;
+}
+

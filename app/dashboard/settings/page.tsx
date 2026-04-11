@@ -11,6 +11,8 @@ import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
 import { Copy, Check, Mail, Phone, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useFormValidation, isFilled } from "@/lib/use-form-validation";
+import { FormErrorSummary } from "@/components/ui/FieldError";
 
 export default function SettingsPage() {
   const { doctor, refreshDoctor } = useAuthStore();
@@ -44,8 +46,23 @@ export default function SettingsPage() {
   const [defaultFee, setDefaultFee] = useState(doctor?.default_consultation_fee ? String(doctor.default_consultation_fee) : "");
   const [savingFee, setSavingFee] = useState(false);
 
+  // Validation hooks for the three forms on this page
+  const profileForm = useFormValidation();
+  const letterheadForm = useFormValidation();
+  const feeForm = useFormValidation();
+  const profileLabels = { full_name: "Doctor Name" };
+  const letterheadLabels = { signatureFile: "Signature" };
+  const feeLabels = { defaultFee: "Default Fee" };
+
   const handleSaveDefaultFee = async () => {
     if (!doctor) return;
+
+    const ok = feeForm.validateAll([
+      { field: "defaultFee", message: "Please enter a default consultation fee", valid: isFilled(defaultFee) },
+      { field: "defaultFee", message: "Please enter a valid amount", valid: !isNaN(parseFloat(defaultFee)) && parseFloat(defaultFee) >= 0 },
+    ]);
+    if (!ok) return;
+
     setSavingFee(true);
     try {
       await supabase.from("doctors").update({ default_consultation_fee: parseFloat(defaultFee) || null }).eq("id", doctor.id);
@@ -59,6 +76,12 @@ export default function SettingsPage() {
 
   const handleLetterheadSave = async () => {
     if (!doctor) return;
+
+    const ok = letterheadForm.validateAll([
+      { field: "signatureFile", message: "Please choose a signature or logo file to upload", valid: !!signatureFile || !!logoFile },
+    ]);
+    if (!ok) return;
+
     setUploadingLetterhead(true);
     try {
       const uploads: Array<{ type: string; file: File }> = [];
@@ -100,6 +123,12 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     if (!doctor) return;
+
+    const ok = profileForm.validateAll([
+      { field: "full_name", message: "Please enter your name", valid: isFilled(editData.full_name) },
+    ]);
+    if (!ok) return;
+
     setSaving(true);
     await supabase.from("doctors").update(editData).eq("id", doctor.id);
     await refreshDoctor();
@@ -154,10 +183,13 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <Input
+                ref={profileForm.setFieldRef("full_name")}
                 label={t("settings_doctor_name")}
                 value={editing ? editData.full_name : doctor.full_name}
                 disabled={!editing}
-                onChange={(e) => setEditData((p) => ({ ...p, full_name: e.target.value }))}
+                onChange={(e) => { setEditData((p) => ({ ...p, full_name: e.target.value })); profileForm.clearError("full_name"); }}
+                required={editing}
+                error={profileForm.errors.full_name}
               />
               <Input label={t("settings_email")} type="email" value={doctor.email} disabled />
             </div>
@@ -177,12 +209,15 @@ export default function SettingsPage() {
             </div>
             <Input label={t("settings_reg_number")} value={doctor.registration_number} disabled />
             {editing ? (
-              <div className="flex gap-2">
-                <Button className="bg-primary-500 hover:bg-primary-600 text-white" onClick={handleSave} loading={saving}>
-                  {t("settings_save_changes")}
-                </Button>
-                <Button variant="ghost" onClick={() => setEditing(false)}>{t("common_cancel")}</Button>
-              </div>
+              <>
+                <FormErrorSummary errors={profileForm.errors} fieldLabels={profileLabels} />
+                <div className="flex gap-2">
+                  <Button className="bg-primary-500 hover:bg-primary-600 text-white" onClick={handleSave} loading={saving}>
+                    {t("settings_save_changes")}
+                  </Button>
+                  <Button variant="ghost" onClick={() => setEditing(false)}>{t("common_cancel")}</Button>
+                </div>
+              </>
             ) : (
               <Button variant="outline" className="border-primary-500 text-primary-500" onClick={handleStartEdit}>
                 {t("settings_edit_profile")}
@@ -291,6 +326,7 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+          <FormErrorSummary errors={letterheadForm.errors} fieldLabels={letterheadLabels} />
           {(signatureFile || logoFile) && (
             <Button className="bg-primary-500 hover:bg-primary-600 text-white mt-4" onClick={handleLetterheadSave} loading={uploadingLetterhead}>
               Save Letterhead
@@ -309,10 +345,12 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3 max-w-xs">
             <span className="text-text-primary font-medium text-lg">₹</span>
             <Input
+              ref={feeForm.setFieldRef("defaultFee")}
               type="number"
               placeholder="e.g. 500"
               value={defaultFee}
-              onChange={(e) => setDefaultFee(e.target.value)}
+              onChange={(e) => { setDefaultFee(e.target.value); feeForm.clearError("defaultFee"); }}
+              error={feeForm.errors.defaultFee}
             />
             <Button
               className="bg-primary-500 hover:bg-primary-600 text-white shrink-0"
@@ -321,6 +359,9 @@ export default function SettingsPage() {
             >
               Save
             </Button>
+          </div>
+          <div className="max-w-xs mt-2">
+            <FormErrorSummary errors={feeForm.errors} fieldLabels={feeLabels} />
           </div>
         </CardBody>
       </Card>
