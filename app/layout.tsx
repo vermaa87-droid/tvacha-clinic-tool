@@ -12,8 +12,13 @@ const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "Tvacha Clinic Tool",
-    template: "%s | Tvacha Clinic Tool",
+    default: "Tvacha Clinic",
+    template: "%s | Tvacha Clinic",
+  },
+  openGraph: {
+    title: "Tvacha Clinic",
+    description: "AI pre-screening, patient management, and analytics for dermatologists and GP clinics",
+    siteName: "Tvacha Clinic",
   },
   description: "AI pre-screening, patient management, and analytics for dermatologists and GP clinics",
 };

@@ -13,7 +13,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-center md:text-left">
           <div>
             <h3 className="font-serif font-semibold text-lg text-text-primary mb-4">
-              Tvacha Clinic Tool
+              Tvacha Clinic
             </h3>
             <p className="text-text-secondary text-sm mb-4">
               {t("footer_tagline")}
@@ -89,7 +89,7 @@ export function Footer() {
         </div>
         <div className="border-t border-primary-200 pt-8 text-center">
           <p className="text-text-secondary text-sm">
-            &copy; 2026 Tvacha Clinic Tool. {t("footer_rights")}
+            &copy; 2026 Tvacha Clinic. {t("footer_rights")}
           </p>
         </div>
       </div>

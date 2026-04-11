@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { DownloadSection } from "@/components/landing/DownloadSection";
 import { Button } from "@/components/ui/Button";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -69,7 +70,7 @@ export default function Home() {
             <Logo />
           </motion.div>
           <div className="flex items-center gap-4">
-            {["How Our AI Works", "Pricing", "Sign In"].map((label, i) => (
+            {["How Our AI Works", "Pricing", "Download", "Sign In"].map((label, i) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: -10 }}
@@ -77,10 +78,24 @@ export default function Home() {
                 transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
               >
                 <Link
-                  href={label === "Pricing" ? "/pricing" : label === "Sign In" ? "/login" : "/how-it-works"}
+                  href={
+                    label === "Pricing"
+                      ? "/pricing"
+                      : label === "Sign In"
+                      ? "/login"
+                      : label === "Download"
+                      ? "/#download"
+                      : "/how-it-works"
+                  }
                   className="text-text-secondary hover:text-text-primary font-medium transition-colors hidden md:block text-sm"
                 >
-                  {label === "How Our AI Works" ? t("nav_how_ai_works") : label === "Pricing" ? t("nav_pricing") : t("nav_signin")}
+                  {label === "How Our AI Works"
+                    ? t("nav_how_ai_works")
+                    : label === "Pricing"
+                    ? t("nav_pricing")
+                    : label === "Download"
+                    ? "Download"
+                    : t("nav_signin")}
                 </Link>
               </motion.div>
             ))}
@@ -150,6 +165,7 @@ export default function Home() {
                 {[
                   { label: t("nav_how_ai_works"), href: "/how-it-works" },
                   { label: t("nav_pricing"), href: "/pricing" },
+                  { label: "Download", href: "/#download" },
                   { label: t("nav_signin"), href: "/login" },
                 ].map(({ label, href }) => (
                   <Link
@@ -226,6 +242,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <DownloadSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-primary-500 text-white relative overflow-hidden">
