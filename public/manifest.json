@@ -2,7 +2,7 @@
   "name": "Tvacha Clinic",
   "short_name": "Tvacha",
   "description": "Clinical Intelligence Platform for India's Dermatologists",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

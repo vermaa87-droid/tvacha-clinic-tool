@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Zap, Monitor, Lock, Package, Download } from "lucide-react";
 
 const DOWNLOAD_URL =
-  "https://github.com/vermaa87-droid/tvacha-clinic-desktop/releases/latest/download/TvachaClinic-Setup.exe";
+  "https://github.com/vermaa87-droid/tvacha-clinic-desktop/releases/download/v1.0.0/TvachaClinic-Setup.exe";
 
 const features = [
   {
