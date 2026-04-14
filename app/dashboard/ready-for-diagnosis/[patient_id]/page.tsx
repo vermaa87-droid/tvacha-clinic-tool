@@ -10,6 +10,8 @@ import type { PrescriptionTemplate } from "@/lib/types";
 import { getHindiInstructions } from "@/lib/hindi-instructions";
 import { useFormValidation } from "@/lib/use-form-validation";
 import { FormErrorSummary } from "@/components/ui/FieldError";
+import { PatientBodyMapTab } from "@/components/dashboard/PatientBodyMapTab";
+import { PatientPackagesTab } from "@/components/dashboard/PatientPackagesTab";
 
 interface Medicine { name: string; dosage: string; frequency: string; duration: string; instructions?: string; }
 
@@ -732,6 +734,27 @@ export default function ReviewPatientPage() {
           </div>
         </div>
       </SectionCard>
+
+      {/* Body Map */}
+      {user && (
+        <SectionCard title="Body Map">
+          <PatientBodyMapTab
+            doctorId={user.id}
+            patientId={patientId}
+            visits={[]}
+          />
+        </SectionCard>
+      )}
+
+      {/* Treatment Packages */}
+      {user && (
+        <SectionCard title="Treatment Packages">
+          <PatientPackagesTab
+            doctorId={user.id}
+            patientId={patientId}
+          />
+        </SectionCard>
+      )}
 
       {/* Recommended Templates */}
       {recommendedTemplates.length > 0 && (

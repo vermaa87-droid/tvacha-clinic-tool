@@ -46,6 +46,14 @@ export default function SettingsPage() {
   const [defaultFee, setDefaultFee] = useState(doctor?.default_consultation_fee ? String(doctor.default_consultation_fee) : "");
   const [savingFee, setSavingFee] = useState(false);
 
+  // GST / Tax
+  const [gstin, setGstin] = useState(doctor?.gstin || "");
+  const [legalBusinessName, setLegalBusinessName] = useState(doctor?.legal_business_name || "");
+  const [stateCode, setStateCode] = useState(doctor?.state_code || "");
+  const [savingGst, setSavingGst] = useState(false);
+  const [gstMsg, setGstMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const gstForm = useFormValidation();
+
   // Validation hooks for the three forms on this page
   const profileForm = useFormValidation();
   const letterheadForm = useFormValidation();
@@ -53,6 +61,42 @@ export default function SettingsPage() {
   const profileLabels = { full_name: "Doctor Name" };
   const letterheadLabels = { signatureFile: "Signature" };
   const feeLabels = { defaultFee: "Default Fee" };
+
+  const handleSaveGst = async () => {
+    if (!doctor) return;
+    setGstMsg(null);
+    const trimmedGstin = gstin.trim().toUpperCase();
+    const trimmedState = stateCode.trim().toUpperCase();
+    const gstinValid = !trimmedGstin || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(trimmedGstin);
+    const stateValid = !trimmedState || /^[0-9A-Z]{2}$/.test(trimmedState);
+    const ok = gstForm.validateAll([
+      { field: "gstin", message: t("settings_gst_gstin_invalid"), valid: gstinValid },
+      { field: "state_code", message: t("settings_gst_state_code_invalid"), valid: stateValid },
+    ]);
+    if (!ok) return;
+
+    setSavingGst(true);
+    try {
+      const { error } = await supabase
+        .from("doctors")
+        .update({
+          gstin: trimmedGstin || null,
+          legal_business_name: legalBusinessName.trim() || null,
+          state_code: trimmedState || null,
+        })
+        .eq("id", doctor.id);
+      if (error) throw new Error(error.message);
+      await refreshDoctor();
+      setGstin(trimmedGstin);
+      setStateCode(trimmedState);
+      setGstMsg({ kind: "ok", text: t("settings_gst_save_success") });
+    } catch (err) {
+      console.error("[settings] save gst error:", err);
+      setGstMsg({ kind: "err", text: t("settings_gst_save_error") });
+    } finally {
+      setSavingGst(false);
+    }
+  };
 
   const handleSaveDefaultFee = async () => {
     if (!doctor) return;
@@ -173,6 +217,130 @@ export default function SettingsPage() {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">{t("settings_title")}</h1>
         <p className="text-text-secondary mt-2">{t("settings_subtitle")}</p>
       </div>
+
+      {/* Treatment Protocols link */}
+      <a
+        href="/dashboard/settings/protocols"
+        className="block rounded-lg border p-4 sm:p-5 transition-colors hover:bg-primary-50"
+        style={{
+          borderColor: "rgba(184,147,106,0.3)",
+          backgroundColor: "var(--color-card)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3
+              className="text-lg font-serif font-semibold text-text-primary"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {t("settings_protocols_link")}
+            </h3>
+            <p className="text-sm text-text-secondary mt-0.5">
+              {t("settings_protocols_link_desc")}
+            </p>
+          </div>
+          <span
+            aria-hidden
+            className="text-xl flex-shrink-0"
+            style={{ color: "#b8936a" }}
+          >
+            →
+          </span>
+        </div>
+      </a>
+
+      {/* Consent Templates link */}
+      <a
+        href="/dashboard/settings/consents"
+        className="block rounded-lg border p-4 sm:p-5 transition-colors hover:bg-primary-50"
+        style={{
+          borderColor: "rgba(184,147,106,0.3)",
+          backgroundColor: "var(--color-card)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3
+              className="text-lg font-serif font-semibold text-text-primary"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {t("settings_consents_link")}
+            </h3>
+            <p className="text-sm text-text-secondary mt-0.5">
+              {t("settings_consents_link_desc")}
+            </p>
+          </div>
+          <span
+            aria-hidden
+            className="text-xl flex-shrink-0"
+            style={{ color: "#b8936a" }}
+          >
+            →
+          </span>
+        </div>
+      </a>
+
+      {/* SMS Reminders link */}
+      <a
+        href="/dashboard/settings/sms"
+        className="block rounded-lg border p-4 sm:p-5 transition-colors hover:bg-primary-50"
+        style={{
+          borderColor: "rgba(184,147,106,0.3)",
+          backgroundColor: "var(--color-card)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3
+              className="text-lg font-serif font-semibold text-text-primary"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {t("settings_sms_link")}
+            </h3>
+            <p className="text-sm text-text-secondary mt-0.5">
+              {t("settings_sms_link_desc")}
+            </p>
+          </div>
+          <span
+            aria-hidden
+            className="text-xl flex-shrink-0"
+            style={{ color: "#b8936a" }}
+          >
+            →
+          </span>
+        </div>
+      </a>
+
+      {/* Package Templates link */}
+      <a
+        href="/dashboard/packages/templates"
+        className="block rounded-lg border p-4 sm:p-5 transition-colors hover:bg-primary-50"
+        style={{
+          borderColor: "rgba(184,147,106,0.3)",
+          backgroundColor: "var(--color-card)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3
+              className="text-lg font-serif font-semibold text-text-primary"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {t("settings_packages_link")}
+            </h3>
+            <p className="text-sm text-text-secondary mt-0.5">
+              {t("settings_packages_link_desc")}
+            </p>
+          </div>
+          <span
+            aria-hidden
+            className="text-xl flex-shrink-0"
+            style={{ color: "#b8936a" }}
+          >
+            →
+          </span>
+        </div>
+      </a>
 
       {/* Doctor Profile */}
       <Card>
@@ -362,6 +530,73 @@ export default function SettingsPage() {
           </div>
           <div className="max-w-xs mt-2">
             <FormErrorSummary errors={feeForm.errors} fieldLabels={feeLabels} />
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* GST & Tax */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-text-primary">{t("settings_gst_title")}</h3>
+        </CardHeader>
+        <CardBody>
+          <p className="text-text-secondary text-sm mb-4">{t("settings_gst_subtitle")}</p>
+          <div className="space-y-4">
+            <Input
+              label={t("settings_gst_legal_name")}
+              value={legalBusinessName}
+              onChange={(e) => setLegalBusinessName(e.target.value)}
+            />
+            <p className="text-xs text-text-secondary -mt-3">{t("settings_gst_legal_name_help")}</p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Input
+                  ref={gstForm.setFieldRef("gstin")}
+                  label={t("settings_gst_gstin")}
+                  value={gstin}
+                  onChange={(e) => { setGstin(e.target.value.toUpperCase()); gstForm.clearError("gstin"); }}
+                  maxLength={15}
+                  placeholder="27AAAPL1234C1Z1"
+                  error={gstForm.errors.gstin}
+                />
+                <p className="text-xs text-text-secondary">{t("settings_gst_gstin_help")}</p>
+              </div>
+              <div className="space-y-1">
+                <Input
+                  ref={gstForm.setFieldRef("state_code")}
+                  label={t("settings_gst_state_code")}
+                  value={stateCode}
+                  onChange={(e) => { setStateCode(e.target.value.toUpperCase()); gstForm.clearError("state_code"); }}
+                  maxLength={2}
+                  placeholder="27"
+                  error={gstForm.errors.state_code}
+                />
+                <p className="text-xs text-text-secondary">{t("settings_gst_state_code_help")}</p>
+              </div>
+            </div>
+
+            {gstMsg && (
+              <div
+                className={`text-sm rounded-md px-3 py-2 ${
+                  gstMsg.kind === "ok"
+                    ? "bg-success-bg text-success-text"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {gstMsg.text}
+              </div>
+            )}
+
+            <div>
+              <Button
+                className="bg-primary-500 hover:bg-primary-600 text-white"
+                onClick={handleSaveGst}
+                loading={savingGst}
+              >
+                {t("settings_gst_save")}
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>

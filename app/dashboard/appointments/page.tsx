@@ -14,7 +14,11 @@ import {
   VISIT_TYPE_OPTIONS,
   APPOINTMENT_STATUS_OPTIONS,
 } from "@/lib/constants";
-import { Calendar, Plus, ChevronLeft, ChevronRight, List } from "lucide-react";
+import { Calendar, Plus, ChevronLeft, ChevronRight, List, Users } from "lucide-react";
+import { TodaysQueueTab } from "@/components/dashboard/TodaysQueueTab";
+import { AppointmentReminderBadge } from "@/components/dashboard/AppointmentReminderBadge";
+import { ExportMenu } from "@/components/dashboard/ExportMenu";
+import { fetchLetterheadFromDoctor, type ClinicLetterhead, type ExportColumn } from "@/lib/export";
 import { useMutationQueue } from "@/lib/mutation-queue";
 import { useDataCache } from "@/lib/data-cache";
 import { useToast } from "@/components/ui/Toast";
@@ -135,7 +139,7 @@ function formatTime12(time: string): string {
 // ---------------------------------------------------------------------------
 
 export default function AppointmentsPage() {
-  const { user } = useAuthStore();
+  const { user, doctor } = useAuthStore();
   const { t } = useLanguage();
   const refreshTick = useRefreshTick();
   const router = useRouter();
@@ -144,11 +148,13 @@ export default function AppointmentsPage() {
   const { showToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [letterhead, setLetterhead] = useState<ClinicLetterhead | null>(null);
+  const [smsEnabled, setSmsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   // View mode
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [viewMode, setViewMode] = useState<"queue" | "list" | "calendar">("queue");
 
   // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -203,6 +209,26 @@ export default function AppointmentsPage() {
   useEffect(() => {
     fetchData(refreshTick > 0);
   }, [fetchData, refreshTick]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchLetterheadFromDoctor(user.id).then(setLetterhead);
+    supabase
+      .from("clinic_settings")
+      .select("sms_enabled")
+      .eq("clinic_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setSmsEnabled(!!data?.sms_enabled));
+  }, [user?.id]);
+
+  const appointmentExportColumns: ExportColumn<Appointment>[] = [
+    { key: "appointment_date", label: "Date" },
+    { key: "appointment_time", label: "Time" },
+    { key: "patient_id", label: "Patient", format: (r) => patients.find((p) => p.id === r.patient_id)?.name || "" },
+    { key: "reason", label: "Reason" },
+    { key: "status", label: "Status" },
+    { key: "notes", label: "Notes" },
+  ];
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for appointments table)
   useEffect(() => {
@@ -523,16 +549,36 @@ export default function AppointmentsPage() {
           <h1 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary">{t("apt_title")}</h1>
           <p className="text-text-secondary mt-2">{t("apt_subtitle")}</p>
         </div>
-        <Button
-          className="w-full sm:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide flex items-center justify-center gap-2"
-          onClick={() => setShowScheduleModal(true)}
-        >
-          <Plus size={18} /> {t("apt_schedule_btn")}
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <ExportMenu<Appointment>
+            title="Appointments"
+            filename="tvacha-appointments"
+            letterhead={letterhead}
+            columns={appointmentExportColumns}
+            rows={appointments}
+            dateField="appointment_date"
+          />
+          <Button
+            className="flex-1 sm:flex-none bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide flex items-center justify-center gap-2"
+            onClick={() => setShowScheduleModal(true)}
+          >
+            <Plus size={18} /> {t("apt_schedule_btn")}
+          </Button>
+        </div>
       </div>
 
       {/* View Toggle */}
       <div className="flex gap-2">
+        <button
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium rounded-lg transition-colors ${
+            viewMode === "queue"
+              ? "bg-[#7a5c35] text-white"
+              : "border border-[#b8936a]/50 text-[#7a5c35] hover:bg-primary-200"
+          }`}
+          onClick={() => setViewMode("queue")}
+        >
+          <Users size={15} /> {t("queue_tab")}
+        </button>
         <button
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium rounded-lg transition-colors ${
             viewMode === "list"
@@ -554,6 +600,22 @@ export default function AppointmentsPage() {
           <Calendar size={15} /> {t("apt_calendar_view")}
         </button>
       </div>
+
+      {/* ================================================================ */}
+      {/* TODAY'S QUEUE VIEW                                               */}
+      {/* ================================================================ */}
+      {viewMode === "queue" && doctor?.id && (
+        <TodaysQueueTab
+          doctorId={doctor.id}
+          clinicName={doctor.clinic_name}
+          scheduledToday={appointments.filter(
+            (a) =>
+              a.appointment_date === format(new Date(), "yyyy-MM-dd") &&
+              a.status !== "cancelled" &&
+              a.status !== "no_show"
+          )}
+        />
+      )}
 
       {/* ================================================================ */}
       {/* LIST VIEW                                                        */}
@@ -621,7 +683,16 @@ export default function AppointmentsPage() {
                           {reasonNotes || "—"}
                         </td>
                         <td className="py-3.5 px-4">
-                          <StatusBadge status={apt.status} />
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <StatusBadge status={apt.status} />
+                            <AppointmentReminderBadge
+                              appointmentDate={apt.appointment_date}
+                              appointmentTime={apt.appointment_time}
+                              reminderSentAt={apt.reminder_sent_at}
+                              smsEnabled={smsEnabled}
+                              compact
+                            />
+                          </div>
                         </td>
                         <td className="py-3.5 px-4">{renderActions(apt)}</td>
                       </tr>
@@ -646,12 +717,21 @@ export default function AppointmentsPage() {
                     }}
                   >
                     {/* Top row: date/time + status */}
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-2 gap-2">
                       <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         {formatDateHuman(apt.appointment_date)}
                         {apt.appointment_time ? ` \u00B7 ${formatTime12(apt.appointment_time)}` : ""}
                       </span>
-                      <StatusBadge status={apt.status} />
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <AppointmentReminderBadge
+                          appointmentDate={apt.appointment_date}
+                          appointmentTime={apt.appointment_time}
+                          reminderSentAt={apt.reminder_sent_at}
+                          smsEnabled={smsEnabled}
+                          compact
+                        />
+                        <StatusBadge status={apt.status} />
+                      </div>
                     </div>
 
                     {/* Patient name */}

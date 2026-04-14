@@ -5,6 +5,9 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
+import { PatientSatisfactionCard } from "@/components/dashboard/PatientSatisfactionCard";
+import { ExportMenu } from "@/components/dashboard/ExportMenu";
+import { fetchLetterheadFromDoctor, type ClinicLetterhead } from "@/lib/export";
 import { format, startOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import {
   ResponsiveContainer,
@@ -538,9 +541,22 @@ export default function AnalyticsPage() {
   return (
     <main className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">{t("analytics_title")}</h1>
-        <p className="text-text-secondary mt-2">{t("analytics_subtitle")}</p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-text-primary">{t("analytics_title")}</h1>
+          <p className="text-text-secondary mt-2">{t("analytics_subtitle")}</p>
+        </div>
+        <AnalyticsExport
+          doctorId={user?.id}
+          totals={{
+            totalPatients,
+            newPatientsMonth,
+            visitsMonth,
+            prescriptionsMonth,
+            appointmentsToday,
+            appointmentsWeek,
+          }}
+        />
       </div>
 
       {/* Overview Stats Row */}
@@ -818,6 +834,13 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {/* ── PATIENT SATISFACTION ───────────────────────────────────────── */}
+      {user?.id && (
+        <div className="mt-10">
+          <PatientSatisfactionCard doctorId={user.id} />
+        </div>
+      )}
+
       {/* ── EARNINGS ANALYTICS ──────────────────────────────────────────── */}
       <div className="mt-10">
         <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#b8936a", letterSpacing: "0.14em" }}>
@@ -939,5 +962,50 @@ export default function AnalyticsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+interface AnalyticsExportProps {
+  doctorId?: string;
+  totals: {
+    totalPatients: number;
+    newPatientsMonth: number;
+    visitsMonth: number;
+    prescriptionsMonth: number;
+    appointmentsToday: number;
+    appointmentsWeek: number;
+  };
+}
+
+function AnalyticsExport({ doctorId, totals }: AnalyticsExportProps) {
+  const { t } = useLanguage();
+  const [letterhead, setLetterhead] = useState<ClinicLetterhead | null>(null);
+
+  useEffect(() => {
+    if (!doctorId) return;
+    fetchLetterheadFromDoctor(doctorId).then(setLetterhead);
+  }, [doctorId]);
+
+  const rows = [
+    { metric: t("analytics_total_patients"), value: totals.totalPatients, period: t("dash_all_time") },
+    { metric: t("analytics_new_patients"), value: totals.newPatientsMonth, period: t("analytics_this_month") },
+    { metric: t("analytics_total_visits"), value: totals.visitsMonth, period: t("analytics_this_month") },
+    { metric: t("analytics_prescriptions"), value: totals.prescriptionsMonth, period: t("analytics_this_month") },
+    { metric: t("analytics_appointments"), value: totals.appointmentsToday, period: t("dash_today") },
+    { metric: t("analytics_appointments"), value: totals.appointmentsWeek, period: t("analytics_this_week") },
+  ];
+
+  return (
+    <ExportMenu<(typeof rows)[number]>
+      title={t("analytics_title")}
+      filename="tvacha-analytics-summary"
+      letterhead={letterhead}
+      rows={rows}
+      columns={[
+        { key: "metric", label: "Metric" },
+        { key: "value", label: "Value" },
+        { key: "period", label: "Period" },
+      ]}
+    />
   );
 }

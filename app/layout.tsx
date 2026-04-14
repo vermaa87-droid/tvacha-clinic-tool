@@ -5,6 +5,7 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { CustomCursor } from "@/components/CustomCursor";
 import { FloralVineBackground } from "@/components/FloralVineBackground";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 
@@ -21,7 +22,6 @@ export const metadata: Metadata = {
     siteName: "Tvacha Clinic",
   },
   description: "AI pre-screening, patient management, and analytics for dermatologists and GP clinics",
-  manifest: "/manifest.json",
   applicationName: "Tvacha Clinic",
   appleWebApp: {
     capable: true,
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2d4a3e",
+  themeColor: "#b8936a",
   width: "device-width",
   initialScale: 1,
 };
@@ -64,6 +64,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>
             <AuthProvider>
+              <ServiceWorkerRegistrar />
               <SmoothScroll>
                 <FloralVineBackground />
                 <CustomCursor />

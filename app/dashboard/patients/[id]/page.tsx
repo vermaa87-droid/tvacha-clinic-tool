@@ -11,6 +11,12 @@ import { Badge } from "@/components/ui/Badge";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { PatientPhotosTab } from "@/components/PatientPhotosTab";
+import { PatientPackagesTab } from "@/components/dashboard/PatientPackagesTab";
+import { PatientConsentsTab } from "@/components/dashboard/PatientConsentsTab";
+import { PatientProgressPhotosTab } from "@/components/dashboard/PatientProgressPhotosTab";
+import { PatientBodyMapTab } from "@/components/dashboard/PatientBodyMapTab";
+import { PatientInvoicesTab } from "@/components/dashboard/PatientInvoicesTab";
+import { FeedbackLinkButton } from "@/components/dashboard/FeedbackLinkButton";
 import type { Patient, Prescription, Medicine } from "@/lib/types";
 import {
   SEVERITY_OPTIONS,
@@ -44,6 +50,11 @@ import {
   Upload,
   Trash2,
   Pencil,
+  Package as PackageIcon,
+  FileSignature,
+  Sparkles,
+  Map as MapIcon,
+  Receipt,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useRefreshTick } from "@/lib/RefreshContext";
@@ -138,7 +149,12 @@ type TabKey =
   | "visits"
   | "prescriptions"
   | "photos"
+  | "progress"
+  | "body_map"
   | "lab_reports"
+  | "packages"
+  | "consents"
+  | "invoices"
   | "billing";
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
@@ -146,7 +162,12 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "visits", label: "Visits", icon: <Clipboard size={16} /> },
   { key: "prescriptions", label: "Prescriptions", icon: <FileText size={16} /> },
   { key: "photos", label: "Affected Area Photos", icon: <Camera size={16} /> },
+  { key: "progress", label: "Progress Photos", icon: <Sparkles size={16} /> },
+  { key: "body_map", label: "Body Map", icon: <MapIcon size={16} /> },
   { key: "lab_reports", label: "Lab Reports", icon: <FlaskConical size={16} /> },
+  { key: "packages", label: "Packages", icon: <PackageIcon size={16} /> },
+  { key: "consents", label: "Consents", icon: <FileSignature size={16} /> },
+  { key: "invoices", label: "Invoices", icon: <Receipt size={16} /> },
   { key: "billing", label: "Billing", icon: <DollarSign size={16} /> },
 ];
 
@@ -1707,6 +1728,16 @@ export default function PatientDetailPage({
                               </div>
                             )}
                           </div>
+
+                          {user?.id && !visit.id.startsWith("temp-") && (
+                            <div className="pt-2">
+                              <FeedbackLinkButton
+                                doctorId={user.id}
+                                patientId={patient.id}
+                                visitId={visit.id}
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </Card>
@@ -2122,6 +2153,53 @@ export default function PatientDetailPage({
                 </form>
               </Modal>
             </div>
+          )}
+
+          {/* ── Tab: PACKAGES ────────────────────────────────────────────── */}
+          {activeTab === "packages" && user && (
+            <PatientPackagesTab doctorId={user.id} patientId={params.id} />
+          )}
+
+          {/* ── Tab: CONSENTS ────────────────────────────────────────────── */}
+          {activeTab === "consents" && user && (
+            <PatientConsentsTab doctorId={user.id} patientId={params.id} />
+          )}
+
+          {/* ── Tab: PROGRESS PHOTOS ─────────────────────────────────────── */}
+          {activeTab === "progress" && user && (
+            <PatientProgressPhotosTab
+              doctorId={user.id}
+              patientId={params.id}
+              patientName={patient?.name}
+            />
+          )}
+
+          {/* ── Tab: BODY MAP ────────────────────────────────────────────── */}
+          {activeTab === "body_map" && user && (
+            <PatientBodyMapTab
+              doctorId={user.id}
+              patientId={params.id}
+              visits={visits.map((v) => ({
+                id: v.id,
+                visit_date: v.visit_date,
+                diagnosis: v.diagnosis,
+              }))}
+            />
+          )}
+
+          {/* ── Tab: INVOICES ────────────────────────────────────────────── */}
+          {activeTab === "invoices" && user && (
+            <PatientInvoicesTab
+              doctorId={user.id}
+              patientId={params.id}
+              patientName={patient?.name}
+              patientStateCode={null}
+              visits={visits.map((v) => ({
+                id: v.id,
+                visit_date: v.visit_date,
+                diagnosis: v.diagnosis,
+              }))}
+            />
           )}
 
           {/* ── Tab F: BILLING ────────────────────────────────────────────── */}

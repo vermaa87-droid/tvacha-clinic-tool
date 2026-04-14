@@ -4,6 +4,7 @@ import { AlertTriangle } from "lucide-react";
 import { RadioPills } from "./RadioPills";
 import { CheckboxPills } from "./CheckboxPills";
 import { FitzpatrickSwatches } from "./FitzpatrickSwatches";
+import { BodyMapSelector } from "@/components/dashboard/BodyMapSelector";
 import { useLanguage } from "@/lib/language-context";
 import type { ScreeningData } from "../wizard-types";
 import { useFormValidation } from "@/lib/use-form-validation";
@@ -115,18 +116,6 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
     { value: "severe", label: t("ap_s2_pain_severe") },
   ];
 
-  const BODY_LOCATION_OPTIONS = [
-    { value: "Face", label: t("ap_s2_body_face") },
-    { value: "Scalp", label: t("ap_s2_body_scalp") },
-    { value: "Neck", label: t("ap_s2_body_neck") },
-    { value: "Chest/Back", label: t("ap_s2_body_chest") },
-    { value: "Arms", label: t("ap_s2_body_arms") },
-    { value: "Hands/Fingers", label: t("ap_s2_body_hands") },
-    { value: "Legs", label: t("ap_s2_body_legs") },
-    { value: "Feet/Toes", label: t("ap_s2_body_feet") },
-    { value: "Groin/Armpits", label: t("ap_s2_body_groin") },
-    { value: "Multiple areas", label: t("ap_s2_body_multiple") },
-  ];
 
   const GENDER_OPTIONS = [
     { value: "male", label: t("ap_s2_male") },
@@ -371,22 +360,18 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
         </div>
 
         {/* Body location */}
-        <div>
-          <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--color-text-primary)" }}>
+        <div ref={setFieldRef("bodyLocation")}>
+          <label className="block text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
             {t("ap_s2_body_location")} <span style={{ color: "var(--form-error)" }}>*</span>
           </label>
-          <select
-            ref={setFieldRef("bodyLocation")}
+          <p className="text-xs mb-3" style={{ color: "var(--color-text-secondary)" }}>
+            Tap the affected area on the body diagram below
+          </p>
+          <BodyMapSelector
             value={data.bodyLocation}
-            onChange={(e) => set("bodyLocation", e.target.value)}
-            className={`${selectClass} ${errors.bodyLocation ? "field-error-input" : ""}`}
-          >
-            <option value="">{t("ap_s2_body_placeholder")}</option>
-            {BODY_LOCATION_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-          {errors.bodyLocation && <span className="field-error-message">{errors.bodyLocation}</span>}
+            onChange={(v) => set("bodyLocation", v)}
+            error={errors.bodyLocation}
+          />
         </div>
 
         {/* Fitzpatrick */}

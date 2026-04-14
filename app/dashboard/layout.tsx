@@ -9,6 +9,7 @@ import { useDataCache } from "@/lib/data-cache";
 import { VerificationPending } from "@/components/VerificationPending";
 import { RefreshProvider } from "@/lib/RefreshContext";
 import { ToastProvider } from "@/components/ui/Toast";
+import { PWAInstallBanner } from "@/components/dashboard/PWAInstallBanner";
 
 export default function DashboardLayout({
   children,
@@ -57,6 +58,7 @@ export default function DashboardLayout({
         onMobileClose={() => setMobileMenuOpen(false)}
       />
       <div className="flex-1 flex flex-col md:ml-64 min-w-0 overflow-x-hidden">
+        <PWAInstallBanner />
         <TopBar
           doctorName={doctor?.full_name}
           onMenuToggle={() => setMobileMenuOpen((prev) => !prev)}

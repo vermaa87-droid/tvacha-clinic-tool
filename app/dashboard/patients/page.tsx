@@ -13,6 +13,8 @@ import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
 import { Search, Users, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { ExportMenu } from "@/components/dashboard/ExportMenu";
+import { fetchLetterheadFromDoctor, type ClinicLetterhead, type ExportColumn } from "@/lib/export";
 import { useFormValidation, isFilled, isValidIndianPhone } from "@/lib/use-form-validation";
 import { FormErrorSummary } from "@/components/ui/FieldError";
 import {
@@ -70,6 +72,7 @@ export default function PatientsPage() {
   const { showToast } = useToast();
   const pendingDeletions = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [patients, setPatients] = useState<PatientWithDetails[]>([]);
+  const [letterhead, setLetterhead] = useState<ClinicLetterhead | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -116,6 +119,27 @@ export default function PatientsPage() {
   useEffect(() => {
     fetchPatients(refreshTick > 0);
   }, [fetchPatients, refreshTick]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchLetterheadFromDoctor(user.id).then(setLetterhead);
+  }, [user?.id]);
+
+  const exportColumns = useMemo<ExportColumn<PatientWithDetails>[]>(
+    () => [
+      { key: "patient_display_id", label: "Patient ID" },
+      { key: "name", label: "Name" },
+      { key: "age", label: "Age" },
+      { key: "gender", label: "Gender" },
+      { key: "phone", label: "Phone" },
+      { key: "current_diagnosis", label: "Diagnosis" },
+      { key: "severity", label: "Severity" },
+      { key: "total_visits", label: "Visits" },
+      { key: "last_visit_date", label: "Last Visit" },
+      { key: "treatment_status", label: "Status" },
+    ],
+    []
+  );
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for patients table)
   useEffect(() => {
@@ -354,13 +378,23 @@ export default function PatientsPage() {
             {t("patients_subtitle")}
           </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => { setFormError(""); setShowModal(true); }}
-          className="w-full md:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
-        >
-          {t("patients_add")}
-        </Button>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <ExportMenu<PatientWithDetails>
+            title="Patient Register"
+            filename="tvacha-patients"
+            letterhead={letterhead}
+            columns={exportColumns}
+            rows={filteredPatients}
+            dateField="created_at"
+          />
+          <Button
+            variant="primary"
+            onClick={() => { setFormError(""); setShowModal(true); }}
+            className="flex-1 md:flex-none bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide"
+          >
+            {t("patients_add")}
+          </Button>
+        </div>
       </div>
 
       {/* Search + Filter Bar */}

@@ -425,3 +425,69 @@ button:active:not(:disabled),
   font-weight: 600;
 }
 
+/* Print: strip chrome, expand main region, high-contrast text. */
+@media print {
+  @page {
+    margin: 18mm 14mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print,
+  nav,
+  aside,
+  header.app-header,
+  .sidebar,
+  .topbar,
+  .floral-vine-bg,
+  .neural-bg,
+  .custom-cursor,
+  button[data-print-hide],
+  [data-print-hide="true"] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  main,
+  .print-region {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}
+
+.print-only {
+  display: none;
+}

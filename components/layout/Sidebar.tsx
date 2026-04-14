@@ -15,6 +15,9 @@ import {
   X,
   UserPlus,
   Stethoscope,
+  Package,
+  Boxes,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
@@ -73,6 +76,9 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
     { labelKey: "dash_sidebar_ready_for_diagnosis" as const, href: "/dashboard/ready-for-diagnosis", icon: Stethoscope, badge: pendingCount > 0 ? String(pendingCount) : null, badgeIsCount: true, hideMobile: false },
     { labelKey: "dash_sidebar_register" as const, href: "/dashboard/register", icon: Table2, badge: null, badgeIsCount: false, hideMobile: true },
     { labelKey: "dash_sidebar_patients" as const, href: "/dashboard/patients", icon: Users, badge: null, badgeIsCount: false, hideMobile: false },
+    { labelKey: "dash_sidebar_packages" as const, href: "/dashboard/packages", icon: Package, badge: null, badgeIsCount: false, hideMobile: false },
+    { labelKey: "dash_sidebar_inventory" as const, href: "/dashboard/inventory", icon: Boxes, badge: null, badgeIsCount: false, hideMobile: false },
+    { labelKey: "dash_sidebar_lab_orders" as const, href: "/dashboard/lab-orders", icon: FlaskConical, badge: null, badgeIsCount: false, hideMobile: false },
     { labelKey: "dash_sidebar_prescriptions" as const, href: "/dashboard/prescriptions", icon: Pill, badge: null, badgeIsCount: false, hideMobile: false },
     { labelKey: "dash_sidebar_appointments" as const, href: "/dashboard/appointments", icon: Calendar, badge: null, badgeIsCount: false, hideMobile: false },
     { labelKey: "dash_sidebar_analytics" as const, href: "/dashboard/analytics", icon: BarChart3, badge: null, badgeIsCount: false, hideMobile: false },

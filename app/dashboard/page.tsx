@@ -23,12 +23,12 @@ import {
   Activity,
   Clock,
   Table2,
-  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import { format, formatDistanceToNow, endOfWeek, differenceInDays } from "date-fns";
+import { format, formatDistanceToNow, endOfWeek } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
 import { useRefreshTick } from "@/lib/RefreshContext";
+import { OverdueFollowupsList } from "@/components/dashboard/OverdueFollowupsList";
 
 interface ActivityItem {
   type: "patient" | "prescription" | "visit";
@@ -560,47 +560,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Overdue Follow-ups */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="text-yellow-500" size={20} />
-              <h3 className="text-lg font-serif font-semibold text-text-primary">
-                {t("dash_overdue_followups")}
-              </h3>
-              {overdueFollowups.length > 0 && (
-                <Badge variant="warning">{overdueFollowups.length}</Badge>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardBody>
-          {overdueFollowups.length > 0 ? (
-            <div className="space-y-3">
-              {overdueFollowups.map((patient) => {
-                const daysOverdue = differenceInDays(new Date(), new Date(patient.next_followup_date));
-                return (
-                  <Link
-                    key={patient.id}
-                    href={`/dashboard/patients/${patient.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-primary-50 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-text-primary text-sm truncate" title={capitalizeName(patient.name)}>{capitalizeName(patient.name)}</p>
-                      <p className="text-xs text-text-muted">
-                        {t("dash_followup_was")} {format(new Date(patient.next_followup_date), "MMM d, yyyy")}
-                      </p>
-                    </div>
-                    <Badge variant="warning" className="flex-shrink-0">{daysOverdue} {daysOverdue !== 1 ? t("dash_days_overdue") : t("dash_day_overdue")}</Badge>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-text-muted text-sm text-center py-6">{t("dash_no_overdue")}</p>
-          )}
-        </CardBody>
-      </Card>
+      <OverdueFollowupsList patients={overdueFollowups} />
 
       {/* Growing Together Card */}
       <div

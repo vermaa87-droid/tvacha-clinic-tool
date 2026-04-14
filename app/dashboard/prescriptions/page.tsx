@@ -20,6 +20,8 @@ import {
 import { useMutationQueue } from "@/lib/mutation-queue";
 import { useDataCache } from "@/lib/data-cache";
 import { useToast } from "@/components/ui/Toast";
+import { ExportMenu } from "@/components/dashboard/ExportMenu";
+import { fetchLetterheadFromDoctor, type ClinicLetterhead, type ExportColumn } from "@/lib/export";
 
 /* ------------------------------------------------------------------ */
 /*  Template edit form (kept from original)                           */
@@ -206,6 +208,7 @@ export default function PrescriptionsPage() {
   const [templates, setTemplates] = useState<PrescriptionTemplate[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [letterhead, setLetterhead] = useState<ClinicLetterhead | null>(null);
   const [loading, setLoading] = useState(true);
   const [rxSearch, setRxSearch] = useState("");
   const [tmplSearch, setTmplSearch] = useState("");
@@ -279,6 +282,19 @@ export default function PrescriptionsPage() {
     fetchAll(refreshTick > 0);
   }, [fetchAll, refreshTick]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchLetterheadFromDoctor(user.id).then(setLetterhead);
+  }, [user?.id]);
+
+  const exportColumns: ExportColumn<Prescription>[] = [
+    { key: "created_at", label: "Date", format: (r) => r.created_at ? format(new Date(r.created_at), "dd MMM yyyy") : "" },
+    { key: "patient_id", label: "Patient", format: (r) => patients.find((p) => p.id === r.patient_id)?.name || "" },
+    { key: "diagnosis", label: "Diagnosis" },
+    { key: "medicines", label: "Medicines", format: (r) => (r.medicines || []).map((m: Medicine) => m.name).filter(Boolean).join("; ") },
+    { key: "follow_up_date", label: "Follow-up" },
+    { key: "status", label: "Status" },
+  ];
 
   // Realtime: sync across devices (requires Supabase Realtime enabled for prescriptions table)
   useEffect(() => {
@@ -576,9 +592,19 @@ export default function PrescriptionsPage() {
           <h1 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary">{t("rx_title")}</h1>
           <p className="text-text-secondary mt-2">{t("rx_subtitle")}</p>
         </div>
-        <Button className="w-full sm:w-auto bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide" onClick={openCreatePrescription}>
-          + {t("rx_create_rx")}
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <ExportMenu<Prescription>
+            title="Prescriptions"
+            filename="tvacha-prescriptions"
+            letterhead={letterhead}
+            columns={exportColumns}
+            rows={prescriptions}
+            dateField="created_at"
+          />
+          <Button className="flex-1 sm:flex-none bg-[#7a5c35] hover:bg-[#5c4527] text-white tracking-wide" onClick={openCreatePrescription}>
+            + {t("rx_create_rx")}
+          </Button>
+        </div>
       </div>
 
       {/* ---------- Recent Prescriptions ---------- */}
