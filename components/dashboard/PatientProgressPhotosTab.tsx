@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
@@ -19,12 +20,23 @@ import {
   Sparkles,
   RotateCcw,
 } from "lucide-react";
-import {
-  ReactCompareSlider,
-  ReactCompareSliderImage,
-  ReactCompareSliderHandle,
-} from "react-compare-slider";
 import { Card, CardBody } from "@/components/ui/Card";
+
+// Lazy-loaded slider: ~15 KB of react-compare-slider only ships once a
+// before/after pair is actually selected. Matches 4/3 aspect container to
+// keep layout shift at zero while loading.
+const PhotoCompareSlider = dynamic(
+  () => import("@/components/dashboard/PhotoCompareSlider"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="bg-card rounded-lg animate-pulse"
+        style={{ aspectRatio: "4/3", width: "100%" }}
+      />
+    ),
+  }
+);
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -246,31 +258,9 @@ export function PatientProgressPhotosTab({
 
             {beforePhoto && afterPhoto ? (
               <div className="rounded-lg overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                <ReactCompareSlider
-                  itemOne={
-                    <ReactCompareSliderImage
-                      src={beforePhoto.photo_url}
-                      alt="Before"
-                      style={{ objectFit: "contain", backgroundColor: "#1a1612" }}
-                    />
-                  }
-                  itemTwo={
-                    <ReactCompareSliderImage
-                      src={afterPhoto.photo_url}
-                      alt="After"
-                      style={{ objectFit: "contain", backgroundColor: "#1a1612" }}
-                    />
-                  }
-                  handle={
-                    <ReactCompareSliderHandle
-                      buttonStyle={{
-                        backgroundColor: "#b8936a",
-                        border: "2px solid #faf8f4",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-                      }}
-                      linesStyle={{ backgroundColor: "#b8936a", width: 3 }}
-                    />
-                  }
+                <PhotoCompareSlider
+                  beforeSrc={beforePhoto.photo_url}
+                  afterSrc={afterPhoto.photo_url}
                 />
                 <p className="text-xs text-text-muted text-center mt-2">
                   {t("progress_compare_slider_hint")}

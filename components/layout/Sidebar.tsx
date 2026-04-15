@@ -70,20 +70,24 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
+  // prefetch=false on heavy, episodically-visited routes: /dashboard/analytics
+  // (recharts) and /dashboard/register (@tanstack/react-table bulk editor).
+  // Everything else keeps default prefetch because those routes are part of
+  // the daily workflow and benefit from the warm cache.
   const navItems = [
-    { labelKey: "dash_sidebar_dashboard" as const, href: "/dashboard", icon: Home, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_add_patient" as const, href: "/dashboard/add-patient", icon: UserPlus, badge: "AI", badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_ready_for_diagnosis" as const, href: "/dashboard/ready-for-diagnosis", icon: Stethoscope, badge: pendingCount > 0 ? String(pendingCount) : null, badgeIsCount: true, hideMobile: false },
-    { labelKey: "dash_sidebar_register" as const, href: "/dashboard/register", icon: Table2, badge: null, badgeIsCount: false, hideMobile: true },
-    { labelKey: "dash_sidebar_patients" as const, href: "/dashboard/patients", icon: Users, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_packages" as const, href: "/dashboard/packages", icon: Package, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_inventory" as const, href: "/dashboard/inventory", icon: Boxes, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_lab_orders" as const, href: "/dashboard/lab-orders", icon: FlaskConical, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_prescriptions" as const, href: "/dashboard/prescriptions", icon: Pill, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_appointments" as const, href: "/dashboard/appointments", icon: Calendar, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_analytics" as const, href: "/dashboard/analytics", icon: BarChart3, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_cases" as const, href: "/dashboard/cases", icon: FileText, badge: null, badgeIsCount: false, hideMobile: false },
-    { labelKey: "dash_sidebar_settings" as const, href: "/dashboard/settings", icon: Settings, badge: null, badgeIsCount: false, hideMobile: false },
+    { labelKey: "dash_sidebar_dashboard" as const, href: "/dashboard", icon: Home, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_add_patient" as const, href: "/dashboard/add-patient", icon: UserPlus, badge: "AI", badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_ready_for_diagnosis" as const, href: "/dashboard/ready-for-diagnosis", icon: Stethoscope, badge: pendingCount > 0 ? String(pendingCount) : null, badgeIsCount: true, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_register" as const, href: "/dashboard/register", icon: Table2, badge: null, badgeIsCount: false, hideMobile: true, prefetch: false },
+    { labelKey: "dash_sidebar_patients" as const, href: "/dashboard/patients", icon: Users, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_packages" as const, href: "/dashboard/packages", icon: Package, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_inventory" as const, href: "/dashboard/inventory", icon: Boxes, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_lab_orders" as const, href: "/dashboard/lab-orders", icon: FlaskConical, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_prescriptions" as const, href: "/dashboard/prescriptions", icon: Pill, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_appointments" as const, href: "/dashboard/appointments", icon: Calendar, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_analytics" as const, href: "/dashboard/analytics", icon: BarChart3, badge: null, badgeIsCount: false, hideMobile: false, prefetch: false },
+    { labelKey: "dash_sidebar_cases" as const, href: "/dashboard/cases", icon: FileText, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
+    { labelKey: "dash_sidebar_settings" as const, href: "/dashboard/settings", icon: Settings, badge: null, badgeIsCount: false, hideMobile: false, prefetch: true },
   ];
 
   const handleLogout = async () => {
@@ -129,6 +133,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
                 <li key={item.href} className={item.hideMobile ? "hidden md:block" : ""}>
                   <Link
                     href={item.href}
+                    prefetch={item.prefetch}
                     onClick={handleNavClick}
                     onMouseEnter={() => { if (user) prefetchAll(user.id); }}
                     className={cn(

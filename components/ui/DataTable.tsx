@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,6 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { ArrowUp, ArrowDown, Search, Download, Plus, Check } from "lucide-react";
+import { EditableCell } from "@/components/ui/EditableCell";
 
 interface DataTableProps<T> {
   data: T[];
@@ -27,86 +28,6 @@ interface DataTableProps<T> {
   loading?: boolean;
   emptyMessage?: string;
   emptyAction?: string;
-}
-
-// Editable cell component
-function EditableCell({
-  value: initialValue,
-  onSave,
-  type = "text",
-  options,
-  colorMap,
-  displayFormatter,
-  displayClassName,
-}: {
-  value: unknown;
-  onSave: (val: unknown) => void;
-  type?: "text" | "number" | "select" | "date";
-  options?: { value: string; label: string }[];
-  colorMap?: Record<string, string>;
-  displayFormatter?: (val: unknown) => string;
-  displayClassName?: string;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(initialValue);
-  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
-
-  useEffect(() => { setValue(initialValue); }, [initialValue]);
-  useEffect(() => {
-    if (editing && inputRef.current) inputRef.current.focus();
-  }, [editing]);
-
-  const save = () => {
-    setEditing(false);
-    if (value !== initialValue) onSave(value);
-  };
-
-  if (type === "select" && !editing) {
-    const display = options?.find((o) => o.value === value)?.label || String(value || "—");
-    const color = colorMap?.[String(value)] || "";
-    return (
-      <span
-        onClick={() => setEditing(true)}
-        className={cn("cursor-pointer inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium", color || "text-text-secondary hover:bg-primary-200")}
-      >
-        {display}
-      </span>
-    );
-  }
-
-  if (editing) {
-    if (type === "select") {
-      return (
-        <select
-          ref={inputRef as React.RefObject<HTMLSelectElement>}
-          value={String(value || "")}
-          onChange={(e) => { setValue(e.target.value); }}
-          onBlur={save}
-          className="w-full px-1 py-0.5 text-xs border border-primary-300 rounded bg-surface focus:outline-none focus:ring-1 focus:ring-primary-500"
-        >
-          <option value="">—</option>
-          {options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      );
-    }
-    return (
-      <input
-        ref={inputRef as React.RefObject<HTMLInputElement>}
-        type={type}
-        value={String(value ?? "")}
-        onChange={(e) => setValue(type === "number" ? Number(e.target.value) : e.target.value)}
-        onBlur={save}
-        onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") { setValue(initialValue); setEditing(false); } }}
-        className="w-full px-1 py-0.5 text-xs border border-primary-300 rounded bg-surface focus:outline-none focus:ring-1 focus:ring-primary-500"
-      />
-    );
-  }
-
-  return (
-    <span onClick={() => setEditing(true)} className={cn("cursor-pointer hover:bg-primary-200 px-1 py-0.5 rounded block min-h-[20px] text-xs", displayClassName)}>
-      {displayFormatter ? displayFormatter(value) : (value != null && value !== "" ? String(value) : "—")}
-    </span>
-  );
 }
 
 // Auto-save toast
@@ -301,4 +222,7 @@ export function DataTable<T extends Record<string, unknown>>({
   );
 }
 
+// Re-export so existing `import { EditableCell } from "@/components/ui/DataTable"`
+// keeps working, though new call sites should import from @/components/ui/EditableCell
+// to skip pulling @tanstack/react-table when only the cell renderer is needed.
 export { EditableCell };

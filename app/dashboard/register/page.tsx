@@ -1,8 +1,27 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import dynamic from "next/dynamic";
 import { type ColumnDef } from "@tanstack/react-table";
-import { DataTable, EditableCell } from "@/components/ui/DataTable";
+import { EditableCell } from "@/components/ui/EditableCell";
+
+// @tanstack/react-table is ~40 KB; lazy-load the DataTable itself so the
+// Clinic Register shell and column-defs render first, then the heavy table
+// hydrates. The skeleton matches the table's typical height to keep CLS at 0.
+const DataTable = dynamic(
+  () => import("@/components/ui/DataTable").then((m) => m.DataTable),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="bg-card rounded-xl animate-pulse"
+        style={{ height: 520, border: "1px solid rgba(184,147,106,0.2)" }}
+      />
+    ),
+  }
+) as <T extends Record<string, unknown>>(
+  props: React.ComponentProps<typeof import("@/components/ui/DataTable").DataTable<T>>
+) => JSX.Element;
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
