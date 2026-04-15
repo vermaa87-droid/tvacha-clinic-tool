@@ -1,15 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
-import { SmoothScroll } from "@/components/SmoothScroll";
-import { CustomCursor } from "@/components/CustomCursor";
-import { FloralVineBackground } from "@/components/FloralVineBackground";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 
-const outfit = Outfit({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], display: "swap" });
+
+// Self-hosted via next/font so the browser picks it up for Devanagari glyphs
+// without a render-blocking external stylesheet request.
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-devanagari",
+  display: "swap",
+});
+
+// Derived once so the preconnect link has a known origin at build time.
+const supabaseOrigin = (() => {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return null;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+})();
 
 export const metadata: Metadata = {
   title: {
@@ -55,23 +72,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
+        {supabaseOrigin && (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        )}
       </head>
-      <body className={outfit.className}>
+      <body className={`${outfit.className} ${notoDevanagari.variable}`}>
         <ThemeProvider>
           <LanguageProvider>
             <AuthProvider>
               <ServiceWorkerRegistrar />
-              <SmoothScroll>
-                <FloralVineBackground />
-                <CustomCursor />
-                <div style={{ position: "relative", zIndex: 1 }}>
-                  {children}
-                </div>
-              </SmoothScroll>
+              {children}
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
+import { useDemoModal } from "@/components/landing/DemoModalProvider";
 
 const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
@@ -29,8 +30,9 @@ function TextReveal({ text, className, delay = 0 }: { text: string; className?: 
   );
 }
 
-export function HeroSection({ onShowDemo }: { onShowDemo?: () => void }) {
+export function HeroSection() {
   const { t } = useLanguage();
+  const { openDemo } = useDemoModal();
   const mockupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -112,7 +114,7 @@ export function HeroSection({ onShowDemo }: { onShowDemo?: () => void }) {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <button
                   type="button"
-                  onClick={() => onShowDemo?.()}
+                  onClick={openDemo}
                   className="flex items-center gap-2 px-8 py-4 text-lg font-medium rounded-lg border-2 border-primary-500 text-primary-500 hover:bg-primary-50 transition-colors"
                 >
                   <Play size={18} /> {t("hero_cta_demo")}
