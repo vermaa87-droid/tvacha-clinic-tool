@@ -41,10 +41,10 @@ export async function POST(req: NextRequest) {
       data.doctor.logoUrl = logo || undefined;
     }
 
-    // Generate PDF buffer
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Generate PDF buffer. The cast is needed because @react-pdf/renderer's
+    // ambient types don't quite line up with React 18's element typings.
     const buffer = await renderToBuffer(
-      React.createElement(PrescriptionPDF, { data }) as any
+      React.createElement(PrescriptionPDF, { data }) as Parameters<typeof renderToBuffer>[0]
     );
 
     // Ensure bucket exists

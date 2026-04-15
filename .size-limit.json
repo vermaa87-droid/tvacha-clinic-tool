@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Shared JS (every route, brotli)",
+    "path": [
+      ".next/static/chunks/main-*.js",
+      ".next/static/chunks/framework-*.js",
+      ".next/static/chunks/webpack-*.js",
+      ".next/static/chunks/2117-*.js",
+      ".next/static/chunks/fd9d1056-*.js"
+    ],
+    "limit": "152 KB"
+  },
+  {
+    "name": "Route: / (landing)",
+    "path": ".next/static/chunks/app/\\(marketing\\)/page-*.js",
+    "limit": "9.5 KB"
+  },
+  {
+    "name": "Route: /pricing",
+    "path": ".next/static/chunks/app/\\(marketing\\)/pricing/page-*.js",
+    "limit": "3 KB"
+  },
+  {
+    "name": "Route: /how-it-works",
+    "path": ".next/static/chunks/app/\\(marketing\\)/how-it-works/page-*.js",
+    "limit": "8.5 KB"
+  },
+  {
+    "name": "Route: /login",
+    "path": ".next/static/chunks/app/login/page-*.js",
+    "limit": "7 KB"
+  },
+  {
+    "name": "Route: /signup",
+    "path": ".next/static/chunks/app/signup/page-*.js",
+    "limit": "8.5 KB"
+  },
+  {
+    "name": "Route: /dashboard",
+    "path": ".next/static/chunks/app/dashboard/page-*.js",
+    "limit": "7.5 KB"
+  },
+  {
+    "name": "Route: /dashboard/analytics",
+    "path": ".next/static/chunks/app/dashboard/analytics/page-*.js",
+    "limit": "7 KB"
+  },
+  {
+    "name": "Route: /dashboard/patients/[id]",
+    "path": ".next/static/chunks/app/dashboard/patients/[id]/page-*.js",
+    "limit": "28.5 KB"
+  },
+  {
+    "name": "Route: /dashboard/register",
+    "path": ".next/static/chunks/app/dashboard/register/page-*.js",
+    "limit": "17.5 KB"
+  },
+  {
+    "name": "Route: /dashboard/prescriptions",
+    "path": ".next/static/chunks/app/dashboard/prescriptions/page-*.js",
+    "limit": "15.5 KB"
+  }
+]

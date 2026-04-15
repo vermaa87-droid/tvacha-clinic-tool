@@ -193,7 +193,9 @@ export default function RegisterPage() {
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [showAddTreatment, setShowAddTreatment] = useState(false);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // `submitting` is read by Button loading={} props below; the setter is
+  // unused (always-false placeholder).
+  // eslint-disable-next-line no-unused-vars
   const [submitting, _setSubmitting] = useState(false);
 
   // ─── Data Fetching ─────────────────────────────────────────────────────────

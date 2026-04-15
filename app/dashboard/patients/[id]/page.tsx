@@ -244,7 +244,9 @@ export default function PatientDetailPage({
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [visitForm, setVisitForm] = useState(INITIAL_VISIT_FORM);
   const [visitMedicines, setVisitMedicines] = useState<MedicineRow[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // `visitSubmitting` is read by Button loading={} below; setter is an
+  // always-false placeholder.
+  // eslint-disable-next-line no-unused-vars
   const [visitSubmitting, _setVisitSubmitting] = useState(false);
   const [expandedVisitId, setExpandedVisitId] = useState<string | null>(null);
 
@@ -262,7 +264,9 @@ export default function PatientDetailPage({
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // `scheduleSubmitting` is read by Button loading={} below; setter is an
+  // always-false placeholder.
+  // eslint-disable-next-line no-unused-vars
   const [scheduleSubmitting, _setScheduleSubmitting] = useState(false);
 
   // Lab reports

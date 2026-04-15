@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "node scripts/analyze.cjs",
+    "size": "size-limit",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.4.0",
@@ -33,6 +36,10 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@next/bundle-analyzer": "^16.2.3",
+    "@size-limit/file": "^12.1.0",
+    "@size-limit/preset-app": "^12.1.0",
     "@types/node": "^20.11.5",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
@@ -40,6 +47,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.33",
+    "size-limit": "^12.1.0",
     "typescript": "^5.4.2"
   }
 }

@@ -12,3 +12,20 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cache/
+
+# Archived assets pulled out of /public during perf optimization — kept on disk
+# so we can restore easily, but not deployed. See: perf(phase-1) commit.
+_archived/
+
+# Phase 5 perf tooling outputs — generated on demand, never committed.
+# README and the *.example reference traces in perf-reports/ ARE committed;
+# the dynamic outputs below are not.
+.lighthouseci/
+perf-reports/analyze/
+perf-reports/profiler/*.json
+perf-reports/lhci/
+
+# Per-phase build snapshots used while tuning size-limit budgets.
+after-phase-*-build.txt
+knip-report.txt
+

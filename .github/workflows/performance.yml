@@ -1,0 +1,65 @@
+# Phase 5 scaffold — performance regression check.
+#
+# Drop-in workflow that builds the app and asserts every per-route /
+# shared-bundle size budget defined in .size-limit.json. Lighthouse CI
+# is included but commented out — uncomment once you've calibrated the
+# thresholds in .lighthouserc.json against actual scores from the target
+# environment (Vercel preview URL or local headless Chrome).
+#
+# To enable: this file already lives at the right path; just push it.
+# No secrets are required for `npm ci` + `npm run size`.
+
+name: Performance
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  size:
+    name: Bundle size budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Public env vars must be present at build time for the Next.js
+          # Supabase client to initialise; values default to non-secret
+          # placeholders so the build doesn't require secrets to be set.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}
+          NEXT_PUBLIC_AI_API_URL: ${{ secrets.NEXT_PUBLIC_AI_API_URL || 'https://placeholder' }}
+
+      - name: size-limit
+        run: npm run size
+
+  # ---------------------------------------------------------------------------
+  # Uncomment once .lighthouserc.json thresholds match the target environment
+  # (otherwise CI will fail on the very first run with default values).
+  # ---------------------------------------------------------------------------
+  # lighthouse:
+  #   name: Lighthouse CI
+  #   runs-on: ubuntu-latest
+  #   needs: size
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #         cache: npm
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - run: npm run lhci
