@@ -45,16 +45,3 @@ interface CardBodyProps {
 export function CardBody({ children, className }: CardBodyProps) {
   return <div className={cn("", className)}>{children}</div>;
 }
-
-interface CardFooterProps {
-  children: ReactNode;
-  className?: string;
-}
-
-export function CardFooter({ children, className }: CardFooterProps) {
-  return (
-    <div className={cn("mt-6 pt-4 border-t border-primary-200", className)}>
-      {children}
-    </div>
-  );
-}
