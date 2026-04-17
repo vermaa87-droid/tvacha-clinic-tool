@@ -4,7 +4,7 @@ import { AlertTriangle } from "lucide-react";
 import { RadioPills } from "./RadioPills";
 import { CheckboxPills } from "./CheckboxPills";
 import { FitzpatrickSwatches } from "./FitzpatrickSwatches";
-import { BodyMapSelector } from "@/components/dashboard/BodyMapSelector";
+import { BodyMap } from "@/components/dashboard/BodyMap";
 import { useLanguage } from "@/lib/language-context";
 import type { ScreeningData } from "../wizard-types";
 import { useFormValidation } from "@/lib/use-form-validation";
@@ -367,7 +367,7 @@ export function Step2Screening({ data, onChange, onBack, onNext }: Step2Screenin
           <p className="text-xs mb-3" style={{ color: "var(--color-text-secondary)" }}>
             Tap the affected area on the body diagram below
           </p>
-          <BodyMapSelector
+          <BodyMap
             value={data.bodyLocation}
             onChange={(v) => set("bodyLocation", v)}
             error={errors.bodyLocation}

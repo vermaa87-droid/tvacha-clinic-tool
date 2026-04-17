@@ -422,43 +422,7 @@ function BodyMapSvg({
           className="w-full h-auto block"
           style={{ touchAction: "manipulation" }}
         >
-          {/* ── Decorative silhouette backdrop (non-interactive) ── */}
-          <g
-            fill="rgba(184,147,106,0.04)"
-            stroke="#b8936a"
-            strokeWidth="0.5"
-            strokeLinejoin="round"
-            style={{ pointerEvents: "none" }}
-          >
-            {/* Head (full oval) */}
-            <ellipse cx="100" cy="44" rx="30" ry="36" />
-            {/* Neck */}
-            <path d="M 90 80 C 90 92 89 108 89 118 L 111 118 C 111 108 110 92 110 80 Z" />
-            {/* Torso */}
-            <path d="M 89 118 C 80 118 63 124 57 136 L 55 196 L 55 260 C 59 250 63 260 137 260 C 141 250 145 196 145 196 L 143 136 C 137 124 120 118 111 118 Z" />
-            {/* Right arm (viewer's left) */}
-            <path d="M 62 122 C 55 124 45 136 43 148 L 39 196 L 33 258 L 55 258 L 57 196 L 57 196 C 58 164 61 140 62 122 Z" />
-            {/* Left arm (viewer's right) */}
-            <path d="M 138 122 C 145 124 155 136 157 148 L 161 196 L 167 258 L 147 258 L 143 196 C 142 164 139 140 138 122 Z" />
-            {/* Right hand */}
-            <path d="M 33 260 L 55 260 C 56 274 56 286 52 290 C 47 295 37 295 33 290 C 30 286 30 274 33 260 Z" />
-            {/* Left hand */}
-            <path d="M 147 260 L 169 260 C 171 274 169 286 165 290 C 160 295 150 295 146 290 C 143 286 143 274 147 260 Z" />
-            {/* Right thigh */}
-            <path d="M 69 262 L 100 262 C 100 298 98 332 94 366 L 73 366 C 69 332 67 298 69 262 Z" />
-            {/* Left thigh */}
-            <path d="M 100 262 L 131 262 C 132 298 129 332 125 366 L 104 366 C 100 332 98 298 100 262 Z" />
-            {/* Right lower leg */}
-            <path d="M 73 368 L 94 368 C 96 404 96 436 94 454 L 78 454 C 76 436 74 404 73 368 Z" />
-            {/* Left lower leg */}
-            <path d="M 104 368 L 125 368 C 125 404 123 436 121 454 L 106 454 C 104 436 102 404 104 368 Z" />
-            {/* Right foot */}
-            <path d="M 92 455 C 92 463 90 471 84 475 C 76 479 64 476 60 468 C 58 461 61 455 74 455 Z" />
-            {/* Left foot */}
-            <path d="M 106 455 C 106 463 109 471 117 475 C 125 479 137 476 140 468 C 142 461 139 455 126 455 Z" />
-          </g>
-
-          {/* ── Interactive region overlays ── */}
+          {/* ── Interactive region segments — always visible, gold outline ── */}
           <g strokeLinejoin="round">
             {regions.map((r) => {
               const isMarked = markedRegionKeys.has(r.key);
@@ -473,11 +437,11 @@ function BodyMapSvg({
                         ? "rgba(220,38,38,0.30)"
                         : "rgba(220,38,38,0.18)"
                       : isHovered
-                      ? "rgba(184,147,106,0.22)"
-                      : "transparent"
+                      ? "rgba(184,147,106,0.20)"
+                      : "rgba(184,147,106,0.06)"
                   }
-                  stroke={isMarked ? "#dc2626" : isHovered ? "#b8936a" : "transparent"}
-                  strokeWidth={isMarked ? "1.4" : "1"}
+                  stroke={isMarked ? "#dc2626" : "#b8936a"}
+                  strokeWidth={isMarked ? "1.4" : "0.8"}
                   style={{ cursor: "pointer", transition: "fill 0.12s ease" }}
                   onMouseEnter={() => setHoverRegion(r.key)}
                   onMouseLeave={() => setHoverRegion(null)}

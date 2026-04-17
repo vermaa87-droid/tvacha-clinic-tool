@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Pencil, Plus, Power, Check, X, Package as PackageIcon } from "lucide-react";
+import { Pencil, Plus, Power, Check, X, Trash2, Package as PackageIcon } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
@@ -34,6 +35,7 @@ function emptyDraft(): DraftTemplate {
 export default function PackageTemplatesPage() {
   const { doctor } = useAuthStore();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [templates, setTemplates] = useState<PackageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
@@ -98,7 +100,11 @@ export default function PackageTemplatesPage() {
           .insert({ ...draft, doctor_id: doctor.id, clinic_id: doctor.id })
           .select("*")
           .single();
-        if (!error && data) {
+        if (error) {
+          showToast({ message: t("common_error") });
+          return;
+        }
+        if (data) {
           setTemplates((prev) =>
             [...prev, data as PackageTemplate].sort((a, b) =>
               a.name.localeCompare(b.name)
@@ -113,7 +119,11 @@ export default function PackageTemplatesPage() {
           .eq("doctor_id", doctor.id)
           .select("*")
           .single();
-        if (!error && data) {
+        if (error) {
+          showToast({ message: t("common_error") });
+          return;
+        }
+        if (data) {
           setTemplates((prev) =>
             prev.map((p) => (p.id === editingId ? (data as PackageTemplate) : p))
           );
@@ -138,6 +148,21 @@ export default function PackageTemplatesPage() {
       .eq("id", p.id)
       .eq("doctor_id", doctor?.id ?? "");
     if (error) setTemplates(prev);
+  };
+
+  const deleteTemplate = async (p: PackageTemplate) => {
+    if (!confirm(`Permanently delete "${p.name}"? This cannot be undone.`)) return;
+    const prev = templates;
+    setTemplates((list) => list.filter((x) => x.id !== p.id));
+    const { error } = await supabase
+      .from("package_templates")
+      .delete()
+      .eq("id", p.id)
+      .eq("doctor_id", doctor?.id ?? "");
+    if (error) {
+      setTemplates(prev);
+      showToast({ message: t("common_error") });
+    }
   };
 
   const isEditing = editingId !== null;
@@ -244,6 +269,7 @@ export default function PackageTemplatesPage() {
                     template={p}
                     onEdit={() => startEdit(p)}
                     onToggle={() => toggleActive(p)}
+                    onDelete={() => deleteTemplate(p)}
                     disabled={isEditing}
                   />
                 )}
@@ -261,12 +287,14 @@ function TemplateRow({
   template,
   onEdit,
   onToggle,
+  onDelete,
   disabled,
 }: {
   t: ReturnType<typeof useLanguage>["t"];
   template: PackageTemplate;
   onEdit: () => void;
   onToggle: () => void;
+  onDelete: () => void;
   disabled: boolean;
 }) {
   return (
@@ -335,6 +363,15 @@ function TemplateRow({
               {template.is_active
                 ? t("packages_template_deactivate")
                 : t("packages_template_reactivate")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              disabled={disabled}
+              className="min-h-[44px] inline-flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>

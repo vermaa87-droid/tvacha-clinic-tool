@@ -24,6 +24,10 @@ _archived/
 perf-reports/analyze/
 perf-reports/profiler/*.json
 perf-reports/lhci/
+# measure.sh writes per-label snapshots (e.g. perf-reports/baseline/,
+# perf-reports/after-phase-3/). Ignore everything except the README.
+perf-reports/*/
+!perf-reports/.gitkeep
 
 # Per-phase build snapshots used while tuning size-limit budgets.
 after-phase-*-build.txt

@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -421,6 +422,15 @@ function ReviewModal({ isOpen, onClose, order, onSaved }: ReviewModalProps) {
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !order?.result_pdf_url) { setSignedUrl(null); return; }
+    supabase.storage
+      .from("lab-results")
+      .createSignedUrl(order.result_pdf_url, 3600)
+      .then(({ data }) => setSignedUrl(data?.signedUrl ?? null));
+  }, [isOpen, order?.result_pdf_url]);
 
   useEffect(() => {
     if (isOpen) setReviewNotes(order?.doctor_review_notes ?? "");
@@ -464,9 +474,9 @@ function ReviewModal({ isOpen, onClose, order, onSaved }: ReviewModalProps) {
             </div>
           )}
 
-          {order.result_pdf_url && (
+          {signedUrl && (
             <a
-              href={order.result_pdf_url}
+              href={signedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 font-medium"
@@ -504,14 +514,16 @@ interface OrderRowProps {
   onUploadResults: (o: LabOrder) => void;
   onReview: (o: LabOrder) => void;
   onCancel: (o: LabOrder) => void;
+  onDelete: (o: LabOrder) => void;
   t: (k: TranslationKey) => string;
 }
 
-function OrderRow({ order, onSampleCollect, onUploadResults, onReview, onCancel, t }: OrderRowProps) {
+function OrderRow({ order, onSampleCollect, onUploadResults, onReview, onCancel, onDelete, t }: OrderRowProps) {
   const canSample = order.status === "ordered";
   const canUpload = order.status === "ordered" || order.status === "sample_collected" || order.status === "in_progress";
   const canReview = order.status === "results_available";
   const canCancel = order.status !== "cancelled" && order.status !== "reviewed";
+  const canDelete = order.status === "ordered";
 
   return (
     <tr className="hover:bg-primary-50 transition-colors">
@@ -585,6 +597,15 @@ function OrderRow({ order, onSampleCollect, onUploadResults, onReview, onCancel,
               {t("lab_action_cancel")}
             </button>
           )}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(order)}
+              className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Delete order"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       </td>
     </tr>
@@ -654,6 +675,20 @@ export default function LabOrdersPage() {
     if (error) { showToast({ message: t("lab_toast_error") }); return; }
     showToast({ message: t("lab_toast_updated") });
     fetchOrders();
+  }
+
+  async function handleDelete(order: LabOrder) {
+    if (!confirm(`Permanently delete this lab order for "${order.test_name}"? This cannot be undone.`)) return;
+    const prev = orders;
+    setOrders((list) => list.filter((o) => o.id !== order.id));
+    const { error } = await supabase
+      .from("lab_orders")
+      .delete()
+      .eq("id", order.id);
+    if (error) {
+      setOrders(prev);
+      showToast({ message: t("lab_toast_error") });
+    }
   }
 
   return (
@@ -817,6 +852,7 @@ export default function LabOrdersPage() {
                     onUploadResults={(o) => setUploadTarget(o)}
                     onReview={(o) => setReviewTarget(o)}
                     onCancel={handleCancel}
+                    onDelete={handleDelete}
                     t={t}
                   />
                 ))}

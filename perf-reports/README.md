@@ -17,6 +17,12 @@ npm run size
 # Lighthouse CI — boots `next start`, runs Chrome headless against
 # the URLs in .lighthouserc.json, asserts perf/a11y thresholds.
 npm run lhci
+
+# One-shot snapshot: clean build + static/server sizes + top chunks +
+# source stats (LOC, divs, "use client" count). Output goes to
+# perf-reports/<label>/ — useful before/after a perf change.
+./measure.sh baseline
+./measure.sh after-phase-N
 ```
 
 ## Current size-limit budgets

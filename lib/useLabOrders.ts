@@ -173,8 +173,8 @@ export async function uploadLabResult(params: {
     });
   if (upErr) return { data: null, error: new Error(upErr.message) };
 
-  const { data: pub } = supabase.storage.from("lab-results").getPublicUrl(path);
-  const resultPdfUrl = pub?.publicUrl ?? path;
+  // Private bucket — store the storage path itself; generate a signed URL on demand when viewing.
+  const resultPdfUrl = path;
 
   return markResultsAvailable(params.orderId, {
     resultPdfUrl,

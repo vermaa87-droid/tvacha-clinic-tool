@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Search,
   ShoppingCart,
+  Trash2,
   TrendingDown,
   X,
 } from "lucide-react";
@@ -389,17 +390,19 @@ function StockInModal({ isOpen, onClose, doctorId, clinicId, preselectedItemId, 
       showToast({ message: t("inv_toast_error") });
       return;
     }
-    // Log stock transaction
-    await supabase.from("stock_transactions").insert({
+    // Log stock transaction (audit entry — non-critical, batch already saved above)
+    const { error: txError } = await supabase.from("stock_transactions").insert({
       item_id: form.item_id,
       doctor_id: doctorId,
       clinic_id: clinicId,
       transaction_type: "receipt",
       quantity_change: Number(form.qty),
-      reference_type: form.invoice_number ? "invoice" : null,
-      reference_id: form.invoice_number || null,
-      reason: "Stock received",
+      reference_type: form.invoice_number.trim() ? "invoice" : null,
+      reason: form.invoice_number.trim()
+        ? `Stock received — Invoice: ${form.invoice_number.trim()}`
+        : "Stock received",
     });
+    if (txError) console.warn("[inventory] stock_transactions insert failed:", txError);
     setSaving(false);
     showToast({ message: t("inv_toast_batch_added") });
     onSaved();
@@ -775,6 +778,7 @@ export default function InventoryPage() {
   const [stockInItemId, setStockInItemId] = useState<string | null>(null);
   const [showReorder, setShowReorder] = useState(false);
 
+  const { showToast } = useToast();
   const doctorId = doctor?.id ?? "";
   const clinicId = doctor?.id ?? ""; // clinic_id = doctor_id convention in this schema
 
@@ -839,6 +843,21 @@ export default function InventoryPage() {
   function openStockIn(itemId?: string) {
     setStockInItemId(itemId ?? null);
     setShowStockIn(true);
+  }
+
+  async function handleDeleteItem(itemId: string, itemName: string) {
+    if (!confirm(`Delete "${itemName}" and all its stock batches? This cannot be undone.`)) return;
+    const prev = stock;
+    setStock((list) => list.filter((r) => r.item_id !== itemId));
+    const { error } = await supabase
+      .from("inventory_items")
+      .delete()
+      .eq("id", itemId)
+      .eq("doctor_id", doctorId);
+    if (error) {
+      setStock(prev);
+      showToast({ message: t("inv_toast_error") });
+    }
   }
 
   // ── Near-expiry warning banner ──
@@ -1060,12 +1079,21 @@ export default function InventoryPage() {
                         <StockStatusBadge row={row} />
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => openStockIn(row.item_id)}
-                          className="text-xs text-primary-600 hover:text-primary-800 font-medium px-2 py-1 rounded hover:bg-primary-100 transition-colors"
-                        >
-                          + {t("inv_stock_in")}
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openStockIn(row.item_id)}
+                            className="text-xs text-primary-600 hover:text-primary-800 font-medium px-2 py-1 rounded hover:bg-primary-100 transition-colors"
+                          >
+                            + {t("inv_stock_in")}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(row.item_id, row.name)}
+                            className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete item"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
