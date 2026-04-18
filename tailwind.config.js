@@ -53,6 +53,9 @@ module.exports = {
         DEFAULT: "var(--shadow-default)",
         sm: "var(--shadow-sm)",
         lg: "var(--shadow-lg)",
+        /* Use shadow-row on repeating list items — tiny single-layer shadow
+           with a warm tint instead of stacking shadow-xl/2xl */
+        row: "0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(139 90 43 / 0.06)",
       },
       borderRadius: {
         DEFAULT: "8px",
