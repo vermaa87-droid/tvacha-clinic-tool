@@ -118,7 +118,7 @@ export function TopBar({
   const hasNotifications = notifications.length > 0;
 
   return (
-    <div className="bg-primary-50 border-b border-primary-200 sticky top-0 z-40">
+    <div className="bg-primary-50 border-b border-primary-200 sticky top-0 z-40 will-change-transform [contain:layout_paint]">
       <div className="px-3 sm:px-4 md:px-8 py-2 md:py-4 flex items-center justify-between min-w-0">
         <div className="flex items-center gap-3">
           <button

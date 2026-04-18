@@ -322,7 +322,7 @@ export default function HowItWorksPage() {
 
       {/* Navbar */}
       <nav
-        className="sticky top-0 z-40"
+        className="sticky top-0 z-40 will-change-transform [contain:layout_paint]"
         style={{
           background: "var(--nav-bg-scrolled)",
           borderBottom: "1px solid var(--color-primary-200)",

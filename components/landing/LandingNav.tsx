@@ -29,7 +29,7 @@ export function LandingNav() {
   return (
     <>
       <motion.nav
-        className="sticky top-0 z-40 transition-all duration-300"
+        className="sticky top-0 z-40 transition-all duration-300 will-change-transform [contain:layout_paint]"
         style={{
           backgroundColor: scrolled ? "var(--nav-bg-scrolled)" : "transparent",
           borderBottom: scrolled

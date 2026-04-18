@@ -109,7 +109,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; o
 
       <div
         className={cn(
-          "w-64 min-h-screen fixed left-0 top-0 pt-24 flex flex-col z-50 transition-transform duration-300 overflow-hidden",
+          "w-64 min-h-screen fixed left-0 top-0 pt-24 flex flex-col z-50 transition-transform duration-300 overflow-hidden will-change-transform [contain:layout_paint]",
           "md:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
