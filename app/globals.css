@@ -339,13 +339,18 @@ button:active:not(:disabled),
   scrollbar-width: none;
 }
 
-/* Respect reduced motion */
+/* Respect reduced motion — stop all decorative animations instantly.
+   .field-blink is exempted because it carries functional error feedback. */
 @media (prefers-reduced-motion: reduce) {
   .float-element {
     animation: none;
+    will-change: auto;
   }
-  * {
+  *:not(.field-blink),
+  *:not(.field-blink)::before,
+  *:not(.field-blink)::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
