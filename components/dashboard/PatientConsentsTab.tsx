@@ -137,7 +137,6 @@ export function PatientConsentsTab({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                layout
               >
                 <ConsentRow record={rec} t={t} patientId={patientId} />
               </motion.div>

@@ -121,7 +121,6 @@ export function OverdueFollowupsList({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    layout
                     className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border"
                     style={severityStyle}
                   >

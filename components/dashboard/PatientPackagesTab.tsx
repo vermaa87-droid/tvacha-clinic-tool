@@ -167,7 +167,6 @@ export function PatientPackagesTab({ doctorId, patientId }: Props) {
                     key={p.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    layout
                   >
                     <PackageCard
                       t={t}
@@ -192,7 +191,6 @@ export function PatientPackagesTab({ doctorId, patientId }: Props) {
                     key={p.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    layout
                   >
                     <PackageCard
                       t={t}
