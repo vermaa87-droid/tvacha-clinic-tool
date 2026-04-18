@@ -568,6 +568,8 @@ export function NeuralNetworkBackground() {
         height: "100vh",
         pointerEvents: "all",
         zIndex: 0,
+        willChange: "transform",
+        transform: "translateZ(0)",
       }}
     />
   );

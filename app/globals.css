@@ -152,7 +152,6 @@ html {
 body {
   @apply bg-primary-50 text-text-primary font-sans;
   background-image: var(--bg-grain);
-  background-attachment: fixed;
   position: relative;
 }
 
