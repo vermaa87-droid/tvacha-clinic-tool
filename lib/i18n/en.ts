@@ -1292,6 +1292,7 @@ export const en = {
     bodymap_region_neck: "Neck",
     bodymap_region_chest: "Chest",
     bodymap_region_abdomen: "Abdomen",
+    bodymap_region_groin: "Groin",
     bodymap_region_upper_back: "Upper back",
     bodymap_region_lower_back: "Lower back",
     bodymap_region_left_upper_arm: "Left upper arm",

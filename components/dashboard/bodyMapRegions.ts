@@ -170,6 +170,15 @@ export const BODY_REGIONS: BodyRegion[] = [
     centroid: { x: 42, y: 276 },
   },
 
+  // Groin (centre, between thighs, below abdomen)
+  {
+    key: "groin",
+    view: "front",
+    labelKey: "bodymap_region_groin",
+    path: "M 83 260 L 117 260 L 113 280 L 87 280 Z",
+    centroid: { x: 100, y: 270 },
+  },
+
   // Left thigh (viewer's right, x 100–131)
   {
     key: "left_thigh",

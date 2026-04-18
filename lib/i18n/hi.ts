@@ -1277,6 +1277,7 @@ export const hi: EnTranslations = {
     bodymap_region_neck: "गर्दन",
     bodymap_region_chest: "छाती",
     bodymap_region_abdomen: "पेट",
+    bodymap_region_groin: "कमर/ग्रोइन",
     bodymap_region_upper_back: "ऊपरी पीठ",
     bodymap_region_lower_back: "निचली पीठ",
     bodymap_region_left_upper_arm: "बायां ऊपरी हाथ",
