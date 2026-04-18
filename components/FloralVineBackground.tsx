@@ -581,7 +581,7 @@ export function FloralVineBackground() {
     const setup = (rebuildVines: boolean) => {
       const w = window.innerWidth;
       const h = Math.max(document.documentElement.scrollHeight, window.innerHeight);
-      const dpr = mobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = mobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = "100%";
@@ -617,11 +617,23 @@ export function FloralVineBackground() {
         setup(widthChanged);
       }, 300);
     };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      } else if (!doneRef.current) {
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
     window.addEventListener("resize", onResize);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
       clearTimeout(timer);
     };
   }, [pathname, build, animate, freezeCanvas]);

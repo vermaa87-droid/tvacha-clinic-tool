@@ -435,7 +435,7 @@ export function NeuralNetworkBackground() {
       const parent = canvas.parentElement;
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       const w = rect.width;
       const h = rect.height;
 
@@ -534,8 +534,19 @@ export function NeuralNetworkBackground() {
     lastDataFlowRef.current = performance.now();
     animRef.current = requestAnimationFrame(draw);
 
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animRef.current);
+        animRef.current = 0;
+      } else {
+        animRef.current = requestAnimationFrame(draw);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(animRef.current);
+      document.removeEventListener("visibilitychange", onVisibility);
       ro.disconnect();
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseleave", onMouseLeave);
