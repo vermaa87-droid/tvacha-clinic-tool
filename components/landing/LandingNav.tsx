@@ -32,7 +32,6 @@ export function LandingNav() {
         className="sticky top-0 z-40 transition-all duration-300"
         style={{
           backgroundColor: scrolled ? "var(--nav-bg-scrolled)" : "transparent",
-          backdropFilter: scrolled ? "blur(12px)" : "none",
           borderBottom: scrolled
             ? "1px solid var(--nav-border-scrolled)"
             : "1px solid transparent",

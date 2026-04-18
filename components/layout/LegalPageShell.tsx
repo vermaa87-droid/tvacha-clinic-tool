@@ -86,7 +86,7 @@ export function LegalPageShell({ title, lastUpdated, children }: LegalPageShellP
         {/* Top nav */}
         <nav
           className="border-b border-primary-200 sticky top-0 z-40"
-          style={{ background: "var(--nav-bg-scrolled)", backdropFilter: "blur(12px)" }}
+          style={{ background: "var(--nav-bg-scrolled)" }}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
             <Logo />

@@ -324,8 +324,7 @@ export default function HowItWorksPage() {
       <nav
         className="sticky top-0 z-40"
         style={{
-          background: "var(--color-surface)",
-          backdropFilter: "blur(12px)",
+          background: "var(--nav-bg-scrolled)",
           borderBottom: "1px solid var(--color-primary-200)",
         }}
       >

@@ -43,8 +43,8 @@
   --auth-input-text: #3d2e22;
   --auth-input-placeholder: #c0b0a0;
 
-  /* Navbar */
-  --nav-bg-scrolled: rgba(250,248,244,0.92);
+  /* Navbar — solid so the browser skips the backdrop-blur composite layer */
+  --nav-bg-scrolled: rgba(250,248,244,0.97);
   --nav-border-scrolled: #e8e0d0;
   --nav-shadow-scrolled: 0 1px 20px rgba(26,22,18,0.04);
 
@@ -102,8 +102,8 @@
   --auth-input-text: #f5efe6;
   --auth-input-placeholder: #6b5d4f;
 
-  /* Navbar */
-  --nav-bg-scrolled: rgba(26,22,18,0.92);
+  /* Navbar — solid so the browser skips the backdrop-blur composite layer */
+  --nav-bg-scrolled: rgba(26,22,18,0.97);
   --nav-border-scrolled: #3d3530;
   --nav-shadow-scrolled: 0 1px 20px rgba(0,0,0,0.2);
 
