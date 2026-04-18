@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -203,6 +204,28 @@ export default function PatientsPage() {
 
     return result;
   }, [patients, search, filterStatus, filterSeverity, sortBy]);
+
+  // Responsive column count for the virtualizer
+  const [cols, setCols] = useState(3);
+  const patientListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const update = () => {
+      if (window.innerWidth < 768) setCols(1);
+      else if (window.innerWidth < 1024) setCols(2);
+      else setCols(3);
+    };
+    update();
+    window.addEventListener("resize", update, { passive: true });
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const patientRowCount = Math.ceil(filteredPatients.length / cols);
+  const patientVirtualizer = useWindowVirtualizer({
+    count: patientRowCount,
+    estimateSize: () => 195,
+    overscan: 4,
+    scrollMargin: patientListRef.current?.offsetTop ?? 0,
+  });
 
   const handleFormChange = (
     e: React.ChangeEvent<
@@ -454,120 +477,146 @@ export default function PatientsPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPatients.map((patient) => {
-            const initials = (() => {
-              const parts = (patient.name || "").trim().split(/\s+/).filter(Boolean);
-              if (parts.length === 0) return "?";
-              if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-              return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-            })();
+        <div
+          ref={patientListRef}
+          style={{ height: patientVirtualizer.getTotalSize() + "px", position: "relative" }}
+        >
+          {patientVirtualizer.getVirtualItems().map((virtualRow) => {
+            const startIdx = virtualRow.index * cols;
+            const rowItems = filteredPatients.slice(startIdx, Math.min(startIdx + cols, filteredPatients.length));
             return (
-              <Link key={patient.id} href={`/dashboard/patients/${patient.id}`} className="block group">
-                <div
-                  className="relative flex flex-col h-full rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
-                  style={{ border: "1px solid rgba(184,147,106,0.2)" }}
-                >
-                  {/* Left accent border */}
-                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#b8936a] group-hover:bg-[#2d4a3e] transition-colors duration-200" />
-
-                  {/* Overflow/delete button — hidden until hover */}
-                  <button
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1.5 rounded-full hover:bg-red-50 z-10"
-                    style={{ color: "var(--color-text-muted)" }}
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
-                    title="Remove patient"
-                  >
-                    <MoreHorizontal size={15} />
-                  </button>
-
-                  <div className="flex flex-col flex-1 pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4 gap-2.5 sm:gap-3">
-                    {/* Top: Avatar + Name + ID */}
-                    <div className="flex items-start gap-2.5 sm:gap-3 pr-6">
+              <div
+                key={virtualRow.index}
+                data-index={virtualRow.index}
+                ref={patientVirtualizer.measureElement}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  transform: `translateY(${virtualRow.start - patientVirtualizer.options.scrollMargin}px)`,
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                  gap: "1.25rem",
+                  paddingBottom: "1.25rem",
+                }}
+              >
+                {rowItems.map((patient) => {
+                  const initials = (() => {
+                    const parts = (patient.name || "").trim().split(/\s+/).filter(Boolean);
+                    if (parts.length === 0) return "?";
+                    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+                    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+                  })();
+                  return (
+                    <Link key={patient.id} href={`/dashboard/patients/${patient.id}`} className="block group">
                       <div
-                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm select-none"
-                        style={{ background: "#b8936a" }}
+                        className="relative flex flex-col h-full rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
+                        style={{ border: "1px solid rgba(184,147,106,0.2)" }}
                       >
-                        {initials}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className="font-serif font-bold text-text-primary text-base sm:text-xl leading-tight truncate capitalize"
-                          title={patient.name}
+                        {/* Left accent border */}
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#b8936a] group-hover:bg-[#2d4a3e] transition-colors duration-200" />
+
+                        {/* Overflow/delete button — hidden until hover */}
+                        <button
+                          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1.5 rounded-full hover:bg-red-50 z-10"
+                          style={{ color: "var(--color-text-muted)" }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPatientToDelete(patient); }}
+                          title="Remove patient"
                         >
-                          {patient.name}
-                        </p>
-                        {patient.patient_display_id && (
-                          <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-                            {patient.patient_display_id}
-                          </p>
-                        )}
+                          <MoreHorizontal size={15} />
+                        </button>
+
+                        <div className="flex flex-col flex-1 pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4 gap-2.5 sm:gap-3">
+                          {/* Top: Avatar + Name + ID */}
+                          <div className="flex items-start gap-2.5 sm:gap-3 pr-6">
+                            <div
+                              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm select-none"
+                              style={{ background: "#b8936a" }}
+                            >
+                              {initials}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className="font-serif font-bold text-text-primary text-base sm:text-xl leading-tight truncate capitalize"
+                                title={patient.name}
+                              >
+                                {patient.name}
+                              </p>
+                              {patient.patient_display_id && (
+                                <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+                                  {patient.patient_display_id}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Middle: Age/Gender + Chief Complaint */}
+                          <div className="space-y-1.5">
+                            {(patient.age || patient.gender) && (
+                              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                                {patient.age ? `${patient.age} yrs` : ""}
+                                {patient.age && patient.gender ? " · " : ""}
+                                {patient.gender
+                                  ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)
+                                  : ""}
+                              </p>
+                            )}
+                            {patient.current_diagnosis && (
+                              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                                <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
+                                  Classification:
+                                </span>{" "}
+                                {patient.current_diagnosis}
+                              </p>
+                            )}
+                            {patient.chief_complaint && (
+                              <p className="text-sm line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
+                                <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
+                                  {t("patients_chief_complaint")}
+                                </span>{" "}
+                                {patient.chief_complaint}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Spacer */}
+                          <div className="flex-1" />
+
+                          {/* Divider */}
+                          <div style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }} />
+
+                          {/* Bottom: Badges + Visit info */}
+                          <div className="flex items-start sm:items-center justify-between gap-2">
+                            <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
+                              {patient.treatment_status && (
+                                <Badge className={TREATMENT_STATUS_COLORS[patient.treatment_status] || ""}>
+                                  {TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label || patient.treatment_status}
+                                </Badge>
+                              )}
+                              {patient.severity && (
+                                <Badge className={SEVERITY_COLORS[patient.severity] || ""}>
+                                  {SEVERITY_OPTIONS.find((o) => o.value === patient.severity)?.label || patient.severity}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                                {patient.last_visit_date
+                                  ? new Date(patient.last_visit_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                                  : t("patients_last_visit") + " N/A"}
+                              </p>
+                              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                                {patient.total_visits ?? 0} {t("patients_visits")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Middle: Age/Gender + Chief Complaint */}
-                    <div className="space-y-1.5">
-                      {(patient.age || patient.gender) && (
-                        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                          {patient.age ? `${patient.age} yrs` : ""}
-                          {patient.age && patient.gender ? " · " : ""}
-                          {patient.gender
-                            ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)
-                            : ""}
-                        </p>
-                      )}
-                      {patient.current_diagnosis && (
-                        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                          <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
-                            Classification:
-                          </span>{" "}
-                          {patient.current_diagnosis}
-                        </p>
-                      )}
-                      {patient.chief_complaint && (
-                        <p className="text-sm line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
-                          <span className="font-medium" style={{ color: "var(--color-text-muted)" }}>
-                            {t("patients_chief_complaint")}
-                          </span>{" "}
-                          {patient.chief_complaint}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Spacer */}
-                    <div className="flex-1" />
-
-                    {/* Divider */}
-                    <div style={{ borderTop: "1px solid rgba(184,147,106,0.15)" }} />
-
-                    {/* Bottom: Badges + Visit info */}
-                    <div className="flex items-start sm:items-center justify-between gap-2">
-                      <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
-                        {patient.treatment_status && (
-                          <Badge className={TREATMENT_STATUS_COLORS[patient.treatment_status] || ""}>
-                            {TREATMENT_STATUS_OPTIONS.find((o) => o.value === patient.treatment_status)?.label || patient.treatment_status}
-                          </Badge>
-                        )}
-                        {patient.severity && (
-                          <Badge className={SEVERITY_COLORS[patient.severity] || ""}>
-                            {SEVERITY_OPTIONS.find((o) => o.value === patient.severity)?.label || patient.severity}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                          {patient.last_visit_date
-                            ? new Date(patient.last_visit_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-                            : t("patients_last_visit") + " N/A"}
-                        </p>
-                        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                          {patient.total_visits ?? 0} {t("patients_visits")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
         </div>

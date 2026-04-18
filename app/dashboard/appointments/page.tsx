@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -251,6 +252,23 @@ export default function AppointmentsPage() {
       return dateA.localeCompare(dateB);
     });
   }, [appointments]);
+
+  // Virtualizers for the list view (desktop table + mobile cards)
+  const aptDesktopRef = useRef<HTMLTableSectionElement>(null);
+  const aptMobileRef = useRef<HTMLDivElement>(null);
+
+  const aptDesktopVirt = useWindowVirtualizer({
+    count: sortedAppointments.length,
+    estimateSize: () => 57,
+    overscan: 5,
+    scrollMargin: aptDesktopRef.current?.offsetTop ?? 0,
+  });
+  const aptMobileVirt = useWindowVirtualizer({
+    count: sortedAppointments.length,
+    estimateSize: () => 165,
+    overscan: 3,
+    scrollMargin: aptMobileRef.current?.offsetTop ?? 0,
+  });
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -648,13 +666,22 @@ export default function AppointmentsPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {sortedAppointments.map((apt, i) => {
+                <tbody ref={aptDesktopRef}>
+                  {aptDesktopVirt.getVirtualItems().length > 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ height: Math.max(0, aptDesktopVirt.getVirtualItems()[0].start - aptDesktopVirt.options.scrollMargin) }} />
+                    </tr>
+                  )}
+                  {aptDesktopVirt.getVirtualItems().map((vRow) => {
+                    const apt = sortedAppointments[vRow.index];
+                    const i = vRow.index;
                     const inactive = isInactive(apt.status);
                     const reasonNotes = [apt.reason, apt.notes].filter(Boolean).join(" — ");
                     return (
                       <tr
                         key={apt.id}
+                        data-index={vRow.index}
+                        ref={aptDesktopVirt.measureElement}
                         className="group transition-colors hover:bg-primary-200"
                         style={{
                           background: i % 2 === 0 ? "var(--color-card)" : "var(--color-surface)",
@@ -698,61 +725,86 @@ export default function AppointmentsPage() {
                       </tr>
                     );
                   })}
+                  {aptDesktopVirt.getVirtualItems().length > 0 && (() => {
+                    const items = aptDesktopVirt.getVirtualItems();
+                    const paddingBottom = aptDesktopVirt.getTotalSize() - (items.at(-1)?.end ?? 0);
+                    return paddingBottom > 0 ? (
+                      <tr><td colSpan={8} style={{ height: paddingBottom }} /></tr>
+                    ) : null;
+                  })()}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile card view */}
-            <div className="md:hidden flex flex-col gap-3 p-3">
-              {sortedAppointments.map((apt) => {
+            <div
+              ref={aptMobileRef}
+              className="md:hidden p-3"
+              style={{ position: "relative", height: aptMobileVirt.getTotalSize() + "px" }}
+            >
+              {aptMobileVirt.getVirtualItems().map((vRow) => {
+                const apt = sortedAppointments[vRow.index];
                 const inactive = isInactive(apt.status);
                 return (
                   <div
                     key={apt.id}
-                    className="bg-card rounded-xl border-l-[3px] border-[#b8936a] p-4"
+                    data-index={vRow.index}
+                    ref={aptMobileVirt.measureElement}
                     style={{
-                      border: "1px solid var(--color-primary-200)",
-                      borderLeft: "3px solid #b8936a",
-                      opacity: inactive ? 0.55 : 1,
+                      position: "absolute",
+                      top: 0,
+                      left: "0.75rem",
+                      right: "0.75rem",
+                      transform: `translateY(${vRow.start - aptMobileVirt.options.scrollMargin}px)`,
+                      paddingBottom: "0.75rem",
                     }}
                   >
-                    {/* Top row: date/time + status */}
-                    <div className="flex items-center justify-between mb-2 gap-2">
-                      <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                        {formatDateHuman(apt.appointment_date)}
-                        {apt.appointment_time ? ` \u00B7 ${formatTime12(apt.appointment_time)}` : ""}
-                      </span>
-                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                        <AppointmentReminderBadge
-                          appointmentDate={apt.appointment_date}
-                          appointmentTime={apt.appointment_time}
-                          reminderSentAt={apt.reminder_sent_at}
-                          smsEnabled={smsEnabled}
-                          compact
-                        />
-                        <StatusBadge status={apt.status} />
-                      </div>
-                    </div>
-
-                    {/* Patient name */}
-                    <p className="font-serif font-bold capitalize text-base mb-2" style={{ color: "var(--color-text-primary)" }}>
-                      {apt.patients?.name || "Unknown"}
-                    </p>
-
-                    {/* Type + Duration */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
-                        {typeLabel(apt.type)}
-                      </span>
-                      {apt.duration_minutes && (
-                        <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
-                          {apt.duration_minutes} min
+                    <div
+                      className="bg-card rounded-xl p-4"
+                      style={{
+                        border: "1px solid var(--color-primary-200)",
+                        borderLeft: "3px solid #b8936a",
+                        opacity: inactive ? 0.55 : 1,
+                      }}
+                    >
+                      {/* Top row: date/time + status */}
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                          {formatDateHuman(apt.appointment_date)}
+                          {apt.appointment_time ? ` \u00B7 ${formatTime12(apt.appointment_time)}` : ""}
                         </span>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          <AppointmentReminderBadge
+                            appointmentDate={apt.appointment_date}
+                            appointmentTime={apt.appointment_time}
+                            reminderSentAt={apt.reminder_sent_at}
+                            smsEnabled={smsEnabled}
+                            compact
+                          />
+                          <StatusBadge status={apt.status} />
+                        </div>
+                      </div>
 
-                    {/* Actions */}
-                    <div>{renderActions(apt)}</div>
+                      {/* Patient name */}
+                      <p className="font-serif font-bold capitalize text-base mb-2" style={{ color: "var(--color-text-primary)" }}>
+                        {apt.patients?.name || "Unknown"}
+                      </p>
+
+                      {/* Type + Duration */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-[#7a5c35]">
+                          {typeLabel(apt.type)}
+                        </span>
+                        {apt.duration_minutes && (
+                          <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                            {apt.duration_minutes} min
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div>{renderActions(apt)}</div>
+                    </div>
                   </div>
                 );
               })}
