@@ -149,7 +149,7 @@ export function DownloadSection() {
             <p
               className="text-xs font-medium uppercase mb-4"
               style={{
-                color: "#b8936a",
+                color: "var(--sidebar-active-color)",
                 letterSpacing: "0.2em",
                 fontFamily: "var(--font-outfit, 'Outfit'), sans-serif",
               }}
@@ -188,9 +188,9 @@ export function DownloadSection() {
                       <Icon size={18} style={{ color: "#b8936a" }} />
                     </div>
                     <div className="flex-1">
-                      <p className="text-text-primary">
+                      <p className="text-text-primary text-[17px] leading-relaxed">
                         <span className="font-semibold">{f.title}</span>
-                        <span className="text-text-secondary font-light">
+                        <span className="text-text-secondary">
                           {" "}
                           — {f.desc}
                         </span>
@@ -226,7 +226,7 @@ export function DownloadSection() {
                 href={WINDOWS_DOWNLOAD_URL}
                 download
                 className="block text-center text-sm font-medium py-3 transition-colors"
-                style={{ color: "#8a7968" }}
+                style={{ color: "var(--color-text-secondary)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#b8936a")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#8a7968")}
               >
@@ -237,7 +237,7 @@ export function DownloadSection() {
             <a
               href="https://www.tvacha-clinic.com"
               className="inline-block mt-6 text-sm font-light transition-colors"
-              style={{ color: "#8a7968" }}
+              style={{ color: "var(--color-text-secondary)" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#b8936a")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#8a7968")}
             >
@@ -304,7 +304,7 @@ export function DownloadSection() {
                     >
                       Good morning, Dr. Sharma
                     </p>
-                    <p className="text-xs" style={{ color: "#8a7968" }}>
+                    <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
                       You have 4 cases awaiting review
                     </p>
                   </div>
@@ -337,7 +337,7 @@ export function DownloadSection() {
                       <p className="text-xl font-serif font-bold" style={{ color: "#b8936a" }}>
                         {stat.value}
                       </p>
-                      <p className="text-[10px]" style={{ color: "#8a7968" }}>
+                      <p className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
                         {stat.label}
                       </p>
                     </div>
@@ -347,7 +347,7 @@ export function DownloadSection() {
                 <div className="space-y-2">
                   <p
                     className="text-[10px] uppercase font-semibold tracking-wider"
-                    style={{ color: "#8a7968" }}
+                    style={{ color: "var(--color-text-secondary)" }}
                   >
                     Case Queue
                   </p>
@@ -378,7 +378,7 @@ export function DownloadSection() {
                           <p className="text-xs font-medium truncate" style={{ color: "#3d3229" }}>
                             {c.name}
                           </p>
-                          <p className="text-[10px] truncate" style={{ color: "#8a7968" }}>
+                          <p className="text-[10px] truncate" style={{ color: "var(--color-text-secondary)" }}>
                             {c.cond}
                           </p>
                         </div>

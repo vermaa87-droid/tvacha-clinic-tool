@@ -15,7 +15,9 @@
   --color-surface: #edeae5;
   --color-card: #faf8f4;
   --color-text-primary: #1a1612;
-  --color-text-secondary: #9a8a76;
+  /* Darkened from #9a8a76 (~3.2:1 on ivory, fails AA) → #5a4d3f (~6.5:1, passes AA).
+     Affects all body/subtitle/label text using `text-text-secondary`. */
+  --color-text-secondary: #5a4d3f;
   --color-text-muted: #6b5d4f;
   --color-success-bg: #e8f5e8;
   --color-separator: rgba(180,150,100,0.15);
@@ -77,7 +79,9 @@
   --color-surface: #252019;
   --color-card: #2a2420;
   --color-text-primary: #f5efe6;
-  --color-text-secondary: #a09585;
+  /* Brightened from #a09585 (~6.8:1) → #b5a998 (~8.2:1) for parity with
+     the light-mode secondary contrast bump. */
+  --color-text-secondary: #b5a998;
   --color-text-muted: #8a7e70;
   --color-success-bg: #1a2e1a;
   --color-separator: rgba(184,147,106,0.12);

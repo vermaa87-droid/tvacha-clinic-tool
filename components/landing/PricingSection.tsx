@@ -129,7 +129,7 @@ export function PricingSection() {
             >
               <p
                 className="text-lg font-extrabold tracking-wide uppercase"
-                style={{ color: "#c4922a", letterSpacing: "0.06em" }}
+                style={{ color: "var(--sidebar-active-color)", letterSpacing: "0.06em" }}
               >
                 {t("pricing_trial_badge")}
               </p>
