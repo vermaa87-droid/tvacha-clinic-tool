@@ -63,27 +63,38 @@ export function CustomCursor() {
 
   if (!visible) return null;
 
+  // Outer div: static size, will-change:transform for the RAF translate loop.
+  // Inner div: scale toggle for hover — transform is composited, no layout change.
+  // Previously width/height/margin were toggled on hover → layout thrash every hover.
   return (
     <div
       ref={cursorRef}
-      className="custom-cursor hidden md:block"
+      className="hidden md:block"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
-        width: hovered ? 40 : 8,
-        height: hovered ? 40 : 8,
-        marginLeft: hovered ? -20 : -4,
-        marginTop: hovered ? -20 : -4,
-        borderRadius: "50%",
-        background: hovered ? "transparent" : "#b8936a",
-        border: hovered ? "1.5px solid #b8936a" : "none",
+        width: 40,
+        height: 40,
+        marginLeft: -20,
+        marginTop: -20,
         pointerEvents: "none",
         zIndex: 9999,
-        mixBlendMode: isDark ? "screen" : "multiply",
         willChange: "transform",
-        transition: "width 0.15s, height 0.15s, margin 0.15s, background 0.15s, border 0.15s",
       }}
-    />
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "50%",
+          background: hovered ? "transparent" : "#b8936a",
+          border: hovered ? "1.5px solid #b8936a" : "none",
+          transform: `scale(${hovered ? 1 : 0.2})`,
+          transition: "transform 0.15s, background 0.15s, border 0.15s",
+          mixBlendMode: isDark ? "screen" : "multiply",
+        }}
+      />
+    </div>
   );
 }

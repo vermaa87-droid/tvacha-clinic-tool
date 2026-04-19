@@ -139,7 +139,7 @@ export function PatientSatisfactionCard({ doctorId }: Props) {
                       style={{ background: "rgba(184,147,106,0.12)" }}
                     >
                       <div
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-full transition-[width]"
                         style={{
                           width: `${pct}%`,
                           background: n >= 4 ? "#b8936a" : n === 3 ? "#c4a882" : "#d4b89a",

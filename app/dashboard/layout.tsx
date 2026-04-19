@@ -63,7 +63,7 @@ export default function DashboardLayout({
           doctorName={doctor?.full_name}
           onMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
         />
-        <div className="flex-1 overflow-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-clip">
           <div className="w-full max-w-full px-3 sm:px-4 md:px-8 py-3 md:py-8">
             <RefreshProvider>
               <ToastProvider>

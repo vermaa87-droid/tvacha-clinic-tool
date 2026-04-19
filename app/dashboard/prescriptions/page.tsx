@@ -782,7 +782,7 @@ export default function PrescriptionsPage() {
             {filteredTmpls.map((template) => (
               <div
                 key={template.id}
-                className="relative flex flex-col rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:shadow-[0_6px_20px_rgba(90,60,20,0.11)] hover:-translate-y-0.5"
+                className="relative flex flex-col rounded-xl bg-card overflow-hidden transition-[transform] duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] hover:-translate-y-0.5"
                 style={{ border: "1px solid rgba(184,147,106,0.2)" }}
               >
                 {/* Left accent border */}

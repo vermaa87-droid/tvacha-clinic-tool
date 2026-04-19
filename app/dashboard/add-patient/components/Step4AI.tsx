@@ -55,7 +55,7 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
         <span className="text-sm font-bold" style={{ color }}>{pct}%</span>
       </div>
       <div className="w-full h-2.5 rounded-full" style={{ background: "var(--color-primary-200)" }}>
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+        <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
   );

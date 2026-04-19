@@ -513,7 +513,7 @@ export default function DashboardHome() {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
           <Link href="/dashboard/patients">
-            <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
+            <Card className="group cursor-pointer hover:border-primary-500 transition hover:-translate-y-px">
               <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
                 <UserPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
                 <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_add_patient")}</span>
@@ -522,7 +522,7 @@ export default function DashboardHome() {
           </Link>
 
           <Link href="/dashboard/prescriptions">
-            <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
+            <Card className="group cursor-pointer hover:border-primary-500 transition hover:-translate-y-px">
               <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
                 <ClipboardPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
                 <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_new_prescription")}</span>
@@ -531,7 +531,7 @@ export default function DashboardHome() {
           </Link>
 
           <Link href="/dashboard/appointments">
-            <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
+            <Card className="group cursor-pointer hover:border-primary-500 transition hover:-translate-y-px">
               <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
                 <CalendarPlus size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
                 <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_schedule_appointment")}</span>
@@ -540,7 +540,7 @@ export default function DashboardHome() {
           </Link>
 
           <Link href="/dashboard/register">
-            <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
+            <Card className="group cursor-pointer hover:border-primary-500 transition hover:-translate-y-px">
               <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
                 <Activity size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
                 <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_log_visit")}</span>
@@ -549,7 +549,7 @@ export default function DashboardHome() {
           </Link>
 
           <Link href="/dashboard/register">
-            <Card className="group cursor-pointer hover:border-primary-500 transition-all hover:shadow-md">
+            <Card className="group cursor-pointer hover:border-primary-500 transition hover:-translate-y-px">
               <CardBody className="flex flex-col items-center gap-2 sm:gap-3 py-4 sm:py-6 px-2">
                 <Table2 size={26} className="sm:w-[30px] sm:h-[30px]" style={{ color: "#b8936a" }} />
                 <span className="text-xs sm:text-sm font-medium text-text-primary text-center">{t("dash_clinic_register")}</span>

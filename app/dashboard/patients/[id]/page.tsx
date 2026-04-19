@@ -2356,7 +2356,7 @@ export default function PatientDetailPage({
                           key={s}
                           type="button"
                           onClick={() => setNewFeeStatus(s)}
-                          className="px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all"
+                          className="px-4 py-2 rounded-lg text-xs font-semibold capitalize"
                           style={newFeeStatus === s
                             ? { background: "#b8936a", color: "#fff" }
                             : { background: "var(--color-primary-200)", color: "#7a5c35" }}

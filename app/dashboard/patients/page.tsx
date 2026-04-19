@@ -511,7 +511,7 @@ export default function PatientsPage() {
                   return (
                     <Link key={patient.id} href={`/dashboard/patients/${patient.id}`} className="block group">
                       <div
-                        className="relative flex flex-col h-full rounded-xl bg-card overflow-hidden transition-all duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:shadow-[0_8px_24px_rgba(90,60,20,0.13)] group-hover:-translate-y-0.5"
+                        className="relative flex flex-col h-full rounded-xl bg-card overflow-hidden transition-[transform] duration-200 shadow-[0_1px_4px_rgba(90,60,20,0.05)] group-hover:-translate-y-0.5"
                         style={{ border: "1px solid rgba(184,147,106,0.2)" }}
                       >
                         {/* Left accent border */}

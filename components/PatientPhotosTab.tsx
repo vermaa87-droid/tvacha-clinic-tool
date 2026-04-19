@@ -237,7 +237,7 @@ export function PatientPhotosTab({ patientId }: { patientId: string }) {
               return (
                 <div
                   key={photo.id}
-                  className={`group relative rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                  className={`group relative rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
                     isSelected ? "border-blue-500 ring-2 ring-blue-200" : "border-primary-200 hover:border-primary-400"
                   }`}
                   onClick={() => (compareMode ? toggleCompare(photo) : setViewPhoto(photo))}

@@ -15,7 +15,7 @@ export function Card({ children, className, hover = false }: CardProps) {
       className={cn(
         "bg-primary-50 border border-primary-200 rounded-lg p-6 shadow-sm",
         hover &&
-          "cursor-pointer transition-all hover:shadow-lg hover:border-primary-300",
+          "cursor-pointer transition hover:border-primary-300 hover:-translate-y-px",
         className
       )}
     >

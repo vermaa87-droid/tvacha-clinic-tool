@@ -29,7 +29,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
     localStorage.setItem("tvacha-theme", t);
-    document.documentElement.setAttribute("data-theme", t);
+    const el = document.documentElement;
+    el.classList.add("theme-transitioning");
+    el.setAttribute("data-theme", t);
+    setTimeout(() => el.classList.remove("theme-transitioning"), 500);
   }, []);
 
   const toggleTheme = useCallback(() => {

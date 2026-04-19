@@ -29,13 +29,12 @@ export function LandingNav() {
   return (
     <>
       <motion.nav
-        className="sticky top-0 z-40 transition-all duration-300 will-change-transform [contain:layout_paint]"
+        className="sticky top-0 z-40 transition-[background-color,border-color] duration-300 will-change-transform [contain:layout_paint]"
         style={{
           backgroundColor: scrolled ? "var(--nav-bg-scrolled)" : "transparent",
           borderBottom: scrolled
             ? "1px solid var(--nav-border-scrolled)"
             : "1px solid transparent",
-          boxShadow: scrolled ? "var(--nav-shadow-scrolled)" : "none",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
