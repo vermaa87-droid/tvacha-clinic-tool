@@ -1,15 +1,16 @@
-// One-off tool: record the FloralVineBackground canvas sprawl to static videos.
-// Run manually when the vine design needs to be re-rendered:
-//   1) pnpm dev (or npm run dev) — in another terminal
+// One-off tool: record the FloralVineBackground canvas sprawl + sway to
+// static videos. Run manually when the vine design needs to be re-rendered:
+//   1) npm run dev (or pnpm dev) — in another terminal
 //   2) node scripts/record-vine-video.mjs
 //
 // Emits under public/:
-//   vine-sprawl-straight.webm   (VP9+alpha, both themes)
-//   vine-sprawl-straight.mp4    (H.264, ivory baked)
-//   vine-sprawl-straight-dark.mp4 (H.264, warm-dark baked)
-//   vine-sprawl-curvy.webm / .mp4 / -dark.mp4 (same, curvy variant)
-//   vine-poster-straight.png    (last frame, alpha)
-//   vine-poster-curvy.png       (last frame, alpha)
+//   vine-sprawl-{straight,curvy}.webm   (VP9+alpha, plays once)
+//   vine-sprawl-{straight,curvy}.mp4    (H.264, ivory baked)
+//   vine-sprawl-{straight,curvy}-dark.mp4
+//   vine-sway-{straight,curvy}.webm     (VP9+alpha, loops seamlessly)
+//   vine-sway-{straight,curvy}.mp4
+//   vine-sway-{straight,curvy}-dark.mp4
+//   vine-poster-{straight,curvy}.png    (last sprawl frame, alpha)
 //
 // DO NOT add to the build pipeline — this is a manual tool.
 
@@ -24,12 +25,13 @@ const root = path.resolve(__dirname, "..");
 
 const DEV_URL = "http://localhost:3000/record-vine";
 const FPS = 60;
-const DURATION_MS = 4000;
-const FRAMES = Math.ceil((DURATION_MS / 1000) * FPS) + 1; // 241 frames (0..240 inclusive)
+const SPRAWL_DURATION_MS = 4000;
+const SPRAWL_FRAMES = Math.ceil((SPRAWL_DURATION_MS / 1000) * FPS) + 1; // 241 inclusive
+const SWAY_PERIOD_MS = 4000; // must match SWAY_PERIOD_MS in FloralVineBackgroundRecordOnly.tsx
+const SWAY_FRAMES = Math.round((SWAY_PERIOD_MS / 1000) * FPS); // 240 (no +1 — last frame duplicates first)
 const WIDTH = 1920;
 const HEIGHT = 1080;
 
-// Theme backgrounds — match app/globals.css --color-primary-50.
 const IVORY = "0xf2efe9";
 const WARM_DARK = "0x1a1612";
 
@@ -52,107 +54,113 @@ function run(cmd, args) {
   });
 }
 
-async function recordVariant(browser, { key, straight }) {
-  console.log(`\n=== Recording variant: ${key} ===`);
-  const framesDir = path.join(root, "scratch", `vine-${key}-frames`);
+async function captureFrames(page, phase, frameCount, renderFnName, framesDir) {
   fs.rmSync(framesDir, { recursive: true, force: true });
   fs.mkdirSync(framesDir, { recursive: true });
+  console.log(`  Capturing ${frameCount} ${phase} frames…`);
+  const t0 = Date.now();
+  for (let i = 0; i < frameCount; i++) {
+    const elapsed = (i / FPS) * 1000;
+    await page.evaluate((fn, e) => window[fn](e), renderFnName, elapsed);
+    const file = path.join(framesDir, `frame-${String(i).padStart(5, "0")}.png`);
+    await page.screenshot({ path: file, omitBackground: true, clip: { x: 0, y: 0, width: WIDTH, height: HEIGHT } });
+  }
+  console.log(`  ${phase}: ${frameCount} frames in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+}
+
+async function recordVariant(browser, { key, straight }) {
+  console.log(`\n=== Variant: ${key} ===`);
+  const sprawlDir = path.join(root, "scratch", `vine-${key}-sprawl`);
+  const swayDir = path.join(root, "scratch", `vine-${key}-sway`);
 
   const page = await browser.newPage();
   await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1 });
-
-  // Inject recording flags BEFORE the app loads so they're read by the
-  // FloralVineBackground useEffect on first mount.
   await page.evaluateOnNewDocument((s) => {
     window.__vineRecording = true;
     window.__vineStraightOverride = s;
   }, straight);
-
   await page.goto(DEV_URL, { waitUntil: "networkidle0", timeout: 30_000 });
-
-  // Wait for the component to build vines and expose the manual renderer.
-  await page.waitForFunction(() => window.__vineReady === true && typeof window.__vineRenderAt === "function", {
-    timeout: 15_000,
-  });
-
-  // Small settle to let font loading & DPR sizing stabilize.
+  await page.waitForFunction(
+    () => window.__vineReady === true
+      && typeof window.__vineRenderAt === "function"
+      && typeof window.__vineRenderSwayAt === "function",
+    { timeout: 15_000 }
+  );
   await new Promise((r) => setTimeout(r, 300));
 
-  console.log(`Capturing ${FRAMES} frames…`);
-  const t0 = Date.now();
-  for (let i = 0; i < FRAMES; i++) {
-    const elapsed = (i / FPS) * 1000;
-    await page.evaluate((e) => window.__vineRenderAt(e), elapsed);
-    const file = path.join(framesDir, `frame-${String(i).padStart(5, "0")}.png`);
-    await page.screenshot({ path: file, omitBackground: true, clip: { x: 0, y: 0, width: WIDTH, height: HEIGHT } });
-    if (i % 40 === 0) process.stdout.write(`  ${i}/${FRAMES}\r`);
-  }
-  console.log(`  ${FRAMES}/${FRAMES}  (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
+  await captureFrames(page, "sprawl", SPRAWL_FRAMES, "__vineRenderAt", sprawlDir);
+  await captureFrames(page, "sway",   SWAY_FRAMES,   "__vineRenderSwayAt", swayDir);
 
   await page.close();
-  return { framesDir };
+  return { sprawlDir, swayDir };
 }
 
-async function encodeVariant(key, framesDir) {
-  const input = path.join(framesDir, "frame-%05d.png");
-  const webm = path.join(root, "public", `vine-sprawl-${key}.webm`);
-  const mp4Light = path.join(root, "public", `vine-sprawl-${key}.mp4`);
-  const mp4Dark = path.join(root, "public", `vine-sprawl-${key}-dark.mp4`);
-  const poster = path.join(root, "public", `vine-poster-${key}.png`);
-
-  console.log(`\nEncoding ${key} — WebM (VP9+alpha)…`);
+async function encodeAlphaWebm(framesDir, out) {
   await run(FFMPEG, [
     "-y",
     "-framerate", String(FPS),
-    "-i", input,
+    "-i", path.join(framesDir, "frame-%05d.png"),
     "-c:v", "libvpx-vp9",
     "-pix_fmt", "yuva420p",
     "-b:v", "1800k",
     "-auto-alt-ref", "0",
     "-deadline", "good",
     "-cpu-used", "2",
-    webm,
+    out,
   ]);
+}
 
-  const overlayFilter = (bg) =>
-    `color=c=${bg}:s=${WIDTH}x${HEIGHT}:r=${FPS}[bg];[bg][0]overlay=shortest=1:format=auto,format=yuv420p`;
-
-  console.log(`Encoding ${key} — MP4 (ivory baked)…`);
+async function encodeBakedMp4(framesDir, out, bg) {
   await run(FFMPEG, [
     "-y",
     "-framerate", String(FPS),
-    "-i", input,
-    "-filter_complex", overlayFilter(IVORY),
+    "-i", path.join(framesDir, "frame-%05d.png"),
+    "-filter_complex",
+    `color=c=${bg}:s=${WIDTH}x${HEIGHT}:r=${FPS}[bg];[bg][0]overlay=shortest=1:format=auto,format=yuv420p`,
     "-c:v", "libx264",
     "-crf", "23",
     "-preset", "medium",
     "-pix_fmt", "yuv420p",
     "-movflags", "+faststart",
-    mp4Light,
+    out,
   ]);
+}
 
-  console.log(`Encoding ${key} — MP4 (warm-dark baked)…`);
-  await run(FFMPEG, [
-    "-y",
-    "-framerate", String(FPS),
-    "-i", input,
-    "-filter_complex", overlayFilter(WARM_DARK),
-    "-c:v", "libx264",
-    "-crf", "23",
-    "-preset", "medium",
-    "-pix_fmt", "yuv420p",
-    "-movflags", "+faststart",
-    mp4Dark,
-  ]);
+async function encodeVariant(key, sprawlDir, swayDir) {
+  const pub = (name) => path.join(root, "public", name);
 
-  // Last frame → poster (alpha-preserving copy)
-  const files = fs.readdirSync(framesDir).filter((f) => f.endsWith(".png")).sort();
-  const lastFrame = path.join(framesDir, files[files.length - 1]);
-  fs.copyFileSync(lastFrame, poster);
+  console.log(`\n[${key}] Encoding sprawl WebM…`);
+  await encodeAlphaWebm(sprawlDir, pub(`vine-sprawl-${key}.webm`));
+  console.log(`[${key}] Encoding sprawl MP4 (ivory)…`);
+  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}.mp4`), IVORY);
+  console.log(`[${key}] Encoding sprawl MP4 (dark)…`);
+  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}-dark.mp4`), WARM_DARK);
 
-  for (const f of [webm, mp4Light, mp4Dark, poster]) {
-    const size = fs.statSync(f).size;
-    console.log(`  ${path.basename(f)}: ${(size / 1024).toFixed(1)} KB`);
+  console.log(`[${key}] Encoding sway WebM…`);
+  await encodeAlphaWebm(swayDir, pub(`vine-sway-${key}.webm`));
+  console.log(`[${key}] Encoding sway MP4 (ivory)…`);
+  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}.mp4`), IVORY);
+  console.log(`[${key}] Encoding sway MP4 (dark)…`);
+  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}-dark.mp4`), WARM_DARK);
+
+  // Poster = last sprawl frame
+  const lastFrame = fs
+    .readdirSync(sprawlDir)
+    .filter((f) => f.endsWith(".png"))
+    .sort()
+    .pop();
+  fs.copyFileSync(path.join(sprawlDir, lastFrame), pub(`vine-poster-${key}.png`));
+
+  for (const f of [
+    `vine-sprawl-${key}.webm`,
+    `vine-sprawl-${key}.mp4`,
+    `vine-sprawl-${key}-dark.mp4`,
+    `vine-sway-${key}.webm`,
+    `vine-sway-${key}.mp4`,
+    `vine-sway-${key}-dark.mp4`,
+    `vine-poster-${key}.png`,
+  ]) {
+    console.log(`  ${f}: ${(fs.statSync(pub(f)).size / 1024).toFixed(1)} KB`);
   }
 }
 
@@ -171,8 +179,8 @@ async function encodeVariant(key, framesDir) {
 
   try {
     for (const v of variants) {
-      const { framesDir } = await recordVariant(browser, v);
-      await encodeVariant(v.key, framesDir);
+      const { sprawlDir, swayDir } = await recordVariant(browser, v);
+      await encodeVariant(v.key, sprawlDir, swayDir);
     }
   } finally {
     await browser.close();
