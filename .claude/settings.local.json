@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(node scripts/render-grain.mjs)",
+      "Bash(node -e \"const sharp=require\\('sharp'\\); Promise.all\\(['public/grain.webp','public/grain-dark.webp'].map\\(f=>sharp\\(f\\).metadata\\(\\).then\\(m=>console.log\\(f, m.width+'x'+m.height, m.format, 'size='+m.size\\)\\)\\)\\).then\\(\\(\\)=>process.exit\\(0\\)\\)\")",
+      "Bash(node -e ' *)"
     ]
   }
 }
