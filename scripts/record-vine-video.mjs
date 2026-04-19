@@ -1,18 +1,8 @@
-// One-off tool: record the FloralVineBackground canvas sprawl + sway to
-// static videos. Run manually when the vine design needs to be re-rendered:
-//   1) npm run dev (or pnpm dev) — in another terminal
+// One-off tool: record FloralVineBackground sprawl + sway to static videos,
+// for both desktop (1920x1080 landscape) and mobile (420x920 portrait).
+// Run manually when the vine design needs regenerating:
+//   1) npm run dev  — in another terminal
 //   2) node scripts/record-vine-video.mjs
-//
-// Emits under public/:
-//   vine-sprawl-{straight,curvy}.webm   (VP9+alpha, plays once)
-//   vine-sprawl-{straight,curvy}.mp4    (H.264, ivory baked)
-//   vine-sprawl-{straight,curvy}-dark.mp4
-//   vine-sway-{straight,curvy}.webm     (VP9+alpha, loops seamlessly)
-//   vine-sway-{straight,curvy}.mp4
-//   vine-sway-{straight,curvy}-dark.mp4
-//   vine-poster-{straight,curvy}.png    (last sprawl frame, alpha)
-//
-// DO NOT add to the build pipeline — this is a manual tool.
 
 import puppeteer from "puppeteer";
 import { spawn } from "node:child_process";
@@ -26,11 +16,9 @@ const root = path.resolve(__dirname, "..");
 const DEV_URL = "http://localhost:3000/record-vine";
 const FPS = 60;
 const SPRAWL_DURATION_MS = 4000;
-const SPRAWL_FRAMES = Math.ceil((SPRAWL_DURATION_MS / 1000) * FPS) + 1; // 241 inclusive
-const SWAY_PERIOD_MS = 4000; // must match SWAY_PERIOD_MS in FloralVineBackgroundRecordOnly.tsx
-const SWAY_FRAMES = Math.round((SWAY_PERIOD_MS / 1000) * FPS); // 240 (no +1 — last frame duplicates first)
-const WIDTH = 1920;
-const HEIGHT = 1080;
+const SPRAWL_FRAMES = Math.ceil((SPRAWL_DURATION_MS / 1000) * FPS) + 1; // 241
+const SWAY_PERIOD_MS = 4000;
+const SWAY_FRAMES = Math.round((SWAY_PERIOD_MS / 1000) * FPS); // 240
 
 const IVORY = "0xf2efe9";
 const WARM_DARK = "0x1a1612";
@@ -38,13 +26,19 @@ const WARM_DARK = "0x1a1612";
 const FFMPEG = process.env.FFMPEG_PATH
   || "C:/Users/ASUS/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1-full_build/bin/ffmpeg.exe";
 
+// keySuffix = output filename stem segment. Desktop: straight / curvy.
+// Mobile: straight-mobile / curvy-mobile. Mobile-curvy and mobile-straight
+// look similar at 420 width (only one column per side); we record both so
+// /pricing /privacy /terms on mobile still match the curvy feel.
 const variants = [
-  { key: "straight", straight: true },
-  { key: "curvy",    straight: false },
+  { key: "straight",         straight: true,  width: 1920, height: 1080 },
+  { key: "curvy",            straight: false, width: 1920, height: 1080 },
+  { key: "straight-mobile",  straight: true,  width: 420,  height: 920  },
+  { key: "curvy-mobile",     straight: false, width: 420,  height: 920  },
 ];
 
 fs.mkdirSync(path.join(root, "scratch"), { recursive: true });
-fs.mkdirSync(path.join(root, "public"), { recursive: true });
+fs.mkdirSync(path.join(root, "public"),  { recursive: true });
 
 function run(cmd, args) {
   return new Promise((resolve, reject) => {
@@ -54,7 +48,7 @@ function run(cmd, args) {
   });
 }
 
-async function captureFrames(page, phase, frameCount, renderFnName, framesDir) {
+async function captureFrames(page, phase, frameCount, renderFnName, framesDir, width, height) {
   fs.rmSync(framesDir, { recursive: true, force: true });
   fs.mkdirSync(framesDir, { recursive: true });
   console.log(`  Capturing ${frameCount} ${phase} frames…`);
@@ -63,18 +57,18 @@ async function captureFrames(page, phase, frameCount, renderFnName, framesDir) {
     const elapsed = (i / FPS) * 1000;
     await page.evaluate((fn, e) => window[fn](e), renderFnName, elapsed);
     const file = path.join(framesDir, `frame-${String(i).padStart(5, "0")}.png`);
-    await page.screenshot({ path: file, omitBackground: true, clip: { x: 0, y: 0, width: WIDTH, height: HEIGHT } });
+    await page.screenshot({ path: file, omitBackground: true, clip: { x: 0, y: 0, width, height } });
   }
   console.log(`  ${phase}: ${frameCount} frames in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 
-async function recordVariant(browser, { key, straight }) {
-  console.log(`\n=== Variant: ${key} ===`);
+async function recordVariant(browser, { key, straight, width, height }) {
+  console.log(`\n=== Variant: ${key}  (${width}x${height}) ===`);
   const sprawlDir = path.join(root, "scratch", `vine-${key}-sprawl`);
-  const swayDir = path.join(root, "scratch", `vine-${key}-sway`);
+  const swayDir   = path.join(root, "scratch", `vine-${key}-sway`);
 
   const page = await browser.newPage();
-  await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1 });
+  await page.setViewport({ width, height, deviceScaleFactor: 1, isMobile: width < 768 });
   await page.evaluateOnNewDocument((s) => {
     window.__vineRecording = true;
     window.__vineStraightOverride = s;
@@ -88,11 +82,11 @@ async function recordVariant(browser, { key, straight }) {
   );
   await new Promise((r) => setTimeout(r, 300));
 
-  await captureFrames(page, "sprawl", SPRAWL_FRAMES, "__vineRenderAt", sprawlDir);
-  await captureFrames(page, "sway",   SWAY_FRAMES,   "__vineRenderSwayAt", swayDir);
+  await captureFrames(page, "sprawl", SPRAWL_FRAMES, "__vineRenderAt",     sprawlDir, width, height);
+  await captureFrames(page, "sway",   SWAY_FRAMES,   "__vineRenderSwayAt", swayDir,   width, height);
 
   await page.close();
-  return { sprawlDir, swayDir };
+  return { sprawlDir, swayDir, width, height };
 }
 
 async function encodeAlphaWebm(framesDir, out) {
@@ -110,13 +104,13 @@ async function encodeAlphaWebm(framesDir, out) {
   ]);
 }
 
-async function encodeBakedMp4(framesDir, out, bg) {
+async function encodeBakedMp4(framesDir, out, bg, width, height) {
   await run(FFMPEG, [
     "-y",
     "-framerate", String(FPS),
     "-i", path.join(framesDir, "frame-%05d.png"),
     "-filter_complex",
-    `color=c=${bg}:s=${WIDTH}x${HEIGHT}:r=${FPS}[bg];[bg][0]overlay=shortest=1:format=auto,format=yuv420p`,
+    `color=c=${bg}:s=${width}x${height}:r=${FPS}[bg];[bg][0]overlay=shortest=1:format=auto,format=yuv420p`,
     "-c:v", "libx264",
     "-crf", "23",
     "-preset", "medium",
@@ -126,29 +120,24 @@ async function encodeBakedMp4(framesDir, out, bg) {
   ]);
 }
 
-async function encodeVariant(key, sprawlDir, swayDir) {
+async function encodeVariant(key, sprawlDir, swayDir, width, height) {
   const pub = (name) => path.join(root, "public", name);
 
   console.log(`\n[${key}] Encoding sprawl WebM…`);
   await encodeAlphaWebm(sprawlDir, pub(`vine-sprawl-${key}.webm`));
   console.log(`[${key}] Encoding sprawl MP4 (ivory)…`);
-  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}.mp4`), IVORY);
+  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}.mp4`), IVORY, width, height);
   console.log(`[${key}] Encoding sprawl MP4 (dark)…`);
-  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}-dark.mp4`), WARM_DARK);
+  await encodeBakedMp4(sprawlDir, pub(`vine-sprawl-${key}-dark.mp4`), WARM_DARK, width, height);
 
   console.log(`[${key}] Encoding sway WebM…`);
   await encodeAlphaWebm(swayDir, pub(`vine-sway-${key}.webm`));
   console.log(`[${key}] Encoding sway MP4 (ivory)…`);
-  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}.mp4`), IVORY);
+  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}.mp4`), IVORY, width, height);
   console.log(`[${key}] Encoding sway MP4 (dark)…`);
-  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}-dark.mp4`), WARM_DARK);
+  await encodeBakedMp4(swayDir, pub(`vine-sway-${key}-dark.mp4`), WARM_DARK, width, height);
 
-  // Poster = last sprawl frame
-  const lastFrame = fs
-    .readdirSync(sprawlDir)
-    .filter((f) => f.endsWith(".png"))
-    .sort()
-    .pop();
+  const lastFrame = fs.readdirSync(sprawlDir).filter((f) => f.endsWith(".png")).sort().pop();
   fs.copyFileSync(path.join(sprawlDir, lastFrame), pub(`vine-poster-${key}.png`));
 
   for (const f of [
@@ -172,15 +161,14 @@ async function encodeVariant(key, sprawlDir, swayDir) {
       "--disable-setuid-sandbox",
       "--force-device-scale-factor=1",
       "--hide-scrollbars",
-      `--window-size=${WIDTH},${HEIGHT}`,
     ],
-    defaultViewport: { width: WIDTH, height: HEIGHT, deviceScaleFactor: 1 },
+    defaultViewport: null,
   });
 
   try {
     for (const v of variants) {
-      const { sprawlDir, swayDir } = await recordVariant(browser, v);
-      await encodeVariant(v.key, sprawlDir, swayDir);
+      const { sprawlDir, swayDir, width, height } = await recordVariant(browser, v);
+      await encodeVariant(v.key, sprawlDir, swayDir, width, height);
     }
   } finally {
     await browser.close();

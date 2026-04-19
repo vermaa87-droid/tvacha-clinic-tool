@@ -60,7 +60,10 @@ export function FloralVineBackground() {
 
   if (!mounted) return null;
 
-  const variant = pathname === "/" ? "straight" : "curvy";
+  const baseVariant = pathname === "/" ? "straight" : "curvy";
+  // Mobile gets a portrait-recorded variant (vines repositioned for narrow
+  // viewports — the landscape files would crop the edge vines out entirely).
+  const variant = isMobile ? `${baseVariant}-mobile` : baseVariant;
   const isDark = theme === "dark";
 
   const sprawlWebm = `/vine-sprawl-${variant}.webm`;
@@ -89,7 +92,7 @@ export function FloralVineBackground() {
     transition: `opacity ${CROSSFADE_MS}ms ease-out`,
   };
 
-  if (reducedMotion || isMobile) {
+  if (reducedMotion) {
     return (
       <div aria-hidden style={container}>
         <img src={poster} alt="" style={{ ...layer, opacity: 1, transition: undefined }} />
