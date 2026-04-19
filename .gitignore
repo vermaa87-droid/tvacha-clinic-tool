@@ -33,3 +33,7 @@ perf-reports/*/
 after-phase-*-build.txt
 knip-report.txt
 
+# Intermediate output from scripts/record-vine-video.mjs — frame PNGs are
+# regenerated on demand; only the encoded videos under public/ ship.
+scratch/
+

@@ -4,7 +4,23 @@
       "Bash(npm run *)",
       "Bash(node scripts/render-grain.mjs)",
       "Bash(node -e \"const sharp=require\\('sharp'\\); Promise.all\\(['public/grain.webp','public/grain-dark.webp'].map\\(f=>sharp\\(f\\).metadata\\(\\).then\\(m=>console.log\\(f, m.width+'x'+m.height, m.format, 'size='+m.size\\)\\)\\)\\).then\\(\\(\\)=>process.exit\\(0\\)\\)\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(ffmpeg -version)",
+      "Bash(winget install *)",
+      "Bash(npm install *)",
+      "Read(//c/Program Files/WinGet/**)",
+      "Read(//c/Users/ASUS/AppData/Local/Microsoft/WinGet/Packages//**)",
+      "Bash(/c/Users/ASUS/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1-full_build/bin/ffmpeg.exe -version)",
+      "Bash(node -e \"const p=require\\('puppeteer'\\); console.log\\('puppeteer', require\\('puppeteer/package.json'\\).version\\); console.log\\('chromePath:', p.executablePath\\(\\)\\);\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/_record/vine)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/_record/vine)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/record-vine)",
+      "Bash(node scripts/record-vine-video.mjs)",
+      "Bash(awk '{printf \"%-40s %8s bytes\\\\n\", $NF, $5}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/landing.html)",
+      "Bash(curl -s http://localhost:3001/ -o /tmp/landing3001.html -w \"HTTP %{http_code} bytes=%{size_download}\\\\n\")",
+      "Bash(taskkill //F //PID 43364)"
     ]
   }
 }

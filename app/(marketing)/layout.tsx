@@ -19,7 +19,7 @@ export default function MarketingLayout({
     <SmoothScroll>
       <FloralVineBackground />
       <CustomCursor />
-      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+      <div style={{ position: "relative", zIndex: 1, zoom: 1.25 }}>{children}</div>
     </SmoothScroll>
   );
 }
