@@ -35,9 +35,10 @@ export function LandingNav() {
           borderBottom: scrolled
             ? "1px solid var(--nav-border-scrolled)"
             : "1px solid transparent",
+          zoom: 0.8,
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}

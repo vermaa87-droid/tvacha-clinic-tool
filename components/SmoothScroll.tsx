@@ -24,8 +24,10 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
         lenis.destroy();
       }
       lenis = new Lenis({
-        duration: 1.2,
+        duration: 1.0,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        wheelMultiplier: 0.64,
+        touchMultiplier: 0.64,
       });
       function raf(time: number) {
         lenis!.raf(time);

@@ -86,9 +86,9 @@ export function LegalPageShell({ title, lastUpdated, children }: LegalPageShellP
         {/* Top nav */}
         <nav
           className="border-b border-primary-200 sticky top-0 z-40 will-change-transform [contain:layout_paint]"
-          style={{ background: "var(--nav-bg-scrolled)" }}
+          style={{ background: "var(--nav-bg-scrolled)", zoom: 0.8 }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
+          <div className="w-full px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
             <Logo />
             <div className="flex items-center gap-4 md:gap-6">
               <Link href="/" className="text-text-secondary hover:text-text-primary font-medium hidden md:block">

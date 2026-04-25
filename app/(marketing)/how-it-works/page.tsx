@@ -326,9 +326,10 @@ export default function HowItWorksPage() {
         style={{
           background: "var(--nav-bg-scrolled)",
           borderBottom: "1px solid var(--color-primary-200)",
+          zoom: 0.8,
         }}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between">
+        <div className="w-full px-6 md:px-8 py-4 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-4 md:gap-6">
             <Link href="/pricing" className="font-medium text-sm hidden md:block" style={{ color: "var(--color-text-secondary)" }}>
