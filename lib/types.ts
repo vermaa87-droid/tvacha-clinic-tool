@@ -401,41 +401,6 @@ export interface ClinicalPhoto {
   created_at: string;
 }
 
-export interface ConsentCheckbox {
-  key: string;
-  label: string;
-}
-
-export interface ConsentTemplate {
-  id: string;
-  doctor_id: string;
-  title: string;
-  procedure_type: string;
-  body_text: string;
-  checkboxes: ConsentCheckbox[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ConsentRecord {
-  id: string;
-  template_id: string | null;
-  patient_id: string;
-  visit_id: string | null;
-  doctor_id: string;
-  procedure_name: string;
-  consent_text: string;
-  checkboxes_checked: { key: string; label: string; checked: boolean }[];
-  signature_url: string | null;
-  pdf_url: string | null;
-  patient_ip: string | null;
-  signed_at: string;
-  created_at: string;
-  // Joined
-  patients?: Patient;
-}
-
 export interface PackageSession {
   id: string;
   package_id: string;

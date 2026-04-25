@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, X, Lightbulb } from "lucide-react";
+import { Camera, X, Lightbulb, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 
 interface Step1PhotosProps {
@@ -24,6 +24,7 @@ export function Step1Photos({
   const inputRef = useRef<HTMLInputElement>(null);
   const photoGridRef = useRef<HTMLDivElement>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [showSkipModal, setShowSkipModal] = useState(false);
 
   const SLOT_LABELS = [t("ap_s1_close_up"), t("ap_s1_medium"), t("ap_s1_different")];
 
@@ -44,22 +45,19 @@ export function Step1Photos({
   };
 
   const filledCount = photoSlots.filter(Boolean).length;
-  const canProceed = filledCount >= 1;
+  const hasPhotos = filledCount >= 1;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canProceed) {
-      setPhotoError("Please capture at least one photo of the affected area");
-      const target = photoGridRef.current;
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.classList.remove("field-blink");
-        void target.offsetWidth;
-        target.classList.add("field-blink");
-        window.setTimeout(() => target.classList.remove("field-blink"), 1700);
-      }
+    if (!hasPhotos) {
+      setShowSkipModal(true);
       return;
     }
+    onNext();
+  };
+
+  const handleConfirmSkip = () => {
+    setShowSkipModal(false);
     onNext();
   };
 
@@ -149,7 +147,19 @@ export function Step1Photos({
         <p className="form-error-summary text-center">{photoError}</p>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        {!hasPhotos ? (
+          <button
+            type="button"
+            onClick={() => setShowSkipModal(true)}
+            className="text-sm font-medium underline-offset-4 hover:underline transition-colors min-h-[44px] sm:min-h-0 px-2 sm:px-0 text-left"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {t("ap_s1_skip")}
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           type="submit"
           className="w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-white transition-opacity min-h-[44px]"
@@ -158,6 +168,54 @@ export function Step1Photos({
           {t("ap_s1_next")}
         </button>
       </div>
+
+      {/* Skip-photos confirmation modal */}
+      {showSkipModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          onClick={() => setShowSkipModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6"
+            style={{ background: "var(--color-card)", boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3 mb-3">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(245,158,11,0.12)" }}
+              >
+                <AlertTriangle size={20} style={{ color: "#d97706" }} />
+              </div>
+              <h3 className="text-lg font-serif font-bold mt-1" style={{ color: "var(--color-text-primary)" }}>
+                {t("ap_s1_skip_modal_title")}
+              </h3>
+            </div>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
+              {t("ap_s1_skip_modal_body")}
+            </p>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSkipModal(false)}
+                className="px-5 py-2.5 rounded-lg font-semibold border text-sm min-h-[44px]"
+                style={{ borderColor: "var(--color-primary-200)", color: "var(--color-text-secondary)", background: "transparent" }}
+              >
+                {t("ap_s1_skip_modal_cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSkip}
+                className="px-5 py-2.5 rounded-lg font-semibold text-white text-sm min-h-[44px]"
+                style={{ background: "#b8936a" }}
+              >
+                {t("ap_s1_skip_modal_confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

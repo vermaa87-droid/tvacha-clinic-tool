@@ -31,7 +31,7 @@ const REGIONS: Region[] = [
       // Front figure — top of head
       { type: "ellipse", cx: 180, cy: 40, rx: 42, ry: 30 },
       // Back figure — top of head
-      { type: "ellipse", cx: 560, cy: 40, rx: 42, ry: 30 },
+      { type: "ellipse", cx: 585, cy: 40, rx: 42, ry: 30 },
     ],
   },
   {
@@ -62,13 +62,13 @@ const REGIONS: Region[] = [
     value: "Back or shoulders",
     label: "Back or shoulders",
     zones: [
-      // Back figure — upper back + shoulders
-      { type: "rect", x: 490, y: 110, w: 150, h: 180, rx: 16 },
+      // Back figure — shoulders, full back, buttocks (extends down to where legs begin)
+      { type: "rect", x: 515, y: 110, w: 150, h: 310, rx: 16 },
     ],
   },
   {
-    value: "Groin, armpits, or skin folds",
-    label: "Groin, armpits, or skin folds",
+    value: "Groin / armpits / skin folds",
+    label: "Groin / armpits / skin folds",
     zones: [
       // Front — left armpit
       { type: "ellipse", cx: 110, cy: 195, rx: 22, ry: 24 },
@@ -87,9 +87,9 @@ const REGIONS: Region[] = [
       // Front — viewer's-right arm + hand (patient's left)
       { type: "rect", x: 245, y: 130, w: 90, h: 310, rx: 22 },
       // Back — viewer's-left arm
-      { type: "rect", x: 410, y: 130, w: 90, h: 310, rx: 22 },
+      { type: "rect", x: 435, y: 130, w: 90, h: 310, rx: 22 },
       // Back — viewer's-right arm
-      { type: "rect", x: 625, y: 130, w: 90, h: 310, rx: 22 },
+      { type: "rect", x: 650, y: 130, w: 90, h: 310, rx: 22 },
     ],
   },
   {
@@ -99,7 +99,7 @@ const REGIONS: Region[] = [
       // Front — legs
       { type: "rect", x: 115, y: 420, w: 135, h: 340, rx: 22 },
       // Back — legs
-      { type: "rect", x: 495, y: 420, w: 135, h: 340, rx: 22 },
+      { type: "rect", x: 520, y: 420, w: 135, h: 340, rx: 22 },
     ],
   },
 ];

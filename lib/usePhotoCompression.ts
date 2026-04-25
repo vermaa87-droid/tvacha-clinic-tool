@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { supabase } from "./supabase";
 import type { ClinicalPhoto } from "./types";
 
 export interface CompressionOptions {
@@ -106,11 +105,11 @@ export interface UploadClinicalPhotoResult {
   error: Error | null;
 }
 
-const PHOTO_BUCKET = "patient-photos";
-
 /**
- * One-call flow: compress → upload to storage → insert clinical_photos row.
- * RLS requires doctor_id == auth.uid() for insert.
+ * One-call flow: compress on the client (saves upload bandwidth), then POST to the
+ * server route which uploads via the admin client and inserts the clinical_photos
+ * row. The admin client bypasses storage RLS, so this works regardless of the
+ * patient's linked_doctor_id state.
  */
 export async function uploadClinicalPhoto(
   params: UploadClinicalPhotoParams
@@ -152,66 +151,46 @@ export async function uploadClinicalPhoto(
     };
   }
 
-  const ext = uploadFile.type === "image/png" ? "png" : "jpg";
-  const photoId =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const path = `${patientId}/clinical/${photoId}.${ext}`;
+  const formData = new FormData();
+  formData.append("file", uploadFile);
+  formData.append("patient_id", patientId);
+  formData.append("doctor_id", doctorId);
+  formData.append("photo_type", photoType);
+  formData.append("angle", angle);
+  if (bodyRegion) formData.append("body_region", bodyRegion);
+  if (visitId) formData.append("visit_id", visitId);
+  if (packageSessionId) formData.append("package_session_id", packageSessionId);
+  if (notes) formData.append("notes", notes);
+  if (takenAt) formData.append("taken_at", takenAt);
 
-  const up = await supabase.storage
-    .from(PHOTO_BUCKET)
-    .upload(path, uploadFile, {
-      contentType: uploadFile.type || "image/jpeg",
-      upsert: false,
-      cacheControl: "31536000",
+  try {
+    const res = await fetch("/api/upload-clinical-photo", {
+      method: "POST",
+      body: formData,
     });
-
-  if (up.error) {
+    const json = await res.json();
+    if (!res.ok) {
+      return {
+        record: null,
+        publicUrl: null,
+        compression: compressionMeta,
+        error: new Error(json.error || `Upload failed (${res.status})`),
+      };
+    }
+    return {
+      record: json.data as ClinicalPhoto,
+      publicUrl: (json.photoUrl as string) ?? null,
+      compression: compressionMeta,
+      error: null,
+    };
+  } catch (err) {
     return {
       record: null,
       publicUrl: null,
       compression: compressionMeta,
-      error: new Error(`Upload failed: ${up.error.message}`),
+      error: err instanceof Error ? err : new Error(String(err)),
     };
   }
-
-  const { data: pub } = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-  const publicUrl = pub?.publicUrl ?? null;
-
-  const { data: row, error: insertError } = await supabase
-    .from("clinical_photos")
-    .insert({
-      id: photoId,
-      patient_id: patientId,
-      doctor_id: doctorId,
-      visit_id: visitId,
-      package_session_id: packageSessionId,
-      photo_url: publicUrl ?? path,
-      photo_type: photoType,
-      body_region: bodyRegion,
-      angle,
-      notes,
-      taken_at: takenAt ?? new Date().toISOString(),
-    })
-    .select("*")
-    .single();
-
-  if (insertError) {
-    return {
-      record: null,
-      publicUrl,
-      compression: compressionMeta,
-      error: new Error(`Insert failed: ${insertError.message}`),
-    };
-  }
-
-  return {
-    record: row as ClinicalPhoto,
-    publicUrl,
-    compression: compressionMeta,
-    error: null,
-  };
 }
 
 export interface PhotoCompressionState {

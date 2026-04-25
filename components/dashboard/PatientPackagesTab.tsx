@@ -639,17 +639,25 @@ function RecordSessionModal({
   if (!pkg) return null;
 
   const uploadPhoto = async (file: File, label: "before" | "after"): Promise<string | null> => {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${pkg.patient_id}/${pkg.id}/session-${pkg.sessions_completed + 1}-${label}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("photos")
-      .upload(path, file, { upsert: false, contentType: file.type });
-    if (error) {
-      console.error(`[record-session] ${label} upload error:`, error);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("patient_id", pkg.patient_id);
+    formData.append("doctor_id", doctorId);
+    formData.append("photo_type", label);
+    formData.append("subfolder", `package-${pkg.id}`);
+    formData.append("notes", `${pkg.package_name} — session ${pkg.sessions_completed + 1} (${label})`);
+    try {
+      const res = await fetch("/api/upload-clinical-photo", { method: "POST", body: formData });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error(`[record-session] ${label} upload error:`, json.error);
+        return null;
+      }
+      return (json.photoUrl as string) ?? null;
+    } catch (err) {
+      console.error(`[record-session] ${label} upload threw:`, err);
       return null;
     }
-    const { data } = supabase.storage.from("photos").getPublicUrl(path);
-    return data.publicUrl;
   };
 
   const submit = async () => {

@@ -137,12 +137,21 @@ export function PatientProgressPhotosTab({
     setPhotos((list) => list.filter((p) => p.id !== photo.id));
     if (beforeId === photo.id) setBeforeId(null);
     if (afterId === photo.id) setAfterId(null);
-    const { error } = await supabase
-      .from("clinical_photos")
-      .delete()
-      .eq("id", photo.id)
-      .eq("doctor_id", doctorId);
-    if (error) setPhotos(prev);
+    try {
+      const res = await fetch("/api/delete-clinical-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo_id: photo.id, doctor_id: doctorId }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error("[progress] delete failed:", json.error);
+        setPhotos(prev);
+      }
+    } catch (err) {
+      console.error("[progress] delete threw:", err);
+      setPhotos(prev);
+    }
   };
 
   const beforeOptions = photos;

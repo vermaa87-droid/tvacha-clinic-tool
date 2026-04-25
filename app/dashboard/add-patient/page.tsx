@@ -368,7 +368,8 @@ export default function AddPatientPage() {
         photoUrls,
       });
 
-      setCurrentStep(4);
+      // Skip the AI step when no photos were uploaded — AI cannot run without images
+      setCurrentStep(filledSlots.length === 0 ? 5 : 4);
     } catch (err) {
       console.error("[add-patient] save error:", err);
       setSaveError(

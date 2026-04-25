@@ -249,37 +249,6 @@ export default function SettingsPage() {
         </div>
       </a>
 
-      {/* Consent Templates link */}
-      <a
-        href="/dashboard/settings/consents"
-        className="block rounded-lg border p-4 sm:p-5 transition-colors hover:bg-primary-50"
-        style={{
-          borderColor: "rgba(184,147,106,0.3)",
-          backgroundColor: "var(--color-card)",
-        }}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h3
-              className="text-lg font-serif font-semibold text-text-primary"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-            >
-              {t("settings_consents_link")}
-            </h3>
-            <p className="text-sm text-text-secondary mt-0.5">
-              {t("settings_consents_link_desc")}
-            </p>
-          </div>
-          <span
-            aria-hidden
-            className="text-xl flex-shrink-0"
-            style={{ color: "#b8936a" }}
-          >
-            →
-          </span>
-        </div>
-      </a>
-
       {/* SMS Reminders link */}
       <a
         href="/dashboard/settings/sms"

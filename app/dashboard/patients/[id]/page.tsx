@@ -12,7 +12,6 @@ import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { PatientPhotosTab } from "@/components/PatientPhotosTab";
 import { PatientPackagesTab } from "@/components/dashboard/PatientPackagesTab";
-import { PatientConsentsTab } from "@/components/dashboard/PatientConsentsTab";
 import { PatientProgressPhotosTab } from "@/components/dashboard/PatientProgressPhotosTab";
 import { PatientBodyMapTab } from "@/components/dashboard/PatientBodyMapTab";
 import { PatientInvoicesTab } from "@/components/dashboard/PatientInvoicesTab";
@@ -51,7 +50,6 @@ import {
   Trash2,
   Pencil,
   Package as PackageIcon,
-  FileSignature,
   Sparkles,
   Map as MapIcon,
   Receipt,
@@ -153,7 +151,6 @@ type TabKey =
   | "body_map"
   | "lab_reports"
   | "packages"
-  | "consents"
   | "invoices"
   | "billing";
 
@@ -166,7 +163,6 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "body_map", label: "Body Map", icon: <MapIcon size={16} /> },
   { key: "lab_reports", label: "Lab Reports", icon: <FlaskConical size={16} /> },
   { key: "packages", label: "Packages", icon: <PackageIcon size={16} /> },
-  { key: "consents", label: "Consents", icon: <FileSignature size={16} /> },
   { key: "invoices", label: "Invoices", icon: <Receipt size={16} /> },
   { key: "billing", label: "Billing", icon: <DollarSign size={16} /> },
 ];
@@ -2162,11 +2158,6 @@ export default function PatientDetailPage({
           {/* ── Tab: PACKAGES ────────────────────────────────────────────── */}
           {activeTab === "packages" && user && (
             <PatientPackagesTab doctorId={user.id} patientId={params.id} />
-          )}
-
-          {/* ── Tab: CONSENTS ────────────────────────────────────────────── */}
-          {activeTab === "consents" && user && (
-            <PatientConsentsTab doctorId={user.id} patientId={params.id} />
           )}
 
           {/* ── Tab: PROGRESS PHOTOS ─────────────────────────────────────── */}
